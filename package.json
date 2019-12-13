@@ -1,0 +1,17 @@
+{
+	"name": "transfer-server-unit-tests",
+	"version": "1.0.0",
+	"main": "index.js",
+	"license": "MIT",
+	"scripts": {
+		"start": "jest -i"
+	},
+	"dependencies": {
+		"@babel/core": "^7.7.5",
+		"@babel/preset-env": "^7.7.6",
+		"babel-jest": "^24.9.0",
+		"jest": "^24.9.0",
+		"node-fetch": "^2.6.0",
+		"toml": "^3.0.0"
+	}
+}
