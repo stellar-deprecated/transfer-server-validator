@@ -1,0 +1,34 @@
+.ResultContainer {
+  max-width: 800px;
+  text-align: start;
+  margin: auto;
+  padding: 16px;
+}
+
+.ResultBanner {
+  font-size: 18px;
+}
+
+.ResultSetGroupHeader {
+  background: rgba(0,0,0,0.2);
+}
+
+.Breadcrumbs span:not(:last-child)::after {
+  content: " > ";
+}
+
+.Breadcrumbs:hover {
+  background: rgba(0,0,0,0.1);
+}
+
+.Passed {
+  color: green;
+}
+
+.Failed {
+  color: red;
+}
+
+.Cursor {
+  cursor: pointer;
+}

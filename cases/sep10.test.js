@@ -3,7 +3,8 @@ import JWT from "jsonwebtoken";
 import TOML from "toml";
 import StellarSDK from "stellar-sdk";
 
-const url = "https://stellar-anchor-server.herokuapp.com";
+const url = process.env.DOMAIN;
+console.log("URL IS ", url);
 const account = "GCQJX6WGG7SSFU2RBO5QANTFXY7C5GTTFJDCBAAO42JCCFIMZ7PEBURP";
 const secret = "SAUOSXXF7ZDO5PKHRFR445DRKZ66Q5HIM2HIPQGWBTUKJZQAOP3VGH3L";
 const keyPair = StellarSDK.Keypair.fromSecret(secret);
@@ -49,7 +50,7 @@ describe("SEP10", () => {
     expect(json.error).toBeTruthy();
   });
 
-  describe("Challenge", () => {
+  describe("GET Challenge", () => {
     let json;
     beforeAll(async () => {
       const response = await fetch(
@@ -77,7 +78,7 @@ describe("SEP10", () => {
       expect(tx.operations[0].source).toBe(account);
     });
 
-    describe("Response", () => {
+    describe("POST Response", () => {
       it("Accepts application/x-www-form-urlencoded", async () => {
         const tx = new StellarSDK.Transaction(
           json.transaction,
@@ -110,7 +111,6 @@ describe("SEP10", () => {
         });
         expect(resp.status).not.toBe(200);
         let tokenJson = await resp.json();
-        console.log(tokenJson);
         expect(tokenJson.error).toBeTruthy();
       });
 

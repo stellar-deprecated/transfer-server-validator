@@ -1,19 +1,30 @@
 {
-	"name": "transfer-server-unit-tests",
-	"version": "1.0.0",
-	"main": "index.js",
-	"license": "MIT",
-	"scripts": {
-		"start": "jest -i"
-	},
-	"dependencies": {
-		"@babel/core": "^7.7.5",
-		"@babel/preset-env": "^7.7.6",
-		"babel-jest": "^24.9.0",
-		"jest": "^24.9.0",
-		"jsonwebtoken": "^8.5.1",
-		"node-fetch": "^2.6.0",
-		"stellar-sdk": "^3.3.0",
-		"toml": "^3.0.0"
-	}
+  "name": "transfer-server-unit-tests",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "jest -i",
+    "server:dev": "nodemon server/api.js",
+    "server": "node server/api.js"
+  },
+  "dependencies": {
+    "@babel/core": "^7.7.5",
+    "@babel/preset-env": "^7.7.6",
+    "babel-jest": "^24.9.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "jest": "^24.9.0",
+    "jsonwebtoken": "^8.5.1",
+    "node-fetch": "^2.6.0",
+    "nodemon": "^2.0.2",
+    "stellar-sdk": "^3.3.0",
+    "toml": "^3.0.0",
+    "webpack": "^4.41.3"
+  },
+  "jest": {
+    "roots": [
+      "cases"
+    ]
+  }
 }
