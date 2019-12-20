@@ -23,3 +23,7 @@ $ cd client
 $ yarn
 $ yarn start
 ```
+
+### Automated monitoring
+
+TBD
