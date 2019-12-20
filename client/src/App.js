@@ -11,7 +11,7 @@ function App() {
   const runValidation = useCallback(async domain => {
     setLoading(true);
     setResults(null);
-    const response = await fetch("http://localhost:3000/run?domain=" + domain);
+    const response = await fetch("/run?domain=" + domain);
     const json = await response.json();
     setResults(json);
     setLoading(false);

@@ -4,14 +4,15 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "jest -i",
-    "server:dev": "nodemon server/api.js",
+    "test": "jest -i",
+    "server:dev": "PORT=3001 nodemon server/api.js",
     "server": "node server/api.js"
   },
   "dependencies": {
     "@babel/core": "^7.7.5",
     "@babel/preset-env": "^7.7.6",
     "babel-jest": "^24.9.0",
+    "concurrently": "^5.0.2",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "jest": "^24.9.0",
