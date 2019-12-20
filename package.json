@@ -6,7 +6,8 @@
   "scripts": {
     "test": "jest -i",
     "server:dev": "PORT=3001 nodemon server/api.js",
-    "server": "node server/api.js"
+    "server": "node server/api.js",
+    "heroku-postbuild": "cd client && yarn && yarn run build"
   },
   "dependencies": {
     "@babel/core": "^7.7.5",

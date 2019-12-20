@@ -12,6 +12,7 @@ function App() {
     setLoading(true);
     setResults(null);
     const response = await fetch("/run?domain=" + domain);
+    //todo error handle
     const json = await response.json();
     setResults(json);
     setLoading(false);
