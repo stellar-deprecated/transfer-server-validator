@@ -8,7 +8,7 @@ Test suite for validating services support for SEP24.
 
 ```
 $ yarn
-$ DOMAIN=stellar-anchor-server.herokuapp.com npx jest
+$ DOMAIN=https://stellar-anchor-server.herokuapp.com npx jest
 ```
 
 ### Via UI
