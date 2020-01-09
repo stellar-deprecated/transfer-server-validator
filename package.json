@@ -4,7 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "test": "jest -i",
+    "test": "jest -i --verbose",
     "server:dev": "PORT=3001 nodemon server/api.js",
     "start": "node server/api.js",
     "heroku-postbuild": "cd client && yarn && yarn run build"

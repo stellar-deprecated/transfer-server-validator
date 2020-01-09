@@ -3,7 +3,7 @@ module.exports = (req, res) => {
   const domain = req.query.domain;
   const env = { ...process.env };
   env.DOMAIN = domain;
-  const jest = spawn("node_modules/.bin/jest", ["--json"], {
+  const jest = spawn("node_modules/.bin/jest", ["--json", "--noStackTrace"], {
     env
   });
   let jsonStr = "";

@@ -4,7 +4,6 @@ import TOML from "toml";
 import StellarSDK from "stellar-sdk";
 
 const url = process.env.DOMAIN;
-console.log("URL IS ", url);
 const account = "GCQJX6WGG7SSFU2RBO5QANTFXY7C5GTTFJDCBAAO42JCCFIMZ7PEBURP";
 const secret = "SAUOSXXF7ZDO5PKHRFR445DRKZ66Q5HIM2HIPQGWBTUKJZQAOP3VGH3L";
 const keyPair = StellarSDK.Keypair.fromSecret(secret);

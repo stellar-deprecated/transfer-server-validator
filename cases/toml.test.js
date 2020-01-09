@@ -12,7 +12,10 @@ describe("TOML File", () => {
 
   it("has cors", async () => {
     const response = await fetch(url + "/.well-known/stellar.toml", {
-      method: "OPTIONS"
+      method: "OPTIONS",
+      headers: {
+        Origin: "https://test.com"
+      }
     });
     expect(response.headers.get("access-control-allow-origin")).toBe("*");
   });
