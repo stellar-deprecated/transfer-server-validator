@@ -2,7 +2,7 @@ import { fetch } from "../util";
 import TOML from "toml";
 
 const url = process.env.DOMAIN;
-console.log("URL", url);
+
 describe("TOML File", () => {
   it("exists", async () => {
     const response = await fetch(url + "/.well-known/stellar.toml");
@@ -22,8 +22,11 @@ describe("TOML File", () => {
 
   describe("fields", () => {
     let toml;
+    let fileSize;
     beforeAll(async () => {
       const response = await fetch(url + "/.well-known/stellar.toml");
+      fileSize = response.headers.get("content-length");
+
       const text = await response.text();
       try {
         toml = TOML.parse(text);
@@ -33,6 +36,10 @@ describe("TOML File", () => {
     });
 
     it("is well formatted", async () => {});
+
+    it("has a max file size of 100kb", () => {
+      expect(parseInt(fileSize)).toBeLessThan(100000);
+    });
 
     it("has a network passphrase", () => {
       expect(toml.NETWORK_PASSPHRASE).toBeTruthy();
