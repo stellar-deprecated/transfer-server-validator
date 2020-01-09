@@ -49,6 +49,14 @@ describe("SEP10", () => {
     expect(json.error).toBeTruthy();
   });
 
+  it("gives an error with an invalid account provided", async () => {
+    const response = await fetch(
+      toml.WEB_AUTH_ENDPOINT + "?account=GINVALIDACCOUNT"
+    );
+    const json = await response.json();
+    expect(json.error).toBeTruthy();
+  });
+
   describe("GET Challenge", () => {
     let json;
     beforeAll(async () => {
@@ -75,6 +83,7 @@ describe("SEP10", () => {
       expect(tx.operations).toHaveLength(1);
       expect(tx.operations[0].type).toBe("manageData");
       expect(tx.operations[0].source).toBe(account);
+      expect(tx.source).toBe(toml.SIGNING_KEY);
     });
 
     describe("POST Response", () => {
@@ -96,11 +105,44 @@ describe("SEP10", () => {
         expect(tokenJson.token).toBeTruthy();
       });
 
+      it("fails if no transaction is posted in the body", async () => {
+        let resp = await fetch(toml.WEB_AUTH_ENDPOINT, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+        expect(resp.status).not.toBe(200);
+        let json = await resp.json();
+        expect(json.error).toBeTruthy();
+        expect(json.token).toBeFalsy();
+      });
+
       it("fails if the client doesn't sign the challenge", async () => {
         const tx = new StellarSDK.Transaction(
           json.transaction,
           json.network_passphrase
         );
+        let resp = await fetch(toml.WEB_AUTH_ENDPOINT, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ transaction: tx.toXDR() })
+        });
+        expect(resp.status).not.toBe(200);
+        let tokenJson = await resp.json();
+        expect(tokenJson.error).toBeTruthy();
+      });
+
+      it("fails if the signed challenge isn't signed by the servers SIGNING_KEY", async () => {
+        const tx = new StellarSDK.Transaction(
+          json.transaction,
+          json.network_passphrase
+        );
+        // Remove the server signature, only sign by client
+        tx.signatures = [];
+        tx.sign(keyPair);
         let resp = await fetch(toml.WEB_AUTH_ENDPOINT, {
           method: "POST",
           headers: {
@@ -132,7 +174,16 @@ describe("SEP10", () => {
       });
 
       it("Has a valid token", () => {
-        JWT.decode(token);
+        const jwt = JWT.decode(token);
+        expect(jwt).toBeTruthy();
+        expect(jwt).toEqual(
+          expect.objectContaining({
+            iss: expect.any(String),
+            sub: account,
+            iat: expect.any(Number),
+            exp: expect.any(Number)
+          })
+        );
       });
     });
   });
