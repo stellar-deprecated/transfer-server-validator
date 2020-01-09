@@ -26,7 +26,6 @@ describe("TOML File", () => {
     beforeAll(async () => {
       const response = await fetch(url + "/.well-known/stellar.toml");
       fileSize = response.headers.get("content-length");
-
       const text = await response.text();
       try {
         toml = TOML.parse(text);

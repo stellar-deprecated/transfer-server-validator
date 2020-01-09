@@ -171,6 +171,7 @@ describe("SEP10", () => {
         });
         let tokenJson = await resp.json();
         token = tokenJson.token;
+        console.log(token);
       });
 
       it("Has a valid token", () => {
