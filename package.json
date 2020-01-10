@@ -17,6 +17,7 @@
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "jest": "^24.9.0",
+    "jest-json-schema": "^2.1.0",
     "jsonwebtoken": "^8.5.1",
     "node-fetch": "^2.6.0",
     "nodemon": "^2.0.2",
@@ -27,6 +28,9 @@
   "jest": {
     "roots": [
       "cases"
+    ],
+    "setupFilesAfterEnv": [
+      "./cases/setup.js"
     ]
   }
 }

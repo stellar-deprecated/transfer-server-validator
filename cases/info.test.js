@@ -1,0 +1,86 @@
+import { fetch } from "../util";
+import JWT from "jsonwebtoken";
+import TOML from "toml";
+import StellarSDK from "stellar-sdk";
+
+const url = process.env.DOMAIN;
+const account = "GCQJX6WGG7SSFU2RBO5QANTFXY7C5GTTFJDCBAAO42JCCFIMZ7PEBURP";
+const secret = "SAUOSXXF7ZDO5PKHRFR445DRKZ66Q5HIM2HIPQGWBTUKJZQAOP3VGH3L";
+const keyPair = StellarSDK.Keypair.fromSecret(secret);
+
+expect;
+
+describe("Info", () => {
+  let toml;
+  let TRANSFER_SERVER;
+  beforeAll(async () => {
+    const response = await fetch(url + "/.well-known/stellar.toml");
+    const text = await response.text();
+    try {
+      toml = TOML.parse(text);
+      TRANSFER_SERVER = toml.TRANSFER_SERVER;
+      if (TRANSFER_SERVER[TRANSFER_SERVER.length - 1] !== "/") {
+        TRANSFER_SERVER += "/";
+      }
+    } catch (e) {
+      throw "Invalid TOML formatting";
+    }
+  });
+
+  it("has a TRANSFER_SERVER url in the toml", () => {
+    expect(TRANSFER_SERVER).toEqual(expect.stringContaining("http"));
+    new URL(TRANSFER_SERVER); // Make sure it parses correctly
+  });
+
+  it("has CORS on the info endpoint", async () => {
+    const response = await fetch(TRANSFER_SERVER + "info", {
+      headers: {
+        Origin: "https://www.website.com"
+      }
+    });
+    expect(response.headers.get("access-control-allow-origin")).toBe("*");
+  });
+
+  describe("happy path", () => {
+    let json;
+
+    beforeAll(async () => {
+      const response = await fetch(TRANSFER_SERVER + "info", {
+        headers: {
+          Origin: "https://www.website.com"
+        }
+      });
+      expect(response.status).toEqual(200);
+      expect(response.headers.get("content-type")).toEqual("application/json");
+      json = await response.json();
+      expect(json).toBeTruthy();
+    });
+
+    it("has a proper schema", () => {
+      const depositAndWithdrawSchema = {
+        type: "object",
+        patternProperties: {
+          ".*": {
+            properties: {
+              enabled: { type: "boolean" },
+              fee_fixed: { type: "number" },
+              fee_percent: { type: "number" },
+              min_amount: { type: "number" },
+              max_amount: { type: "number" }
+            }
+          }
+        }
+      };
+      const schema = {
+        properties: {
+          deposit: depositAndWithdrawSchema,
+          withdraw: depositAndWithdrawSchema,
+          fee: {
+            properties: { enabled: { type: "boolean" } }
+          }
+        }
+      };
+      expect(json).toMatchSchema(schema);
+    });
+  });
+});
