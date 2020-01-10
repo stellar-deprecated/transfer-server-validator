@@ -30,7 +30,7 @@
       "cases"
     ],
     "setupFilesAfterEnv": [
-      "./cases/setup.js"
+      "./cases/util/setup.js"
     ]
   }
 }
