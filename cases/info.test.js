@@ -22,7 +22,7 @@ describe("Info", () => {
 
   it("has a TRANSFER_SERVER url in the toml", () => {
     expect(TRANSFER_SERVER).toEqual(expect.stringContaining("http"));
-    new URL(TRANSFER_SERVER); // Make sure it parses correctly
+    expect(() => new URL(TRANSFER_SERVER)).not.toThrow(); // Make sure it parses correctly
   });
 
   it("has CORS on the info endpoint", async () => {
