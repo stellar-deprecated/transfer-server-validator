@@ -1,4 +1,4 @@
-import { fetch } from "../util";
+import { fetch } from "./util/fetchShim";
 import TOML from "toml";
 
 const url = process.env.DOMAIN;

@@ -108,5 +108,12 @@ describe("Deposit", () => {
       interactiveURL = json.url;
       expect(() => new URL(interactiveURL)).not.toThrow();
     });
+
+    it("can load the interactive url", async () => {
+      driver.get(interactiveURL);
+      return expect(
+        driver.findElements(By.id("id_first_name"))
+      ).resolves.toBePresent();
+    });
   });
 });

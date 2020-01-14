@@ -9,18 +9,24 @@
     "start": "node server/api.js",
     "heroku-postbuild": "cd client && yarn && yarn run build"
   },
+  "engines": {
+    "node": ">=10.16.3"
+  },
   "dependencies": {
     "@babel/core": "^7.7.5",
     "@babel/preset-env": "^7.7.6",
     "babel-jest": "^24.9.0",
+    "chromedriver": "^79.0.0",
     "concurrently": "^5.0.2",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "jest": "^24.9.0",
+    "jest-environment-selenium": "^2.1.2",
     "jest-json-schema": "^2.1.0",
     "jsonwebtoken": "^8.5.1",
     "node-fetch": "^2.6.0",
     "nodemon": "^2.0.2",
+    "selenium-webdriver": "^4.0.0-alpha.5",
     "stellar-sdk": "^3.3.0",
     "toml": "^3.0.0",
     "webpack": "^4.41.4"
@@ -30,7 +36,9 @@
       "cases"
     ],
     "setupFilesAfterEnv": [
-      "./cases/util/setup.js"
-    ]
+      "./cases/util/setup.js",
+      "jest-environment-selenium/dist/setup.js"
+    ],
+    "testEnvironment": "jest-environment-selenium"
   }
 }
