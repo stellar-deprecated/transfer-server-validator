@@ -45,6 +45,7 @@ async function buildDriver(configuration) {
   var options = new chrome.Options();
   options.addArguments("headless");
   options.addArguments("disable-dev-shm-usage");
+  options.addArguments("no-sandbox");
   const driver = new webdriver.Builder()
     .forBrowser("chrome")
     .setChromeOptions(options);

@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
+  "description": "Validates anchors implementation of SEP24",
+  "repository": {
+    "url": "https://github.com/stellar/transfer-server-validator-simplified"
+  },
   "scripts": {
     "test": "jest -i --verbose",
     "server:dev": "PORT=3001 nodemon server/api.js",
