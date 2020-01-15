@@ -118,7 +118,7 @@ describe("Deposit", () => {
 
       return expect(
         driver.findElements(By.id("id_first_name"))
-      ).resolves.toBePresent();
+      ).resolves.toBeTruthy();
     });
   });
 });
