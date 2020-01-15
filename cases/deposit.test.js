@@ -1,3 +1,6 @@
+/**
+ * @jest-environment ./cases/environment.js
+ */
 import { fetch } from "./util/fetchShim";
 import getSep10Token from "./util/sep10";
 import TOML from "toml";
@@ -105,12 +108,14 @@ describe("Deposit", () => {
       expect(json.error).toBeFalsy();
       expect(json.type).toEqual("interactive_customer_info_needed");
       expect(json.id).toEqual(expect.any(String));
+      console.log(json);
       interactiveURL = json.url;
-      expect(() => new URL(interactiveURL)).not.toThrow();
+      expect(() => new global.URL(interactiveURL)).not.toThrow();
     });
 
     it("can load the interactive url", async () => {
-      driver.get(interactiveURL);
+      await driver.get(interactiveURL);
+
       return expect(
         driver.findElements(By.id("id_first_name"))
       ).resolves.toBePresent();
