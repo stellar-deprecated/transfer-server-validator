@@ -108,7 +108,6 @@ describe("Deposit", () => {
       expect(json.error).toBeFalsy();
       expect(json.type).toEqual("interactive_customer_info_needed");
       expect(json.id).toEqual(expect.any(String));
-      console.log(json);
       interactiveURL = json.url;
       expect(() => new global.URL(interactiveURL)).not.toThrow();
     });
