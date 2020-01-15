@@ -44,6 +44,7 @@ class WebdriverEnvironment extends JSDOMEnvironment {
 async function buildDriver(configuration) {
   var options = new chrome.Options();
   options.addArguments("headless");
+  options.addArguments("disable-dev-shm-usage");
   const driver = new webdriver.Builder()
     .forBrowser("chrome")
     .setChromeOptions(options);

@@ -7,15 +7,16 @@ RUN apt-get update && apt-get install -y \
   gnupg2 \ 
   libtool-bin \
   default-jre \
-  autoconf libssl-dev openssl
+  autoconf libssl-dev openssl \
+  && rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update \
   && apt-get upgrade -y \
   && curl -sL https://deb.nodesource.com/setup_13.x | bash - \
   && apt-get install -y nodejs
 
-  RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
-  echo "deb http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google.list && \
+RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
+RUN echo "deb http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google.list && \
   apt-get update && \
   apt-get install -y google-chrome-stable && \
   rm -rf /var/lib/apt/lists/*

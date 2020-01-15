@@ -1,4 +1,4 @@
-import { fetch } from "../util";
+import { fetch } from "./util/fetchShim";
 import JWT from "jsonwebtoken";
 import TOML from "toml";
 import StellarSDK from "stellar-sdk";
