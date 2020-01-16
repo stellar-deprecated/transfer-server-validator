@@ -6,7 +6,7 @@ export default function({ onValidateClick }) {
     "https://stellar-anchor-server.herokuapp.com"
   );
   return (
-    <div>
+    <div className={s.InputContainer}>
       <input
         type="text"
         className={s.Field}

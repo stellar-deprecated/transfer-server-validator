@@ -26,6 +26,7 @@
     "express": "^4.17.1",
     "jest": "^24.9.0",
     "jest-json-schema": "^2.1.0",
+    "jest-junit": "^10.0.0",
     "jsonwebtoken": "^8.5.1",
     "node-fetch": "^2.6.0",
     "nodemon": "^2.0.2",
@@ -37,6 +38,10 @@
   "jest": {
     "roots": [
       "cases"
+    ],
+    "reporters": [
+      "default",
+      "jest-junit"
     ],
     "setupFilesAfterEnv": [
       "./cases/util/setup.js"

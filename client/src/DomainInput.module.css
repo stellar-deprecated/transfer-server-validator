@@ -1,9 +1,14 @@
+.InputContainer {
+  display: flex;
+  flex-direction: row;
+}
+
 .Field {
-  width: 300px;
-  font-size: 18px;
+  flex-grow: 1;
+  font-size: 24px;
 }
 
 .Button {
   margin-left: 4px;
-  font-size: 18px;
+  font-size: 24px;
 }
