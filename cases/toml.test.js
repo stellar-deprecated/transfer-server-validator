@@ -7,7 +7,9 @@ describe("TOML File", () => {
   it("exists", async () => {
     const response = await fetch(url + "/.well-known/stellar.toml");
     expect(response.status).toBe(200);
-    expect(response.headers.get("content-type")).toBe("text/plain");
+    expect(response.headers.get("content-type")).toEqual(
+      expect.stringContaining("text/plain")
+    );
   });
 
   it("has cors", async () => {
@@ -37,7 +39,7 @@ describe("TOML File", () => {
     it("is well formatted", async () => {});
 
     it("has a max file size of 100kb", () => {
-      expect(parseInt(fileSize)).toBeLessThan(100000);
+      expect(parseInt(fileSize)).not.toBeGreaterThan(100000);
     });
 
     it("has a network passphrase", () => {

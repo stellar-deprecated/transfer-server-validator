@@ -104,12 +104,12 @@ describe("Deposit", () => {
         keyPair.publicKey(),
         true
       );
-      expect(status).toEqual(200);
+      interactiveURL = json.url;
       expect(json.error).toBeFalsy();
       expect(json.type).toEqual("interactive_customer_info_needed");
       expect(json.id).toEqual(expect.any(String));
-      interactiveURL = json.url;
       expect(() => new global.URL(interactiveURL)).not.toThrow();
+      expect(status).toEqual(200);
     });
 
     it("can load the interactive url", async () => {
