@@ -8,7 +8,7 @@
     "url": "https://github.com/stellar/transfer-server-validator-simplified"
   },
   "scripts": {
-    "test": "jest -i --verbose",
+    "test": "jest -i --verbose --runInBand",
     "server:dev": "PORT=3001 nodemon server/api.js",
     "start": "node server/api.js",
     "heroku-postbuild": "cd client && yarn && yarn run build"
