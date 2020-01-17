@@ -44,7 +44,9 @@ describe("Info", () => {
         }
       });
       expect(response.status).toEqual(200);
-      expect(response.headers.get("content-type")).toEqual("application/json");
+      expect(response.headers.get("content-type")).toEqual(
+        expect.stringContaining("application/json")
+      );
       json = await response.json();
       expect(json).toBeTruthy();
     });
