@@ -11,7 +11,13 @@ $ yarn
 $ DOMAIN=https://stellar-anchor-server.herokuapp.com npx jest
 ```
 
-### Via UI
+### Via Docker
+
+```
+$ docker build -t transfer-server-validator .
+$ docker run  -p 3000:3000  transfer-server-validator
+
+### Running locally
 
 ```
 # Run the server
