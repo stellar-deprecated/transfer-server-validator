@@ -26,7 +26,7 @@ RUN chmod +x /usr/local/bin/chromedriver
 WORKDIR /usr/src/app
 COPY package*.json ./
 RUN npm install
-RUN cd client ; npm install ; npm run build ; cd ..
 COPY . .
+RUN cd client ; npm install ; npm run build ; cd ..
 EXPOSE 3000
 CMD [ "npm", "start" ]
