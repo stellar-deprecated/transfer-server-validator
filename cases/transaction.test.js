@@ -17,7 +17,6 @@ describe("Transaction", () => {
 
   const createTransaction = async (asset_code, account, authenticate) => {
     const params = new FormData();
-    console.log("Params", asset_code, account);
     if (asset_code) params.append("asset_code", asset_code);
     if (account) params.append("account", account);
     const authenticatedHeaders = Object.assign(
@@ -72,7 +71,6 @@ describe("Transaction", () => {
       }
     );
     json = await response.json();
-    console.log(json);
     expect(response.status).toEqual(200);
     expect(json.error).not.toBeDefined();
     const schema = {
@@ -144,7 +142,6 @@ describe("Transaction", () => {
       }
     );
     const json = await response.json();
-    console.log(json);
     expect(response.status).toEqual(404);
     expect(json.error).toBeDefined();
   });
