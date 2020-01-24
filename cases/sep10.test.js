@@ -2,12 +2,16 @@ import { fetch } from "./util/fetchShim";
 import JWT from "jsonwebtoken";
 import TOML from "toml";
 import StellarSDK from "stellar-sdk";
+import friendbot from "./util/friendbot";
+import getSep10Token from "./util/sep10";
 
 const url = process.env.DOMAIN;
 const account = "GCQJX6WGG7SSFU2RBO5QANTFXY7C5GTTFJDCBAAO42JCCFIMZ7PEBURP";
 const secret = "SAUOSXXF7ZDO5PKHRFR445DRKZ66Q5HIM2HIPQGWBTUKJZQAOP3VGH3L";
 const keyPair = StellarSDK.Keypair.fromSecret(secret);
 
+const server = new StellarSDK.Server("https://horizon-testnet.stellar.org");
+jest.setTimeout(100000);
 describe("SEP10", () => {
   let toml;
   beforeAll(async () => {
@@ -185,6 +189,96 @@ describe("SEP10", () => {
           })
         );
       });
+    });
+  });
+
+  describe("signers support", () => {
+    it("fails for an account that can't sign for itself", async () => {
+      const accountA = StellarSDK.Keypair.random();
+      await friendbot(accountA.publicKey());
+      const accountData = await server.loadAccount(accountA.publicKey());
+      const transaction = new StellarSDK.TransactionBuilder(accountData, {
+        fee: StellarSDK.BASE_FEE,
+        networkPassphrase: StellarSDK.Networks.TESTNET
+      })
+        .addOperation(
+          StellarSDK.Operation.setOptions({
+            masterWeight: 0
+          })
+        )
+        .setTimeout(30)
+        .build();
+      transaction.sign(accountA);
+      await server.submitTransaction(transaction);
+      const token = await getSep10Token(url, accountA, [accountA]);
+      expect(token).toBeFalsy();
+    });
+
+    it("succeeds for a signer of an account", async () => {
+      const userAccount = StellarSDK.Keypair.random();
+      const signerAccount = StellarSDK.Keypair.random();
+      await friendbot(userAccount.publicKey());
+      await friendbot(signerAccount.publicKey());
+      const accountData = await server.loadAccount(userAccount.publicKey());
+      const transaction = new StellarSDK.TransactionBuilder(accountData, {
+        fee: StellarSDK.BASE_FEE,
+        networkPassphrase: StellarSDK.Networks.TESTNET
+      })
+        .addOperation(
+          StellarSDK.Operation.setOptions({
+            lowThreshold: 1,
+            medThreshold: 1,
+            highThreshold: 1,
+            signer: {
+              ed25519PublicKey: signerAccount.publicKey(),
+              weight: 1
+            }
+          })
+        )
+        .setTimeout(30)
+        .build();
+      transaction.sign(userAccount);
+      await server.submitTransaction(transaction);
+      const token = await getSep10Token(url, userAccount, [signerAccount]);
+      expect(token).toBeTruthy();
+    });
+
+    /**
+     * In this test case, since we have a signer with only half the required
+     * weight of the thresholds, a malicious actor might try to sign twice
+     * with the same key hoping the server doesn't de-duplicate signers, and
+     * count its weight twice.
+     */
+    it("fails when trying to reuse the same signer to gain weight", async () => {
+      const userAccount = StellarSDK.Keypair.random();
+      const signerAccount = StellarSDK.Keypair.random();
+      await friendbot(userAccount.publicKey());
+      await friendbot(signerAccount.publicKey());
+      const accountData = await server.loadAccount(userAccount.publicKey());
+      const transaction = new StellarSDK.TransactionBuilder(accountData, {
+        fee: StellarSDK.BASE_FEE,
+        networkPassphrase: StellarSDK.Networks.TESTNET
+      })
+        .addOperation(
+          StellarSDK.Operation.setOptions({
+            lowThreshold: 2,
+            medThreshold: 2,
+            highThreshold: 2,
+            signer: {
+              ed25519PublicKey: signerAccount.publicKey(),
+              weight: 1
+            }
+          })
+        )
+        .setTimeout(30)
+        .build();
+      transaction.sign(userAccount);
+      await server.submitTransaction(transaction);
+      const token = await getSep10Token(url, userAccount, [
+        signerAccount,
+        signerAccount
+      ]);
+      expect(token).toBeFalsy();
     });
   });
 });
