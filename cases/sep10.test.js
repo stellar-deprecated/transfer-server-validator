@@ -196,6 +196,7 @@ describe("SEP10", () => {
 
   describe("signers support", () => {
     afterAll(async () => {
+      console.log("DESTROY ALL FRIENDS");
       await friendbot.destroyAllFriends();
     });
 
