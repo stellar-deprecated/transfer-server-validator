@@ -1,9 +1,11 @@
 import { fetch } from "./fetchShim";
+import StellarSdk from "stellar-sdk";
 
-export default async function friendbot(address) {
+async function friendbot(address) {
   const response = await fetch(
     `https://friendbot.stellar.org/?addr=${address}`
   );
   expect(response.status).toEqual(200);
-  const json = await response.json();
 }
+
+export default friendbot;

@@ -280,5 +280,49 @@ describe("SEP10", () => {
       ]);
       expect(token).toBeFalsy();
     });
+
+    it("succeeds with multiple signers", async () => {
+      const userAccount = StellarSDK.Keypair.random();
+      const signerAccount1 = StellarSDK.Keypair.random();
+      const signerAccount2 = StellarSDK.Keypair.random();
+      await Promise.all([
+        friendbot(userAccount.publicKey()),
+        friendbot(signerAccount1.publicKey()),
+        friendbot(signerAccount2.publicKey())
+      ]);
+      const accountData = await server.loadAccount(userAccount.publicKey());
+      const transaction = new StellarSDK.TransactionBuilder(accountData, {
+        fee: StellarSDK.BASE_FEE,
+        networkPassphrase: StellarSDK.Networks.TESTNET
+      })
+        .addOperation(
+          StellarSDK.Operation.setOptions({
+            lowThreshold: 2,
+            medThreshold: 2,
+            highThreshold: 2,
+            signer: {
+              ed25519PublicKey: signerAccount1.publicKey(),
+              weight: 1
+            }
+          })
+        )
+        .addOperation(
+          StellarSDK.Operation.setOptions({
+            signer: {
+              ed25519PublicKey: signerAccount2.publicKey(),
+              weight: 1
+            }
+          })
+        )
+        .setTimeout(30)
+        .build();
+      transaction.sign(userAccount);
+      await server.submitTransaction(transaction);
+      const token = await getSep10Token(url, userAccount, [
+        signerAccount1,
+        signerAccount2
+      ]);
+      expect(token).toBeTruthy();
+    });
   });
 });
