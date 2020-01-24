@@ -2,7 +2,7 @@ import { fetch } from "./util/fetchShim";
 import JWT from "jsonwebtoken";
 import TOML from "toml";
 import StellarSDK from "stellar-sdk";
-import { createAccount, cleanupAccountCreator } from "./util/accountCreator";
+import friendbot from "./util/friendbot";
 import getSep10Token from "./util/sep10";
 
 const url = process.env.DOMAIN;
@@ -194,11 +194,11 @@ describe("SEP10", () => {
 
   describe("signers support", () => {
     afterAll(async () => {
-      await cleanupAccountCreator();
+      await friendbot.destroyAllFriends();
     });
     it("fails for an account that can't sign for itself", async () => {
       const accountA = StellarSDK.Keypair.random();
-      await createAccount(accountA);
+      await friendbot(accountA);
       const accountData = await server.loadAccount(accountA.publicKey());
       const transaction = new StellarSDK.TransactionBuilder(accountData, {
         fee: StellarSDK.BASE_FEE,
@@ -220,10 +220,7 @@ describe("SEP10", () => {
     it("succeeds for a signer of an account", async () => {
       const userAccount = StellarSDK.Keypair.random();
       const signerAccount = StellarSDK.Keypair.random();
-      await Promise.all([
-        createAccount(userAccount),
-        createAccount(signerAccount)
-      ]);
+      await Promise.all([friendbot(userAccount), friendbot(signerAccount)]);
       const accountData = await server.loadAccount(userAccount.publicKey());
       const transaction = new StellarSDK.TransactionBuilder(accountData, {
         fee: StellarSDK.BASE_FEE,
@@ -257,10 +254,7 @@ describe("SEP10", () => {
     it("fails when trying to reuse the same signer to gain weight", async () => {
       const userAccount = StellarSDK.Keypair.random();
       const signerAccount = StellarSDK.Keypair.random();
-      await Promise.all([
-        createAccount(userAccount),
-        createAccount(signerAccount)
-      ]);
+      await Promise.all([friendbot(userAccount), friendbot(signerAccount)]);
       const accountData = await server.loadAccount(userAccount.publicKey());
       const transaction = new StellarSDK.TransactionBuilder(accountData, {
         fee: StellarSDK.BASE_FEE,
@@ -293,9 +287,9 @@ describe("SEP10", () => {
       const signerAccount1 = StellarSDK.Keypair.random();
       const signerAccount2 = StellarSDK.Keypair.random();
       await Promise.all([
-        createAccount(userAccount),
-        createAccount(signerAccount1),
-        createAccount(signerAccount2)
+        friendbot(userAccount),
+        friendbot(signerAccount1),
+        friendbot(signerAccount2)
       ]);
       const accountData = await server.loadAccount(userAccount.publicKey());
       const transaction = new StellarSDK.TransactionBuilder(accountData, {
