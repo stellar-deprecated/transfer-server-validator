@@ -5,13 +5,15 @@ import StellarSDK from "stellar-sdk";
 import friendbot from "./util/friendbot";
 import getSep10Token from "./util/sep10";
 
+// Friendbot usage makes this very slow.  Need to create an account pool at
+// the beginning and reuse them.
+jest.setTimeout(100000);
 const url = process.env.DOMAIN;
 const account = "GCQJX6WGG7SSFU2RBO5QANTFXY7C5GTTFJDCBAAO42JCCFIMZ7PEBURP";
 const secret = "SAUOSXXF7ZDO5PKHRFR445DRKZ66Q5HIM2HIPQGWBTUKJZQAOP3VGH3L";
 const keyPair = StellarSDK.Keypair.fromSecret(secret);
-
 const server = new StellarSDK.Server("https://horizon-testnet.stellar.org");
-jest.setTimeout(100000);
+
 describe("SEP10", () => {
   let toml;
   beforeAll(async () => {
@@ -196,6 +198,12 @@ describe("SEP10", () => {
     afterAll(async () => {
       await friendbot.destroyAllFriends();
     });
+
+    /**
+     * Removing the masterWeight for an account means that it can
+     * no longer sign for itself.  This should mean that it can't
+     * get a token with its own signature.
+     */
     it("fails for an account that can't sign for itself", async () => {
       const accountA = StellarSDK.Keypair.random();
       await friendbot(accountA);
