@@ -38,7 +38,7 @@ export const openObservableWindow = async url => {
   }, 1000);
 
   return {
-    observe: cb => {
+    observePostMessage: cb => {
       observers.push(cb);
     }
   };

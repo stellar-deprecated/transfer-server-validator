@@ -116,7 +116,7 @@ describe("Deposit", () => {
 
     it("can load the interactive url", async done => {
       const window = await openObservableWindow(interactiveURL);
-      window.observe(message => {
+      window.observePostMessage(message => {
         expect(message).toMatchSchema(transactionSchema);
         if (message.transaction.status == "pending_user_transfer_start") {
           done();
