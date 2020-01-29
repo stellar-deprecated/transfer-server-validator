@@ -17,7 +17,7 @@ export const openObservableWindow = async url => {
   await driver.get(`data:text/html,<script>window.open("${url}")</script>`);
   const handles = await driver.getAllWindowHandles();
   await driver.switchTo().window(handles[0]);
-  await driver.executeScript(done => {
+  await driver.executeScript(() => {
     window.addEventListener("message", e => {
       window.__LAST_POST_MESSAGE__ = e.data;
     });
