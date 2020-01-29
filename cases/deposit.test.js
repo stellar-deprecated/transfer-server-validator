@@ -114,7 +114,7 @@ describe("Deposit", () => {
       expect(status).toEqual(200);
     });
 
-    it("can load the interactive url", async done => {
+    it("can load get through the interactive flow", async done => {
       const window = await openObservableWindow(interactiveURL);
       // Lets wait until the whole flow finishes by observering for
       // a postMessage awaiting user transfer start
