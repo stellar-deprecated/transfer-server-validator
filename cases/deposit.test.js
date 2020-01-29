@@ -116,13 +116,14 @@ describe("Deposit", () => {
 
     it("can load the interactive url", async done => {
       const window = await openObservableWindow(interactiveURL);
+      // Lets wait until the whole flow finishes by observering for
+      // a postMessage awaiting user transfer start
       window.observePostMessage(message => {
         expect(message).toMatchSchema(transactionSchema);
         if (message.transaction.status == "pending_user_transfer_start") {
           done();
         }
       });
-      await waitForLoad();
       const completePage = async () => {
         try {
           const elements = await driver.findElements(By.css("[test-value]"));
@@ -138,17 +139,15 @@ describe("Deposit", () => {
           });
           await submitButton.click();
         } catch (e) {
-          console.log("Not an automatable page");
+          // Not an automatable page, could be the receipt page postMessaging
         }
       };
       return new Promise(async (resolve, reject) => {
         while (true) {
-          await completePage();
-
           await waitForLoad();
-
+          await completePage();
           await new Promise(resolve => {
-            setTimeout(resolve, 2000);
+            setTimeout(resolve, 100);
           });
         }
       });
