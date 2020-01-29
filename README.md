@@ -21,8 +21,6 @@ DOMAIN=https://localhost:8000 npx jest -I -i cases/deposit.test.js
 
 If you're developing locally and need to use a self-signed certificate, pass the env var `NODE_TLS_REJECT_UNAUTHORIZED="0"` in order to avoid the `request to https://localhost:8000/.well-known/stellar.toml failed, reason: self signed certificate` error.
 
-### Testing an http 
-
 ### Via Docker
 
 ```
