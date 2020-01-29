@@ -6,8 +6,8 @@ import getSep10Token from "./util/sep10";
 import TOML from "toml";
 import StellarSDK from "stellar-sdk";
 import FormData from "form-data";
-import { waitForLoad } from "./util/browser-util";
-
+import { waitForLoad, openObservableWindow } from "./util/browser-util";
+import { transactionSchema } from "./util/schema";
 const url = process.env.DOMAIN;
 const keyPair = StellarSDK.Keypair.random();
 
@@ -115,25 +115,43 @@ describe("Deposit", () => {
     });
 
     it("can load the interactive url", async done => {
-      await driver.get(interactiveURL);
+      const window = await openObservableWindow(interactiveURL);
+      window.observe(message => {
+        expect(message).toMatchSchema(transactionSchema);
+        if (message.transaction.status == "pending_user_transfer_start") {
+          done();
+        }
+      });
       await waitForLoad();
       const completePage = async () => {
-        const elements = await driver.findElements(By.css("[test-value]"));
-        elements.forEach(el => {
-          const val = el.getAttribute("test-value");
-          el.sendKeys(val);
-        });
-        const submitButton = await driver.findElement(
-          By.css("[test-action='submit']")
-        );
-        await new Promise(resolve => {
-          setTimeout(resolve, 100);
-        });
-        await submitButton.click();
+        try {
+          const elements = await driver.findElements(By.css("[test-value]"));
+          elements.forEach(el => {
+            const val = el.getAttribute("test-value");
+            el.sendKeys(val);
+          });
+          const submitButton = await driver.findElement(
+            By.css("[test-action='submit']")
+          );
+          await new Promise(resolve => {
+            setTimeout(resolve, 100);
+          });
+          await submitButton.click();
+        } catch (e) {
+          console.log("Not an automatable page");
+        }
       };
-      await completePage();
-      await waitForLoad();
-      await completePage();
+      return new Promise(async (resolve, reject) => {
+        while (true) {
+          await completePage();
+
+          await waitForLoad();
+
+          await new Promise(resolve => {
+            setTimeout(resolve, 2000);
+          });
+        }
+      });
     });
   });
 });

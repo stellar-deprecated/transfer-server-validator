@@ -46,6 +46,8 @@ async function buildDriver(configuration) {
   // options.addArguments("headless");
   options.addArguments("disable-dev-shm-usage");
   options.addArguments("no-sandbox");
+  options.addArguments("disable-popup-blocking");
+  options.setPageLoadStrategy("eager");
   const driver = new webdriver.Builder()
     .forBrowser("chrome")
     .setChromeOptions(options);
