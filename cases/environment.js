@@ -43,9 +43,10 @@ class WebdriverEnvironment extends JSDOMEnvironment {
 
 async function buildDriver(configuration) {
   var options = new chrome.Options();
-  options.addArguments("headless");
+  if (!process.env.SHOW_BROWSER) options.addArguments("headless");
   options.addArguments("disable-dev-shm-usage");
   options.addArguments("no-sandbox");
+  options.addArguments("disable-popup-blocking");
   const driver = new webdriver.Builder()
     .forBrowser("chrome")
     .setChromeOptions(options);

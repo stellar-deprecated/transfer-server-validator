@@ -6,11 +6,12 @@ import getSep10Token from "./util/sep10";
 import TOML from "toml";
 import StellarSDK from "stellar-sdk";
 import FormData from "form-data";
-
+import { waitForLoad, openObservableWindow } from "./util/browser-util";
+import { transactionSchema } from "./util/schema";
 const url = process.env.DOMAIN;
-const account = "GCQJX6WGG7SSFU2RBO5QANTFXY7C5GTTFJDCBAAO42JCCFIMZ7PEBURP";
-const secret = "SAUOSXXF7ZDO5PKHRFR445DRKZ66Q5HIM2HIPQGWBTUKJZQAOP3VGH3L";
-const keyPair = StellarSDK.Keypair.fromSecret(secret);
+const keyPair = StellarSDK.Keypair.random();
+
+jest.setTimeout(200000); // 20 sec timeout since we're actually stepping through web forms
 
 describe("Deposit", () => {
   let TRANSFER_SERVER;
@@ -44,6 +45,7 @@ describe("Deposit", () => {
     };
   };
   beforeAll(async () => {
+    await fetch(`https://friendbot.stellar.org?addr=${keyPair.publicKey()}`);
     const response = await fetch(url + "/.well-known/stellar.toml");
     const text = await response.text();
     const toml = TOML.parse(text);
@@ -112,12 +114,43 @@ describe("Deposit", () => {
       expect(status).toEqual(200);
     });
 
-    it("can load the interactive url", async () => {
-      await driver.get(interactiveURL);
-
-      return expect(
-        driver.findElements(By.id("id_first_name"))
-      ).resolves.toBeTruthy();
+    it("can load get through the interactive flow", async done => {
+      const window = await openObservableWindow(interactiveURL);
+      // Lets wait until the whole flow finishes by observering for
+      // a postMessage awaiting user transfer start
+      window.observePostMessage(message => {
+        expect(message).toMatchSchema(transactionSchema);
+        if (message.transaction.status == "pending_user_transfer_start") {
+          done();
+        }
+      });
+      const completePage = async () => {
+        try {
+          const elements = await driver.findElements(By.css("[test-value]"));
+          elements.forEach(el => {
+            const val = el.getAttribute("test-value");
+            el.sendKeys(val);
+          });
+          const submitButton = await driver.findElement(
+            By.css("[test-action='submit']")
+          );
+          await new Promise(resolve => {
+            setTimeout(resolve, 100);
+          });
+          await submitButton.click();
+        } catch (e) {
+          // Not an automatable page, could be the receipt page postMessaging
+        }
+      };
+      return new Promise(async (resolve, reject) => {
+        while (true) {
+          await waitForLoad();
+          await completePage();
+          await new Promise(resolve => {
+            setTimeout(resolve, 100);
+          });
+        }
+      });
     });
   });
 });
