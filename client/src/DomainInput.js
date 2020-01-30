@@ -11,6 +11,7 @@ export default function({ onValidateClick }) {
         type="text"
         className={s.Field}
         value={domain}
+        placeholder="home_domain"
         onChange={e => setDomain(e.target.value)}
       ></input>
       <input
