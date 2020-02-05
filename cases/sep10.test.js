@@ -215,7 +215,10 @@ describe("SEP10", () => {
       })
         .addOperation(
           StellarSDK.Operation.setOptions({
-            masterWeight: 0
+            masterWeight: 0,
+            lowThreshold: 1,
+            medThreshold: 1,
+            highThreshold: 1
           })
         )
         .setTimeout(30)
