@@ -15,7 +15,7 @@ RUN curl -sL https://deb.nodesource.com/setup_13.x | bash - \
   && echo "deb http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google.list
 
 RUN apt-get update && apt-get install -y \
-  google-chrome-stable=79.0.3945.130-1 \
+  google-chrome-stable=80.0.3987.87-1  \
   nodejs \
   && rm -rf /var/lib/apt/lists/*
 
