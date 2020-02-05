@@ -19,7 +19,6 @@ function App() {
       try {
         const evtSource = new EventSource(`/run?domain=${domain}`);
         evtSource.addEventListener("message", event => {
-          console.log("Message", event.data);
           const message = JSON.parse(event.data);
           if (message.loadingMessage) {
             setLoadingMessage(message.loadingMessage);
