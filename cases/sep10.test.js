@@ -196,7 +196,6 @@ describe("SEP10", () => {
 
   describe("signers support", () => {
     afterAll(async () => {
-      console.log("DESTROY ALL FRIENDS");
       await friendbot.destroyAllFriends();
     });
 
@@ -215,7 +214,10 @@ describe("SEP10", () => {
       })
         .addOperation(
           StellarSDK.Operation.setOptions({
-            masterWeight: 0
+            masterWeight: 0,
+            lowThreshold: 1,
+            medThreshold: 1,
+            highThreshold: 1
           })
         )
         .setTimeout(30)
