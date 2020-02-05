@@ -17,7 +17,10 @@ function App() {
       setResults(null);
       setErrorMessage(null);
       try {
-        const evtSource = new EventSource(`/run?domain=${domain}`);
+        console.log("Lets re-ask");
+        const evtSource = new EventSource(
+          `${process.env.REACT_APP_API_HOST}/run?domain=${domain}`
+        );
         evtSource.addEventListener("message", event => {
           const message = JSON.parse(event.data);
           if (message.loadingMessage) {
@@ -30,6 +33,7 @@ function App() {
 
         evtSource.onerror = e => {
           console.log(e);
+          evtSource.close();
           setErrorMessage("Something went wrong");
         };
       } catch (e) {
