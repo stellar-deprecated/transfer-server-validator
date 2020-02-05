@@ -4,6 +4,7 @@ import "./App.css";
 import DomainInput from "./DomainInput";
 import Loading from "./Loading";
 import ResultSet from "./ResultSet";
+import ErrorMessage from "./ErrorMessage";
 
 function App() {
   const [results, setResults] = useState(null);
@@ -46,6 +47,7 @@ function App() {
       <DomainInput onValidateClick={runValidation} isLoading={isLoading} />
       <Loading active={isLoading} message={loadingMessage} />
       <ResultSet results={results} />
+      <ErrorMessage message={errorMessage} />
     </div>
   );
 }
