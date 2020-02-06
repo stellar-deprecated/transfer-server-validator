@@ -19,14 +19,14 @@ RUN apt-get update && apt-get install -y \
   nodejs \
   && rm -rf /var/lib/apt/lists/*
 
-# Install chromedriver
-RUN curl https://chromedriver.storage.googleapis.com/80.0.3987.16/chromedriver_linux64.zip -o /usr/local/bin/chromedriver
-RUN chmod +x /usr/local/bin/chromedriver
+RUN CHROMEVER=$(google-chrome --product-version | grep -o "[^\.]*\.[^\.]*\.[^\.]*") && \
+  DRIVERVER=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROMEVER") && \
+  curl https://chromedriver.storage.googleapis.com/$DRIVERVER/chromedriver_linux64.zip -o /usr/local/bin/chromedriver && \
+  chmod +x /usr/local/bin/chromedriver
 
 WORKDIR /usr/src/app
-COPY package*.json ./
-RUN npm install
 COPY . .
-RUN cd client ; npm install ; npm run build ; cd ..
-EXPOSE 3000
+RUN npm install ; cd client ; npm install ; npm run build ; cd ..
+ENV PORT=3000
+EXPOSE $PORT
 CMD [ "npm", "start" ]

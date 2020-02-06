@@ -19,7 +19,7 @@ function App() {
       try {
         console.log("Lets re-ask");
         const evtSource = new EventSource(
-          `${process.env.REACT_APP_API_HOST}/run?domain=${domain}`
+          `${process.env.REACT_APP_API_HOST || ""}/run?domain=${domain}`
         );
         evtSource.addEventListener("message", event => {
           const message = JSON.parse(event.data);
