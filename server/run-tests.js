@@ -1,5 +1,23 @@
 const { spawn } = require("child_process");
-module.exports = (req, res) => {
+
+module.exports = async (req, res) => {
+  // Set up server-sent events
+  res.writeHead(200, {
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-cache",
+    Connection: "keep-alive",
+    "Access-Control-Allow-Origin": "*"
+  });
+
+  let i = 0;
+  const sendLoadingMessage = _ => {
+    const message = ["Running Tests", "Still running tests", "Still going"][
+      i++ % 3
+    ];
+    res.write(`data: ${JSON.stringify({ loadingMessage: message })}\n\n`);
+  };
+  sendLoadingMessage();
+  const timer = setInterval(sendLoadingMessage, 5000);
   const domain = req.query.domain;
   const env = { ...process.env };
   env.DOMAIN = domain;
@@ -29,8 +47,8 @@ module.exports = (req, res) => {
         );
       });
     });
-    res.send(results);
-    debugger;
+    clearInterval(timer);
+    res.write(`data: ${JSON.stringify({ results })}\n\n`);
     console.log(`child process exited with code ${code}`);
   });
 };

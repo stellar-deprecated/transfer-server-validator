@@ -35,12 +35,7 @@ $ docker run  -p 3000:3000  transfer-server-validator
 ### Running locally
 
 ```
-# Run the server
-$ yarn
-$ yarn start
-
-# Run the client
-$ cd client
+# Run the server+client
 $ yarn
 $ yarn start
 ```
