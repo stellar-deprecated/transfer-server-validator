@@ -31,13 +31,16 @@ If you're developing locally and need to use a self-signed certificate, pass the
 ```
 $ docker build -t transfer-server-validator .
 $ docker run  -p 3000:3000  transfer-server-validator
+# to run in the CLI
+$ docker run -e DOMAIN=http://<yourdomain.com transfer-server-validator
+```
 
-### Running locally
-
+### Running Locally
 ```
 # Run the server+client
 $ yarn
-$ yarn start
+$ yarn run start:dev
+
 ```
 
 ### Automated monitoring
