@@ -8,7 +8,8 @@ import getSep10Token from "./util/sep10";
 // Friendbot usage makes this very slow.  Need to create an account pool at
 // the beginning and reuse them.
 jest.setTimeout(100000);
-const url = process.env.DOMAIN;
+const urlBuilder = new URL(process.env.DOMAIN);
+const url = urlBuilder.toString();
 const account = "GCQJX6WGG7SSFU2RBO5QANTFXY7C5GTTFJDCBAAO42JCCFIMZ7PEBURP";
 const secret = "SAUOSXXF7ZDO5PKHRFR445DRKZ66Q5HIM2HIPQGWBTUKJZQAOP3VGH3L";
 const keyPair = StellarSDK.Keypair.fromSecret(secret);
@@ -17,7 +18,7 @@ const server = new StellarSDK.Server("https://horizon-testnet.stellar.org");
 describe("SEP10", () => {
   let toml;
   beforeAll(async () => {
-    const response = await fetch(url + "/.well-known/stellar.toml");
+    const response = await fetch(url + ".well-known/stellar.toml");
     const text = await response.text();
     try {
       toml = TOML.parse(text);
@@ -37,6 +38,9 @@ describe("SEP10", () => {
   });
 
   it("has CORS on the auth endpoint", async () => {
+    if (toml.WEB_AUTH_ENDPOINT[toml.WEB_AUTH_ENDPOINT.length - 1] !== "/") {
+      toml.WEB_AUTH_ENDPOINT += "/";
+    }
     const response = await fetch(
       toml.WEB_AUTH_ENDPOINT + "?account=" + account,
       {

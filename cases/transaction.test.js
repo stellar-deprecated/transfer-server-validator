@@ -6,7 +6,8 @@ import StellarSDK from "stellar-sdk";
 import FormData from "form-data";
 import { transactionSchema } from "./util/schema";
 
-const domain = process.env.DOMAIN;
+const urlBuilder = new URL(process.env.DOMAIN);
+const domain = urlBuilder.toString();
 const account = "GCQJX6WGG7SSFU2RBO5QANTFXY7C5GTTFJDCBAAO42JCCFIMZ7PEBURP";
 const secret = "SAUOSXXF7ZDO5PKHRFR445DRKZ66Q5HIM2HIPQGWBTUKJZQAOP3VGH3L";
 const keyPair = StellarSDK.Keypair.fromSecret(secret);
@@ -27,7 +28,7 @@ describe("Transaction", () => {
       params.getHeaders()
     );
     const response = await fetch(
-      toml.TRANSFER_SERVER + "/transactions/deposit/interactive",
+      toml.TRANSFER_SERVER + "transactions/deposit/interactive",
       {
         headers: authenticate ? authenticatedHeaders : params.getHeaders(),
         method: "POST",
@@ -44,7 +45,10 @@ describe("Transaction", () => {
   beforeAll(async () => {
     toml = await getTomlFile(domain);
     jwt = await getSep10Token(domain, keyPair);
-    const infoResponse = await fetch(toml.TRANSFER_SERVER + "/info", {
+    if (toml.TRANSFER_SERVER[toml.TRANSFER_SERVER.length - 1] !== "/") {
+      toml.TRANSFER_SERVER += "/";
+    }
+    const infoResponse = await fetch(toml.TRANSFER_SERVER + "info", {
       headers: {
         Origin: "https://www.website.com"
       }
@@ -64,7 +68,7 @@ describe("Transaction", () => {
       true
     );
     const response = await fetch(
-      toml.TRANSFER_SERVER + "/transaction?id=" + json.id,
+      toml.TRANSFER_SERVER + "transaction?id=" + json.id,
       {
         headers: {
           Authorization: `Bearer ${jwt}`
@@ -80,7 +84,7 @@ describe("Transaction", () => {
   it("returns a proper error for a non-existing transaction", async () => {
     const response = await fetch(
       toml.TRANSFER_SERVER +
-        "/transaction?id=1277bd18-a2bd-4acd-9a87-2f541c7b8933",
+        "transaction?id=1277bd18-a2bd-4acd-9a87-2f541c7b8933",
       {
         headers: {
           Authorization: `Bearer ${jwt}`

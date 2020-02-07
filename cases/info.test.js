@@ -1,13 +1,13 @@
 import { fetch } from "./util/fetchShim";
 import TOML from "toml";
 
-const url = process.env.DOMAIN;
-
+const urlBuilder = new URL(process.env.DOMAIN);
+const url = urlBuilder.toString();
 describe("Info", () => {
   let toml;
   let TRANSFER_SERVER;
   beforeAll(async () => {
-    const response = await fetch(url + "/.well-known/stellar.toml");
+    const response = await fetch(url + ".well-known/stellar.toml");
     const text = await response.text();
     try {
       toml = TOML.parse(text);

@@ -8,7 +8,8 @@ import StellarSDK from "stellar-sdk";
 import FormData from "form-data";
 import { waitForLoad, openObservableWindow } from "./util/browser-util";
 import { transactionSchema } from "./util/schema";
-const url = process.env.DOMAIN;
+const urlBuilder = new URL(process.env.DOMAIN);
+const url = urlBuilder.toString();
 const keyPair = StellarSDK.Keypair.random();
 
 jest.setTimeout(200000); // 20 sec timeout since we're actually stepping through web forms
@@ -46,7 +47,7 @@ describe("Deposit", () => {
   };
   beforeAll(async () => {
     await fetch(`https://friendbot.stellar.org?addr=${keyPair.publicKey()}`);
-    const response = await fetch(url + "/.well-known/stellar.toml");
+    const response = await fetch(url + ".well-known/stellar.toml");
     const text = await response.text();
     const toml = TOML.parse(text);
     TRANSFER_SERVER = toml.TRANSFER_SERVER;
