@@ -36,10 +36,11 @@ $ docker run -e DOMAIN=http://<yourdomain.com transfer-server-validator
 ```
 
 ### Running Locally
+
 ```
 # Run the server+client
-$ yarn
-$ yarn run start:dev
+$ npm install
+$ npm run start:dev
 
 ```
 
