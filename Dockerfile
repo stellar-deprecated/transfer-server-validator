@@ -1,9 +1,11 @@
 FROM ubuntu:18.04
-
+# To avoid `apt-key output should not be parsed` warning
+ENV APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn
 # Install dependencies and node
 RUN apt-get update && \
   apt-get install -y --no-install-recommends \
   autoconf \
+  automake \
   curl \
   default-jre \
   gnupg2 \ 
@@ -28,7 +30,7 @@ RUN apt-get update && \
 
 WORKDIR /usr/src/app
 COPY . .
-RUN npm install ; cd client ; npm install ; npm run build ; cd ..
+RUN npm install --no-optional ; cd client ; npm install --no-optional ; npm run build ; cd ..
 ENV PORT=3000
 EXPOSE $PORT
 CMD [ "npm", "start" ]

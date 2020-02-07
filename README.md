@@ -36,8 +36,8 @@ $ docker run  -p 3000:3000  transfer-server-validator
 
 ```
 # Run the server+client
-$ yarn
-$ yarn start
+$ npm install
+$ npm run start:dev
 ```
 
 ### Automated monitoring
