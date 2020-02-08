@@ -1,12 +1,12 @@
 import { fetch } from "./util/fetchShim";
 import getSep10Token from "./util/sep10";
 import getTomlFile from "./util/getTomlFile";
-import TOML from "toml";
 import StellarSDK from "stellar-sdk";
 import FormData from "form-data";
 import { transactionSchema } from "./util/schema";
 
-const domain = process.env.DOMAIN;
+const urlBuilder = new URL(process.env.DOMAIN);
+const domain = urlBuilder.toString();
 const account = "GCQJX6WGG7SSFU2RBO5QANTFXY7C5GTTFJDCBAAO42JCCFIMZ7PEBURP";
 const secret = "SAUOSXXF7ZDO5PKHRFR445DRKZ66Q5HIM2HIPQGWBTUKJZQAOP3VGH3L";
 const keyPair = StellarSDK.Keypair.fromSecret(secret);

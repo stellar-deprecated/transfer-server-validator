@@ -1,32 +1,25 @@
 import { fetch } from "./util/fetchShim";
-import TOML from "toml";
+import getTomlFile from "./util/getTomlFile";
 
-const url = process.env.DOMAIN;
-
+const urlBuilder = new URL(process.env.DOMAIN);
+const url = urlBuilder.toString();
 describe("Info", () => {
   let toml;
-  let TRANSFER_SERVER;
   beforeAll(async () => {
-    const response = await fetch(url + "/.well-known/stellar.toml");
-    const text = await response.text();
     try {
-      toml = TOML.parse(text);
-      TRANSFER_SERVER = toml.TRANSFER_SERVER;
-      if (TRANSFER_SERVER[TRANSFER_SERVER.length - 1] !== "/") {
-        TRANSFER_SERVER += "/";
-      }
+      toml = await getTomlFile(url);
     } catch (e) {
       throw "Invalid TOML formatting";
     }
   });
 
   it("has a TRANSFER_SERVER url in the toml", () => {
-    expect(TRANSFER_SERVER).toEqual(expect.stringContaining("http"));
-    expect(() => new URL(TRANSFER_SERVER)).not.toThrow();
+    expect(toml.TRANSFER_SERVER).toEqual(expect.stringContaining("http"));
+    expect(() => new URL(toml.TRANSFER_SERVER)).not.toThrow();
   });
 
   it("has CORS on the info endpoint", async () => {
-    const response = await fetch(TRANSFER_SERVER + "info", {
+    const response = await fetch(toml.TRANSFER_SERVER + "info", {
       headers: {
         Origin: "https://www.website.com"
       }
@@ -38,7 +31,7 @@ describe("Info", () => {
     let json;
 
     beforeAll(async () => {
-      const response = await fetch(TRANSFER_SERVER + "info", {
+      const response = await fetch(toml.TRANSFER_SERVER + "info", {
         headers: {
           Origin: "https://www.website.com"
         }

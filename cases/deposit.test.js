@@ -3,21 +3,22 @@
  */
 import { fetch } from "./util/fetchShim";
 import getSep10Token from "./util/sep10";
-import TOML from "toml";
 import StellarSDK from "stellar-sdk";
 import FormData from "form-data";
 import { waitForLoad, openObservableWindow } from "./util/browser-util";
 import { transactionSchema } from "./util/schema";
-const url = process.env.DOMAIN;
+import getTomlFile from "./util/getTomlFile";
+const urlBuilder = new URL(process.env.DOMAIN);
+const url = urlBuilder.toString();
 const keyPair = StellarSDK.Keypair.random();
 
 jest.setTimeout(200000); // 20 sec timeout since we're actually stepping through web forms
 
 describe("Deposit", () => {
-  let TRANSFER_SERVER;
   let infoJSON;
   let enabledCurrency;
   let jwt;
+  let toml;
 
   const doPost = async (asset_code, account, authenticate) => {
     const params = new FormData();
@@ -30,7 +31,7 @@ describe("Deposit", () => {
       params.getHeaders()
     );
     const response = await fetch(
-      TRANSFER_SERVER + "transactions/deposit/interactive",
+      toml.TRANSFER_SERVER + "transactions/deposit/interactive",
       {
         headers: authenticate ? authenticatedHeaders : params.getHeaders(),
         method: "POST",
@@ -46,15 +47,13 @@ describe("Deposit", () => {
   };
   beforeAll(async () => {
     await fetch(`https://friendbot.stellar.org?addr=${keyPair.publicKey()}`);
-    const response = await fetch(url + "/.well-known/stellar.toml");
-    const text = await response.text();
-    const toml = TOML.parse(text);
-    TRANSFER_SERVER = toml.TRANSFER_SERVER;
-    if (TRANSFER_SERVER[TRANSFER_SERVER.length - 1] !== "/") {
-      TRANSFER_SERVER += "/";
+    try {
+      toml = await getTomlFile(url);
+    } catch (e) {
+      throw "Invalid TOML formatting";
     }
 
-    const infoResponse = await fetch(TRANSFER_SERVER + "info", {
+    const infoResponse = await fetch(toml.TRANSFER_SERVER + "info", {
       headers: {
         Origin: "https://www.website.com"
       }

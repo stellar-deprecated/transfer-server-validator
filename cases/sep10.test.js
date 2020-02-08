@@ -1,14 +1,15 @@
 import { fetch } from "./util/fetchShim";
 import JWT from "jsonwebtoken";
-import TOML from "toml";
 import StellarSDK from "stellar-sdk";
 import friendbot from "./util/friendbot";
+import getTomlFile from "./util/getTomlFile";
 import getSep10Token from "./util/sep10";
 
 // Friendbot usage makes this very slow.  Need to create an account pool at
 // the beginning and reuse them.
 jest.setTimeout(100000);
-const url = process.env.DOMAIN;
+const urlBuilder = new URL(process.env.DOMAIN);
+const url = urlBuilder.toString();
 const account = "GCQJX6WGG7SSFU2RBO5QANTFXY7C5GTTFJDCBAAO42JCCFIMZ7PEBURP";
 const secret = "SAUOSXXF7ZDO5PKHRFR445DRKZ66Q5HIM2HIPQGWBTUKJZQAOP3VGH3L";
 const keyPair = StellarSDK.Keypair.fromSecret(secret);
@@ -17,10 +18,8 @@ const server = new StellarSDK.Server("https://horizon-testnet.stellar.org");
 describe("SEP10", () => {
   let toml;
   beforeAll(async () => {
-    const response = await fetch(url + "/.well-known/stellar.toml");
-    const text = await response.text();
     try {
-      toml = TOML.parse(text);
+      toml = await getTomlFile(url);
     } catch (e) {
       throw "Invalid TOML formatting";
     }
