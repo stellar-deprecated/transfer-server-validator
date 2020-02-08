@@ -1,8 +1,8 @@
 import { fetch } from "./util/fetchShim";
 import JWT from "jsonwebtoken";
-import TOML from "toml";
 import StellarSDK from "stellar-sdk";
 import friendbot from "./util/friendbot";
+import getTomlFile from "./util/getTomlFile";
 import getSep10Token from "./util/sep10";
 
 // Friendbot usage makes this very slow.  Need to create an account pool at
@@ -18,10 +18,8 @@ const server = new StellarSDK.Server("https://horizon-testnet.stellar.org");
 describe("SEP10", () => {
   let toml;
   beforeAll(async () => {
-    const response = await fetch(url + ".well-known/stellar.toml");
-    const text = await response.text();
     try {
-      toml = TOML.parse(text);
+      toml = await getTomlFile(url);
     } catch (e) {
       throw "Invalid TOML formatting";
     }
@@ -38,9 +36,6 @@ describe("SEP10", () => {
   });
 
   it("has CORS on the auth endpoint", async () => {
-    if (toml.WEB_AUTH_ENDPOINT[toml.WEB_AUTH_ENDPOINT.length - 1] !== "/") {
-      toml.WEB_AUTH_ENDPOINT += "/";
-    }
     const response = await fetch(
       toml.WEB_AUTH_ENDPOINT + "?account=" + account,
       {

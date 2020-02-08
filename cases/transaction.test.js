@@ -1,7 +1,6 @@
 import { fetch } from "./util/fetchShim";
 import getSep10Token from "./util/sep10";
 import getTomlFile from "./util/getTomlFile";
-import TOML from "toml";
 import StellarSDK from "stellar-sdk";
 import FormData from "form-data";
 import { transactionSchema } from "./util/schema";
@@ -45,9 +44,6 @@ describe("Transaction", () => {
   beforeAll(async () => {
     toml = await getTomlFile(domain);
     jwt = await getSep10Token(domain, keyPair);
-    if (toml.TRANSFER_SERVER[toml.TRANSFER_SERVER.length - 1] !== "/") {
-      toml.TRANSFER_SERVER += "/";
-    }
     const infoResponse = await fetch(toml.TRANSFER_SERVER + "info", {
       headers: {
         Origin: "https://www.website.com"
