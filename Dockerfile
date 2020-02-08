@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM node:13
 # To avoid `apt-key output should not be parsed` warning
 ENV APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn
 # Install dependencies and node
