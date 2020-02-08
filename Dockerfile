@@ -1,4 +1,4 @@
-FROM node:13
+FROM debian:buster
 # To avoid `apt-key output should not be parsed` warning
 ENV APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn
 # Install dependencies and node
@@ -19,11 +19,7 @@ RUN apt-get update && \
   && apt-get update && apt-get install -y --no-install-recommends \
   google-chrome-stable \
   nodejs \
-  # Install the chromedriver version that matches the chrome version we installed
-  && CHROMEVER=$(google-chrome --product-version | grep -o "[^\.]*\.[^\.]*\.[^\.]*") \
-  && DRIVERVER=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROMEVER") \
-  && curl https://chromedriver.storage.googleapis.com/$DRIVERVER/chromedriver_linux64.zip -o /usr/local/bin/chromedriver \
-  && chmod +x /usr/local/bin/chromedriver \
+  && apt-get purge -y --auto-remove automake autoconf curl gnupg2 libtool-bin \
   && rm -rf /var/lib/apt/lists/* \
   && rm -rf /var/cache/apt/archives/*
 
