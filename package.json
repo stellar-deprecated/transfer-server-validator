@@ -8,6 +8,7 @@
     "url": "https://github.com/stellar/transfer-server-validator-simplified"
   },
   "scripts": {
+    "postinstall": "cd client && npm install && cd ..",
     "test": "jest -i --verbose --runInBand",
     "server:dev": "PORT=3001 nodemon server/api.js",
     "start:dev": "concurrently \"cd client && REACT_APP_API_HOST=http://localhost:3001 npm start\" \"PORT=3001 npm run server:dev\"",
@@ -21,7 +22,7 @@
     "@babel/core": "^7.7.5",
     "@babel/preset-env": "^7.7.6",
     "babel-jest": "^24.9.0",
-    "chromedriver": "^79.0.0",
+    "chromedriver": "^80.0.0",
     "concurrently": "^5.0.2",
     "cors": "^2.8.5",
     "express": "^4.17.1",
