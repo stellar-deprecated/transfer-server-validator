@@ -31,7 +31,7 @@ describe("Deposit", () => {
       params.getHeaders()
     );
     const response = await fetch(
-      toml.TRANSFER_SERVER + "transactions/deposit/interactive",
+      toml.TRANSFER_SERVER + "/transactions/deposit/interactive",
       {
         headers: authenticate ? authenticatedHeaders : params.getHeaders(),
         method: "POST",
@@ -53,7 +53,7 @@ describe("Deposit", () => {
       throw "Invalid TOML formatting";
     }
 
-    const infoResponse = await fetch(toml.TRANSFER_SERVER + "info", {
+    const infoResponse = await fetch(toml.TRANSFER_SERVER + "/info", {
       headers: {
         Origin: "https://www.website.com"
       }
