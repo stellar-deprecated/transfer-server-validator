@@ -1,11 +1,12 @@
 import { fetch } from "./util/fetchShim";
 import TOML from "toml";
 
-const url = process.env.DOMAIN;
+const urlBuilder = new URL(process.env.DOMAIN);
+const url = urlBuilder.toString();
 
 describe("TOML File", () => {
   it("exists", async () => {
-    const response = await fetch(url + "/.well-known/stellar.toml");
+    const response = await fetch(url + ".well-known/stellar.toml");
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toEqual(
       expect.stringContaining("text/plain")
@@ -13,7 +14,7 @@ describe("TOML File", () => {
   });
 
   it("has cors", async () => {
-    const response = await fetch(url + "/.well-known/stellar.toml", {
+    const response = await fetch(url + ".well-known/stellar.toml", {
       method: "OPTIONS",
       headers: {
         Origin: "https://test.com"
@@ -26,7 +27,7 @@ describe("TOML File", () => {
     let toml;
     let fileSize;
     beforeAll(async () => {
-      const response = await fetch(url + "/.well-known/stellar.toml");
+      const response = await fetch(url + ".well-known/stellar.toml");
       fileSize = response.headers.get("content-length");
       const text = await response.text();
       try {

@@ -1,13 +1,11 @@
-import TOML from "toml";
 import StellarSDK from "stellar-sdk";
 import { fetch } from "./fetchShim";
+import getTomlFile from "./getTomlFile"
 
 export default async function getSep10Token(domain, keyPair, signers) {
   if (!signers) signers = [keyPair];
-  let response = await fetch(domain + "/.well-known/stellar.toml");
-  const text = await response.text();
-  const toml = TOML.parse(text);
-  response = await fetch(
+  const toml = await getTomlFile(domain);
+  let response = await fetch(
     toml.WEB_AUTH_ENDPOINT + "?account=" + keyPair.publicKey()
   );
   const json = await response.json();
