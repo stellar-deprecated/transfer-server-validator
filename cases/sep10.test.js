@@ -103,7 +103,7 @@ describe("SEP10", () => {
           headers: {
             "Content-Type": "application/x-www-form-urlencoded"
           },
-          body: "transaction=" + tx.toXDR()
+          body: "transaction=" + encodeURIComponent(tx.toXDR())
         });
         let tokenJson = await resp.json();
         expect(tokenJson.error).toBeFalsy();
