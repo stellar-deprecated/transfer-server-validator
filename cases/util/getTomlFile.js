@@ -6,9 +6,6 @@ export default async function(domain) {
   const text = await response.text();
   const toml = TOML.parse(text);
   // Remove trailing slashes for consistency in building URLs
-  if (toml.WEB_AUTH_ENDPOINT[toml.WEB_AUTH_ENDPOINT.length - 1] === "/") {
-    toml.WEB_AUTH_ENDPOINT = toml.WEB_AUTH_ENDPOINT.slice(0, -1);
-  }
   if (toml.TRANSFER_SERVER[toml.TRANSFER_SERVER.length - 1] === "/") {
     toml.TRANSFER_SERVER = toml.TRANSFER_SERVER.slice(0, -1);
   }
