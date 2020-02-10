@@ -1,15 +1,13 @@
-FROM debian:buster
+FROM debian:buster-slim
 # To avoid `apt-key output should not be parsed` warning
 ENV APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn
-# Install dependencies and node
+# default-jre needs this directory to exist on slim
+RUN mkdir -p /usr/share/man/man1
 RUN apt-get update && \
   apt-get install -y --no-install-recommends \
-  autoconf \
-  automake \
   curl \
   default-jre \
   gnupg2 \ 
-  libtool-bin \
   # Set up node dependency apt repository
   && curl -sL https://deb.nodesource.com/setup_13.x | bash - \
   # Set up google-chrome dependency apt repository
@@ -19,7 +17,7 @@ RUN apt-get update && \
   && apt-get update && apt-get install -y --no-install-recommends \
   google-chrome-stable \
   nodejs \
-  && apt-get purge -y --auto-remove automake autoconf curl gnupg2 libtool-bin \
+  && apt-get purge -y --auto-remove curl gnupg2 \
   && rm -rf /var/lib/apt/lists/* \
   && rm -rf /var/cache/apt/archives/*
 
