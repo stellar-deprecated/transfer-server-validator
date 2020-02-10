@@ -19,7 +19,7 @@ describe("Info", () => {
   });
 
   it("has CORS on the info endpoint", async () => {
-    const response = await fetch(toml.TRANSFER_SERVER + "info", {
+    const response = await fetch(toml.TRANSFER_SERVER + "/info", {
       headers: {
         Origin: "https://www.website.com"
       }
@@ -31,7 +31,7 @@ describe("Info", () => {
     let json;
 
     beforeAll(async () => {
-      const response = await fetch(toml.TRANSFER_SERVER + "info", {
+      const response = await fetch(toml.TRANSFER_SERVER + "/info", {
         headers: {
           Origin: "https://www.website.com"
         }
