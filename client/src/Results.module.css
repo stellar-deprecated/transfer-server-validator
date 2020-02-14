@@ -1,0 +1,22 @@
+.TestListRow {
+  text-align: start;
+  margin-top: 16px;
+}
+
+.TestListHeader {
+  background-color: lightgray;
+  padding: 8px;
+}
+
+.TestListStatus {
+  width: 132px;
+}
+
+.TestListResults {
+  min-height: 16px;
+  background-color: azure;
+}
+
+.SingleTestResult {
+  
+}
