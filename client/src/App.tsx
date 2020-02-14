@@ -58,7 +58,7 @@ function App() {
     },
     [testList, domain]
   );
-  console.log(busy, "BUSY");
+
   return (
     <div className="App">
       <div className={s.DomainFieldRow}>
