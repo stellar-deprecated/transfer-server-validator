@@ -31,7 +31,6 @@ export const openObservableWindow = async url => {
       delete window.__LAST_POST_MESSAGE__;
       return lastMessage;
     });
-
     await driver.switchTo().window(handles[1]);
     if (lastMessage) {
       observers.forEach(o => o(lastMessage));
