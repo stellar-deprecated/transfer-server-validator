@@ -14,9 +14,7 @@ export const waitForLoad = async () => {
  * @param {string} url
  */
 export const openObservableWindow = async url => {
-  await driver.get(
-    `data:text/html,<script>window.open("${url}", 'newwindow')</script>`
-  );
+  await driver.get(`data:text/html,<script>window.open("${url}")</script>`);
   const handles = await driver.getAllWindowHandles();
   await driver.switchTo().window(handles[0]);
   await driver.executeScript(() => {
