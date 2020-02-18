@@ -13,7 +13,7 @@ function App() {
   const [testList, setTestList] = useState<ResultList>([]);
   const [busy, setBusy] = useState<boolean>(false);
   const [domain, setDomain] = useState(
-    "https://stellar-anchor-server.herokuapp.com"
+    "https://testanchor.stellar.org"
   );
 
   useEffect(() => {
