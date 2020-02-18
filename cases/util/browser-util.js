@@ -19,7 +19,6 @@ export const openObservableWindow = async url => {
   await driver.switchTo().window(handles[0]);
   await driver.executeScript(() => {
     window.addEventListener("message", e => {
-      console.log("MEssage", e);
       window.__LAST_POST_MESSAGE__ = e.data;
     });
   });
@@ -37,7 +36,7 @@ export const openObservableWindow = async url => {
     if (lastMessage) {
       observers.forEach(o => o(lastMessage));
     }
-  }, 2000);
+  }, 1000);
 
   return {
     observePostMessage: cb => {
