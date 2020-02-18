@@ -14,11 +14,14 @@ export const waitForLoad = async () => {
  * @param {string} url
  */
 export const openObservableWindow = async url => {
-  await driver.get(`data:text/html,<script>window.open("${url}")</script>`);
+  await driver.get(
+    `data:text/html,<script>window.open("${url}", 'newwindow')</script>`
+  );
   const handles = await driver.getAllWindowHandles();
   await driver.switchTo().window(handles[0]);
   await driver.executeScript(() => {
     window.addEventListener("message", e => {
+      console.log("MEssage", e);
       window.__LAST_POST_MESSAGE__ = e.data;
     });
   });
@@ -31,11 +34,12 @@ export const openObservableWindow = async url => {
       delete window.__LAST_POST_MESSAGE__;
       return lastMessage;
     });
+
     await driver.switchTo().window(handles[1]);
     if (lastMessage) {
       observers.forEach(o => o(lastMessage));
     }
-  }, 1000);
+  }, 2000);
 
   return {
     observePostMessage: cb => {
