@@ -30,8 +30,7 @@ jobs:
             docker push $IMAGE_NAME:latest
 workflows:
   version: 2
-  executor: docker-publisher
-  build-master:
+  publish-image:
     jobs:
       - build:
           filters:
