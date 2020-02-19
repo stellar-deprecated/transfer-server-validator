@@ -44,8 +44,8 @@ jobs:
               branches:
                 only: master
         - publish-latest:
-          requires:
-            - build
-          filters:
-            branches:
-              only: master
+            requires:
+              - build
+            filters:
+              branches:
+                only: master
