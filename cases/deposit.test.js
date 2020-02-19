@@ -26,23 +26,23 @@ describe("Deposit", () => {
     if (account) params.append("account", account);
     const authenticatedHeaders = Object.assign(
       {
-        Authorization: `Bearer ${jwt}`
+        Authorization: `Bearer ${jwt}`,
       },
-      params.getHeaders()
+      params.getHeaders(),
     );
     const response = await fetch(
       toml.TRANSFER_SERVER + "/transactions/deposit/interactive",
       {
         headers: authenticate ? authenticatedHeaders : params.getHeaders(),
         method: "POST",
-        body: params
-      }
+        body: params,
+      },
     );
     const status = response.status;
     const json = await response.json();
     return {
       status,
-      json
+      json,
     };
   };
   beforeAll(async () => {
@@ -55,13 +55,13 @@ describe("Deposit", () => {
 
     const infoResponse = await fetch(toml.TRANSFER_SERVER + "/info", {
       headers: {
-        Origin: "https://www.website.com"
-      }
+        Origin: "https://www.website.com",
+      },
     });
     infoJSON = await infoResponse.json();
     const currencies = Object.keys(infoJSON.deposit);
     enabledCurrency = currencies.find(
-      currency => infoJSON.deposit[currency].enabled
+      (currency) => infoJSON.deposit[currency].enabled,
     );
     jwt = await getSep10Token(url, keyPair);
   });
@@ -74,7 +74,7 @@ describe("Deposit", () => {
     const { status, json } = await doPost(
       enabledCurrency,
       keyPair.publicKey(),
-      false
+      false,
     );
     expect(status).not.toEqual(200);
     expect(json.error).toBeTruthy();
@@ -90,7 +90,7 @@ describe("Deposit", () => {
     const { status, json } = await doPost(
       "NOTREAL",
       keyPair.publicKey(),
-      false
+      false,
     );
     expect(status).not.toEqual(200);
     expect(json.error).toBeTruthy();
@@ -103,7 +103,7 @@ describe("Deposit", () => {
       const { status, json } = await doPost(
         enabledCurrency,
         keyPair.publicKey(),
-        true
+        true,
       );
       interactiveURL = json.url;
       expect(json.error).toBeFalsy();
@@ -113,11 +113,11 @@ describe("Deposit", () => {
       expect(status).toEqual(200);
     });
 
-    it.skip("can load get through the interactive flow", async done => {
+    it.skip("can load get through the interactive flow", async (done) => {
       const window = await openObservableWindow(interactiveURL);
       // Lets wait until the whole flow finishes by observering for
       // a postMessage awaiting user transfer start
-      window.observePostMessage(message => {
+      window.observePostMessage((message) => {
         expect(message).toMatchSchema(transactionSchema);
         if (message.transaction.status == "pending_user_transfer_start") {
           done();
@@ -126,14 +126,14 @@ describe("Deposit", () => {
       const completePage = async () => {
         try {
           const elements = await driver.findElements(By.css("[test-value]"));
-          elements.forEach(el => {
+          elements.forEach((el) => {
             const val = el.getAttribute("test-value");
             el.sendKeys(val);
           });
           const submitButton = await driver.findElement(
-            By.css("[test-action='submit']")
+            By.css("[test-action='submit']"),
           );
-          await new Promise(resolve => {
+          await new Promise((resolve) => {
             setTimeout(resolve, 100);
           });
           await submitButton.click();
@@ -145,7 +145,7 @@ describe("Deposit", () => {
         while (true) {
           await waitForLoad();
           await completePage();
-          await new Promise(resolve => {
+          await new Promise((resolve) => {
             setTimeout(resolve, 100);
           });
         }

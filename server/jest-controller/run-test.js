@@ -8,19 +8,19 @@ module.exports = async (domain, test) => {
       "node_modules/.bin/jest",
       ["--json", "--noStackTrace", `${test}.test.js`],
       {
-        env
-      }
+        env,
+      },
     );
     let jsonStr = "";
-    jest.stdout.on("data", data => {
+    jest.stdout.on("data", (data) => {
       jsonStr += data.toString();
     });
 
-    jest.stderr.on("data", data => {
+    jest.stderr.on("data", (data) => {
       console.error(data.toString());
     });
 
-    jest.on("close", code => {
+    jest.on("close", (code) => {
       const results = JSON.parse(jsonStr);
       resolve(results);
     });
