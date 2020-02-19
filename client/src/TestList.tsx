@@ -9,9 +9,9 @@ function iconFromStatus(status: TestStatus): string {
     case TestStatus.PENDING:
       return "⚪️";
     case TestStatus.SUCCESS:
-      return "🟢";
+      return "✅";
     case TestStatus.SKIPPED:
-      return "🟡";
+      return "⏭️";
     case TestStatus.RUNNING:
       return "🏃‍♀️";
   }
