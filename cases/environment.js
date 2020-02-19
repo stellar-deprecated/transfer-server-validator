@@ -9,10 +9,10 @@ class WebdriverEnvironment extends JSDOMEnvironment {
     this.configuration = Object.assign(
       {
         capabilities: {
-          browserName: "chrome"
-        }
+          browserName: "chrome",
+        },
       },
-      config.testEnvironmentOptions
+      config.testEnvironmentOptions,
     );
     this.global.webdriver = webdriver;
     this.global.By = webdriver.By;
@@ -57,7 +57,7 @@ async function buildDriver(configuration) {
     if (configuration.proxyType === "socks") {
       prxy = proxy.socks(
         configuration.proxyOptions.socksProxy,
-        configuration.proxyOptions.socksVersion
+        configuration.proxyOptions.socksVersion,
       );
     } else {
       prxy = proxy[configuration.proxyType](configuration.proxyOptions);

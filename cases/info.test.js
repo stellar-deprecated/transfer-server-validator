@@ -21,8 +21,8 @@ describe("Info", () => {
   it("has CORS on the info endpoint", async () => {
     const response = await fetch(toml.TRANSFER_SERVER + "/info", {
       headers: {
-        Origin: "https://www.website.com"
-      }
+        Origin: "https://www.website.com",
+      },
     });
     expect(response.headers.get("access-control-allow-origin")).toBe("*");
   });
@@ -33,12 +33,12 @@ describe("Info", () => {
     beforeAll(async () => {
       const response = await fetch(toml.TRANSFER_SERVER + "/info", {
         headers: {
-          Origin: "https://www.website.com"
-        }
+          Origin: "https://www.website.com",
+        },
       });
       expect(response.status).toEqual(200);
       expect(response.headers.get("content-type")).toEqual(
-        expect.stringContaining("application/json")
+        expect.stringContaining("application/json"),
       );
       json = await response.json();
       expect(json).toBeTruthy();
@@ -54,19 +54,19 @@ describe("Info", () => {
               fee_fixed: { type: "number" },
               fee_percent: { type: "number" },
               min_amount: { type: "number" },
-              max_amount: { type: "number" }
-            }
-          }
-        }
+              max_amount: { type: "number" },
+            },
+          },
+        },
       };
       const schema = {
         properties: {
           deposit: depositAndWithdrawSchema,
           withdraw: depositAndWithdrawSchema,
           fee: {
-            properties: { enabled: { type: "boolean" } }
-          }
-        }
+            properties: { enabled: { type: "boolean" } },
+          },
+        },
       };
       expect(json).toMatchSchema(schema);
     });

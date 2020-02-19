@@ -22,23 +22,23 @@ describe("Transaction", () => {
     if (account) params.append("account", account);
     const authenticatedHeaders = Object.assign(
       {
-        Authorization: `Bearer ${jwt}`
+        Authorization: `Bearer ${jwt}`,
       },
-      params.getHeaders()
+      params.getHeaders(),
     );
     const response = await fetch(
       toml.TRANSFER_SERVER + "/transactions/deposit/interactive",
       {
         headers: authenticate ? authenticatedHeaders : params.getHeaders(),
         method: "POST",
-        body: params
-      }
+        body: params,
+      },
     );
     const status = response.status;
     const json = await response.json();
     return {
       status,
-      json
+      json,
     };
   };
   beforeAll(async () => {
@@ -46,13 +46,13 @@ describe("Transaction", () => {
     jwt = await getSep10Token(domain, keyPair);
     const infoResponse = await fetch(toml.TRANSFER_SERVER + "/info", {
       headers: {
-        Origin: "https://www.website.com"
-      }
+        Origin: "https://www.website.com",
+      },
     });
     const infoJSON = await infoResponse.json();
     const currencies = Object.keys(infoJSON.deposit);
     enabledCurrency = currencies.find(
-      currency => infoJSON.deposit[currency].enabled
+      (currency) => infoJSON.deposit[currency].enabled,
     );
     expect(toml.TRANSFER_SERVER).toBeDefined();
   });
@@ -61,15 +61,15 @@ describe("Transaction", () => {
     let { json } = await createTransaction(
       enabledCurrency,
       keyPair.publicKey(),
-      true
+      true,
     );
     const response = await fetch(
       toml.TRANSFER_SERVER + "/transaction?id=" + json.id,
       {
         headers: {
-          Authorization: `Bearer ${jwt}`
-        }
-      }
+          Authorization: `Bearer ${jwt}`,
+        },
+      },
     );
     json = await response.json();
     expect(response.status).toEqual(200);
@@ -83,9 +83,9 @@ describe("Transaction", () => {
         "/transaction?id=1277bd18-a2bd-4acd-9a87-2f541c7b8933",
       {
         headers: {
-          Authorization: `Bearer ${jwt}`
-        }
-      }
+          Authorization: `Bearer ${jwt}`,
+        },
+      },
     );
     const json = await response.json();
     expect(response.status).toEqual(404);

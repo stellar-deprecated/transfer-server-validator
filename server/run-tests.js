@@ -5,11 +5,11 @@ module.exports = async (req, res) => {
     "Content-Type": "text/event-stream",
     "Cache-Control": "no-cache",
     Connection: "keep-alive",
-    "Access-Control-Allow-Origin": "*"
+    "Access-Control-Allow-Origin": "*",
   });
 
   let i = 0;
-  const sendLoadingMessage = _ => {
+  const sendLoadingMessage = (_) => {
     const message = ["Running Tests", "Still running tests", "Still going"][
       i++ % 3
     ];

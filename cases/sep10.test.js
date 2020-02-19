@@ -41,9 +41,9 @@ describe("SEP10", () => {
       {
         method: "OPTIONS",
         headers: {
-          Origin: "https://www.website.com"
-        }
-      }
+          Origin: "https://www.website.com",
+        },
+      },
     );
     expect(response.headers.get("access-control-allow-origin")).toBe("*");
   });
@@ -56,7 +56,7 @@ describe("SEP10", () => {
 
   it("gives an error with an invalid account provided", async () => {
     const response = await fetch(
-      toml.WEB_AUTH_ENDPOINT + "?account=GINVALIDACCOUNT"
+      toml.WEB_AUTH_ENDPOINT + "?account=GINVALIDACCOUNT",
     );
     const json = await response.json();
     expect(json.error).toBeTruthy();
@@ -66,7 +66,7 @@ describe("SEP10", () => {
     let json;
     beforeAll(async () => {
       const response = await fetch(
-        toml.WEB_AUTH_ENDPOINT + "?account=" + account
+        toml.WEB_AUTH_ENDPOINT + "?account=" + account,
       );
       json = await response.json();
     });
@@ -80,7 +80,7 @@ describe("SEP10", () => {
       expect(json.transaction).toBeTruthy();
       const tx = new StellarSDK.Transaction(
         json.transaction,
-        json.network_passphrase
+        json.network_passphrase,
       );
 
       expect(tx.sequence).toBe("0");
@@ -95,15 +95,15 @@ describe("SEP10", () => {
       it("Accepts application/x-www-form-urlencoded", async () => {
         const tx = new StellarSDK.Transaction(
           json.transaction,
-          json.network_passphrase
+          json.network_passphrase,
         );
         tx.sign(keyPair);
         let resp = await fetch(toml.WEB_AUTH_ENDPOINT, {
           method: "POST",
           headers: {
-            "Content-Type": "application/x-www-form-urlencoded"
+            "Content-Type": "application/x-www-form-urlencoded",
           },
-          body: "transaction=" + encodeURIComponent(tx.toXDR())
+          body: "transaction=" + encodeURIComponent(tx.toXDR()),
         });
         let tokenJson = await resp.json();
         expect(tokenJson.error).toBeFalsy();
@@ -114,8 +114,8 @@ describe("SEP10", () => {
         let resp = await fetch(toml.WEB_AUTH_ENDPOINT, {
           method: "POST",
           headers: {
-            "Content-Type": "application/json"
-          }
+            "Content-Type": "application/json",
+          },
         });
         expect(resp.status).not.toBe(200);
         let json = await resp.json();
@@ -126,14 +126,14 @@ describe("SEP10", () => {
       it("fails if the client doesn't sign the challenge", async () => {
         const tx = new StellarSDK.Transaction(
           json.transaction,
-          json.network_passphrase
+          json.network_passphrase,
         );
         let resp = await fetch(toml.WEB_AUTH_ENDPOINT, {
           method: "POST",
           headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
           },
-          body: JSON.stringify({ transaction: tx.toXDR() })
+          body: JSON.stringify({ transaction: tx.toXDR() }),
         });
         expect(resp.status).not.toBe(200);
         let tokenJson = await resp.json();
@@ -143,7 +143,7 @@ describe("SEP10", () => {
       it("fails if the signed challenge isn't signed by the servers SIGNING_KEY", async () => {
         const tx = new StellarSDK.Transaction(
           json.transaction,
-          json.network_passphrase
+          json.network_passphrase,
         );
         // Remove the server signature, only sign by client
         tx.signatures = [];
@@ -151,9 +151,9 @@ describe("SEP10", () => {
         let resp = await fetch(toml.WEB_AUTH_ENDPOINT, {
           method: "POST",
           headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
           },
-          body: JSON.stringify({ transaction: tx.toXDR() })
+          body: JSON.stringify({ transaction: tx.toXDR() }),
         });
         expect(resp.status).not.toBe(200);
         let tokenJson = await resp.json();
@@ -164,15 +164,15 @@ describe("SEP10", () => {
       beforeAll(async () => {
         const tx = new StellarSDK.Transaction(
           json.transaction,
-          json.network_passphrase
+          json.network_passphrase,
         );
         tx.sign(keyPair);
         let resp = await fetch(toml.WEB_AUTH_ENDPOINT, {
           method: "POST",
           headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
           },
-          body: JSON.stringify({ transaction: tx.toXDR() })
+          body: JSON.stringify({ transaction: tx.toXDR() }),
         });
         let tokenJson = await resp.json();
         token = tokenJson.token;
@@ -186,8 +186,8 @@ describe("SEP10", () => {
             iss: expect.any(String),
             sub: account,
             iat: expect.any(Number),
-            exp: expect.any(Number)
-          })
+            exp: expect.any(Number),
+          }),
         );
       });
     });
@@ -209,15 +209,15 @@ describe("SEP10", () => {
       const accountData = await server.loadAccount(accountA.publicKey());
       const transaction = new StellarSDK.TransactionBuilder(accountData, {
         fee: StellarSDK.BASE_FEE,
-        networkPassphrase: StellarSDK.Networks.TESTNET
+        networkPassphrase: StellarSDK.Networks.TESTNET,
       })
         .addOperation(
           StellarSDK.Operation.setOptions({
             masterWeight: 0,
             lowThreshold: 1,
             medThreshold: 1,
-            highThreshold: 1
-          })
+            highThreshold: 1,
+          }),
         )
         .setTimeout(30)
         .build();
@@ -234,7 +234,7 @@ describe("SEP10", () => {
       const accountData = await server.loadAccount(userAccount.publicKey());
       const transaction = new StellarSDK.TransactionBuilder(accountData, {
         fee: StellarSDK.BASE_FEE,
-        networkPassphrase: StellarSDK.Networks.TESTNET
+        networkPassphrase: StellarSDK.Networks.TESTNET,
       })
         .addOperation(
           StellarSDK.Operation.setOptions({
@@ -243,9 +243,9 @@ describe("SEP10", () => {
             highThreshold: 1,
             signer: {
               ed25519PublicKey: signerAccount.publicKey(),
-              weight: 1
-            }
-          })
+              weight: 1,
+            },
+          }),
         )
         .setTimeout(30)
         .build();
@@ -268,7 +268,7 @@ describe("SEP10", () => {
       const accountData = await server.loadAccount(userAccount.publicKey());
       const transaction = new StellarSDK.TransactionBuilder(accountData, {
         fee: StellarSDK.BASE_FEE,
-        networkPassphrase: StellarSDK.Networks.TESTNET
+        networkPassphrase: StellarSDK.Networks.TESTNET,
       })
         .addOperation(
           StellarSDK.Operation.setOptions({
@@ -277,9 +277,9 @@ describe("SEP10", () => {
             highThreshold: 2,
             signer: {
               ed25519PublicKey: signerAccount.publicKey(),
-              weight: 1
-            }
-          })
+              weight: 1,
+            },
+          }),
         )
         .setTimeout(30)
         .build();
@@ -287,7 +287,7 @@ describe("SEP10", () => {
       await server.submitTransaction(transaction);
       const token = await getSep10Token(url, userAccount, [
         signerAccount,
-        signerAccount
+        signerAccount,
       ]);
       expect(token).toBeFalsy();
     });
@@ -299,12 +299,12 @@ describe("SEP10", () => {
       await Promise.all([
         friendbot(userAccount),
         friendbot(signerAccount1),
-        friendbot(signerAccount2)
+        friendbot(signerAccount2),
       ]);
       const accountData = await server.loadAccount(userAccount.publicKey());
       const transaction = new StellarSDK.TransactionBuilder(accountData, {
         fee: StellarSDK.BASE_FEE,
-        networkPassphrase: StellarSDK.Networks.TESTNET
+        networkPassphrase: StellarSDK.Networks.TESTNET,
       })
         .addOperation(
           StellarSDK.Operation.setOptions({
@@ -313,17 +313,17 @@ describe("SEP10", () => {
             highThreshold: 2,
             signer: {
               ed25519PublicKey: signerAccount1.publicKey(),
-              weight: 1
-            }
-          })
+              weight: 1,
+            },
+          }),
         )
         .addOperation(
           StellarSDK.Operation.setOptions({
             signer: {
               ed25519PublicKey: signerAccount2.publicKey(),
-              weight: 1
-            }
-          })
+              weight: 1,
+            },
+          }),
         )
         .setTimeout(30)
         .build();
@@ -331,7 +331,7 @@ describe("SEP10", () => {
       await server.submitTransaction(transaction);
       const token = await getSep10Token(url, userAccount, [
         signerAccount1,
-        signerAccount2
+        signerAccount2,
       ]);
       expect(token).toBeTruthy();
     });

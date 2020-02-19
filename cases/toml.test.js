@@ -9,7 +9,7 @@ describe("TOML File", () => {
     const response = await fetch(url + ".well-known/stellar.toml");
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toEqual(
-      expect.stringContaining("text/plain")
+      expect.stringContaining("text/plain"),
     );
   });
 
@@ -17,8 +17,8 @@ describe("TOML File", () => {
     const response = await fetch(url + ".well-known/stellar.toml", {
       method: "OPTIONS",
       headers: {
-        Origin: "https://test.com"
-      }
+        Origin: "https://test.com",
+      },
     });
     expect(response.headers.get("access-control-allow-origin")).toBe("*");
   });
@@ -51,8 +51,8 @@ describe("TOML File", () => {
       expect(toml.DOCUMENTATION).toEqual(
         expect.objectContaining({
           ORG_NAME: expect.any(String),
-          ORG_URL: expect.any(String)
-        })
+          ORG_URL: expect.any(String),
+        }),
       );
     });
   });
