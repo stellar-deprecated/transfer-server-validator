@@ -28,17 +28,18 @@ jobs:
           command: |
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
             docker push $IMAGE_NAME:latest
-  workflows:
-    version: 2
-    build-master:
-      jobs:
-        - build:
-            filters:
-              branches:
-                only: master
-        - publish-latest:
-            requires:
-              - build
-            filters:
-              branches:
-                only: master
+workflows:
+  version: 2
+  executor: docker-publisher
+  build-master:
+    jobs:
+      - build:
+          filters:
+            branches:
+              only: master
+      - publish-latest:
+          requires:
+            - build
+          filters:
+            branches:
+              only: master
