@@ -114,7 +114,9 @@ describe("Deposit", () => {
     });
 
     it.skip("can load get through the interactive flow", async (done) => {
-      const window = await openObservableWindow(interactiveURL);
+      const builder = new URL(interactiveURL);
+      builder.searchParams.set("callback", "postMessage");
+      const window = await openObservableWindow(builder.toString());
       // Lets wait until the whole flow finishes by observering for
       // a postMessage awaiting user transfer start
       window.observePostMessage((message) => {

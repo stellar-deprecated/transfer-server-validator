@@ -12,37 +12,35 @@ function App() {
   const [errorMessage, setErrorMessage] = useState<String | null>(null);
   const [testList, setTestList] = useState<ResultList>([]);
   const [busy, setBusy] = useState<boolean>(false);
-  const [domain, setDomain] = useState(
-    "https://stellar-anchor-server.herokuapp.com"
-  );
+  const [domain, setDomain] = useState("https://testanchor.stellar.org");
 
   useEffect(() => {
     const fetchList = async () => {
       const res = await fetch("/list");
       const list: string[] = await res.json();
       setTestList(
-        list.map(name => {
+        list.map((name) => {
           return {
             name: name,
             results: [],
             status: TestStatus.PENDING,
             numFailedTests: 0,
-            numPassedTests: 0
+            numPassedTests: 0,
           };
-        })
+        }),
       );
     };
     fetchList();
   }, []);
 
   const runAllTests = useCallback(
-    async _ => {
+    async (_) => {
       try {
         setBusy(true);
         var nextTest: TestResultSet | undefined;
         while (
           (nextTest = testList.find(
-            result => result.status === TestStatus.PENDING
+            (result) => result.status === TestStatus.PENDING,
           )) !== undefined
         ) {
           nextTest.status = TestStatus.RUNNING;
@@ -56,7 +54,7 @@ function App() {
       }
       setBusy(false);
     },
-    [testList, domain]
+    [testList, domain],
   );
 
   return (
@@ -67,7 +65,7 @@ function App() {
           type="text"
           value={domain}
           placeholder="home_domain"
-          onChange={e => setDomain(e.target.value)}
+          onChange={(e) => setDomain(e.target.value)}
         ></input>
         <button
           className={s.ValidateButton}
