@@ -139,3 +139,56 @@ export const feeSchema = {
   },
   required: ["fee"]
 };
+
+const depositAndWithdrawSchema = {
+  type: "object",
+  patternProperties: {
+    ".*": {
+      properties: {
+        enabled: { type: "boolean" },
+        fee_fixed: { type: "number" },
+        fee_percent: { type: "number" },
+        min_amount: { type: "number" },
+        max_amount: { type: "number" },
+      },
+      required: ["enabled"]
+    },
+  },
+};
+
+export const infoSchema = {
+  type: "object",
+  properties: {
+    deposit: depositAndWithdrawSchema,
+    withdraw: depositAndWithdrawSchema,
+    fee: {
+      type: "object",
+      properties: {
+        enabled: { type: "boolean" },
+        authentication_required: { type: "boolean" }
+      },
+      required: ["enabled"]
+    },
+    transaction: {
+      type: "object",
+      properties: {
+        enabled: { type: "boolean" },
+      },
+      required: ["enabled"]
+    },
+    transactions: {
+      type: "object",
+      properties: {
+        enabled: { type: "boolean" },
+      },
+      required: ["enabled"]
+    },
+  },
+  required: [
+    "deposit",
+    "withdraw",
+    "fee",
+    "transaction",
+    "transactions",
+  ]
+};

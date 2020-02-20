@@ -1,8 +1,12 @@
 import { fetch } from "./util/fetchShim";
 import getTomlFile from "./util/getTomlFile";
+import { infoSchema } from "./util/schema";
+
+jest.setTimeout(30000);
 
 const urlBuilder = new URL(process.env.DOMAIN);
 const url = urlBuilder.toString();
+
 describe("Info", () => {
   let toml;
   beforeAll(async () => {
@@ -45,30 +49,7 @@ describe("Info", () => {
     });
 
     it("has a proper schema", () => {
-      const depositAndWithdrawSchema = {
-        type: "object",
-        patternProperties: {
-          ".*": {
-            properties: {
-              enabled: { type: "boolean" },
-              fee_fixed: { type: "number" },
-              fee_percent: { type: "number" },
-              min_amount: { type: "number" },
-              max_amount: { type: "number" },
-            },
-          },
-        },
-      };
-      const schema = {
-        properties: {
-          deposit: depositAndWithdrawSchema,
-          withdraw: depositAndWithdrawSchema,
-          fee: {
-            properties: { enabled: { type: "boolean" } },
-          },
-        },
-      };
-      expect(json).toMatchSchema(schema);
+      expect(json).toMatchSchema(infoSchema);
     });
   });
 });

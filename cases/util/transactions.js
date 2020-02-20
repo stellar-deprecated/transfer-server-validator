@@ -1,11 +1,12 @@
 import { fetch } from "./fetchShim";
 import FormData from "form-data";
 
-export async function createTransaction(asset_code, account, toml, jwt, authenticate, isDeposit) {
+export async function createTransaction({ currency, account, toml, jwt, isDeposit }) {
     const params = new FormData();
-    if (asset_code) params.append("asset_code", asset_code);
+    if (currency) params.append("asset_code", currency);
     if (account) params.append("account", account);
-    const authenticatedHeaders = Object.assign(
+
+    const headers = Object.assign(
         { Authorization: `Bearer ${jwt}`},
         params.getHeaders()
     );
@@ -13,7 +14,7 @@ export async function createTransaction(asset_code, account, toml, jwt, authenti
     const transactionsUrl = toml.TRANSFER_SERVER + `/transactions/${isDeposit ? 'deposit' : 'withdraw'}/interactive`;
     const response = await fetch(
         transactionsUrl, {
-            headers: authenticate ? authenticatedHeaders : params.getHeaders(),
+            headers,
             method: "POST",
             body: params
         }

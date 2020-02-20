@@ -23,6 +23,7 @@ describe("Transaction", () => {
     beforeAll(async () => {
         toml = await getTomlFile(domain);
         jwt = await getSep10Token(domain, keyPair);
+        
         const infoResponse = await fetch(toml.TRANSFER_SERVER + "/info", {
             headers: {
                 Origin: "https://www.website.com"
@@ -39,35 +40,70 @@ describe("Transaction", () => {
     });
 
     it("has CORS on the transaction endpoint", async () => {
-        const response = await fetch(toml.TRANSFER_SERVER + "/fee", {
+        const response = await fetch(toml.TRANSFER_SERVER + "/transaction", {
             headers: {
                 Origin: "https://www.website.com"
             }
         });
         expect(response.headers.get("access-control-allow-origin")).toBe("*");
     });
-    
-    it("has the correct object schema for an existing transaction", async () => {
-        let { json } = await createTransaction(enabledCurrency, keyPair.publicKey(), toml, jwt, true, true);
+
+    it("has the correct object schema for an existing deposit transaction", async () => {
+        let { json } = await createTransaction({
+            currency: enabledCurrency,
+            account: keyPair.publicKey(),
+            toml: toml,
+            jwt: jwt,
+            isDeposit: true
+        });
 
         const response = await fetch(
             toml.TRANSFER_SERVER + "/transaction?id=" + json.id, {
             headers: {
                 Authorization: `Bearer ${jwt}`
             }
-        } );
+        });
         json = await response.json();
-        const isDeposit = json.transaction.kind === 'deposit';
 
         expect(response.status).toEqual(200);
         expect(json.error).not.toBeDefined();
 
-        const schema = getTransactionSchema(isDeposit);
+        const schema = getTransactionSchema(true);
+        expect(json).toMatchSchema(schema);
+    });
+
+    it("has the correct object schema for an existing withdrawal transaction", async () => {
+        let { json } = await createTransaction({
+            currency: enabledCurrency,
+            account: keyPair.publicKey(),
+            toml: toml,
+            jwt: jwt,
+            isDeposit: false
+        });
+
+        const response = await fetch(
+            toml.TRANSFER_SERVER + "/transaction?id=" + json.id, {
+            headers: {
+                Authorization: `Bearer ${jwt}`
+            }
+        });
+        json = await response.json();
+
+        expect(response.status).toEqual(200);
+        expect(json.error).not.toBeDefined();
+
+        const schema = getTransactionSchema(false);
         expect(json).toMatchSchema(schema);
     });
 
     it("return a proper available more_info_url transaction link", async () => {
-        let { json } = await createTransaction(enabledCurrency, keyPair.publicKey(), toml, jwt, true, true);
+        let { json } = await createTransaction({
+            currency: enabledCurrency,
+            account: keyPair.publicKey(),
+            toml: toml,
+            jwt: jwt,
+            isDeposit: true
+        });
 
         const transaction = await fetch(
             toml.TRANSFER_SERVER + "/transaction?id=" + json.id, {

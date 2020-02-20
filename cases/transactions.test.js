@@ -43,7 +43,7 @@ describe("Transactions", () => {
     });
 
     it("has CORS on the transactions endpoint", async () => {
-        const response = await fetch(toml.TRANSFER_SERVER + "/fee", {
+        const response = await fetch(toml.TRANSFER_SERVER + "/transactions", {
             headers: {
                 Origin: "https://www.website.com"
             }
@@ -52,7 +52,13 @@ describe("Transactions", () => {
     });
 
     it("return proper formatted transactions list", async () => {
-        await createTransaction(enabledCurrency, keyPair.publicKey(), toml, jwt, true, true);
+        await createTransaction({
+            currency: enabledCurrency,
+            account: keyPair.publicKey(),
+            toml: toml,
+            jwt: jwt,
+            isDeposit: true
+        });
 
         const response = await fetch(
             toml.TRANSFER_SERVER + `/transactions?asset_code=${enabledCurrency}`, {
@@ -75,7 +81,20 @@ describe("Transactions", () => {
     });
 
     it("return proper amount of transactions with limit param", async () => {
-        await createTransaction(enabledCurrency, keyPair.publicKey(), toml, jwt, true, false);
+        await createTransaction({
+            currency: enabledCurrency,
+            account: keyPair.publicKey(),
+            toml: toml,
+            jwt: jwt,
+            isDeposit: true
+        });
+        await createTransaction({
+            currency: enabledCurrency,
+            account: keyPair.publicKey(),
+            toml: toml,
+            jwt: jwt,
+            isDeposit: false
+        });
 
         const response = await fetch(
             toml.TRANSFER_SERVER + `/transactions?asset_code=${enabledCurrency}&limit=1`, {
@@ -93,8 +112,20 @@ describe("Transactions", () => {
 
     it("return proper transactions with no_older_than param", async () => {
         const currentDate = new Date();
-        await createTransaction(enabledCurrency, keyPair.publicKey(), toml, jwt, true, true);
-        await createTransaction(enabledCurrency, keyPair.publicKey(), toml, jwt, true, false);
+        await createTransaction({
+            currency: enabledCurrency,
+            account: keyPair.publicKey(),
+            toml: toml,
+            jwt: jwt,
+            isDeposit: true
+        });
+        await createTransaction({
+            currency: enabledCurrency,
+            account: keyPair.publicKey(),
+            toml: toml,
+            jwt: jwt,
+            isDeposit: false
+        });
 
         const response = await fetch(
             toml.TRANSFER_SERVER + `/transactions?asset_code=${enabledCurrency}&no_older_than=${currentDate.toISOString()}`, {
@@ -107,6 +138,7 @@ describe("Transactions", () => {
         const json = await response.json();
         expect(response.status).toEqual(200);
         expect(json.error).not.toBeDefined();
+        expect(json.transactions.length).toBeGreaterThanOrEqual(2);
 
         json.transactions.forEach((transaction) => {
             const transactionStartedTime = new Date(transaction.started_at).getTime();
@@ -115,8 +147,20 @@ describe("Transactions", () => {
     });
 
     it("return only deposit transactions with kind=deposit param", async () => {
-        await createTransaction(enabledCurrency, keyPair.publicKey(), toml, jwt, true, true);
-        await createTransaction(enabledCurrency, keyPair.publicKey(), toml, jwt, true, false);
+        await createTransaction({
+            currency: enabledCurrency,
+            account: keyPair.publicKey(),
+            toml: toml,
+            jwt: jwt,
+            isDeposit: true
+        });
+        await createTransaction({
+            currency: enabledCurrency,
+            account: keyPair.publicKey(),
+            toml: toml,
+            jwt: jwt,
+            isDeposit: false
+        });
 
         const response = await fetch(
             toml.TRANSFER_SERVER + `/transactions?asset_code=${enabledCurrency}&kind=deposit`, {
@@ -129,6 +173,7 @@ describe("Transactions", () => {
         const json = await response.json();
         expect(response.status).toEqual(200);
         expect(json.error).not.toBeDefined();
+        expect(json.transactions.length).toBeGreaterThanOrEqual(1);
 
         json.transactions.forEach((transaction) => {
             expect(transaction.kind).toBe("deposit");
@@ -136,8 +181,20 @@ describe("Transactions", () => {
     });
 
     it("return only withdrawal transactions with kind=withdrawal param", async () => {
-        await createTransaction(enabledCurrency, keyPair.publicKey(), toml, jwt, true, true);
-        await createTransaction(enabledCurrency, keyPair.publicKey(), toml, jwt, true, false);
+        await createTransaction({
+            currency: enabledCurrency,
+            account: keyPair.publicKey(),
+            toml: toml,
+            jwt: jwt,
+            isDeposit: true
+        });
+        await createTransaction({
+            currency: enabledCurrency,
+            account: keyPair.publicKey(),
+            toml: toml,
+            jwt: jwt,
+            isDeposit: false
+        });
 
         const response = await fetch(
             toml.TRANSFER_SERVER + `/transactions?asset_code=${enabledCurrency}&kind=withdrawal`, {
@@ -150,14 +207,21 @@ describe("Transactions", () => {
         const json = await response.json();
         expect(response.status).toEqual(200);
         expect(json.error).not.toBeDefined();
-
+        expect(json.transactions.length).toBeGreaterThanOrEqual(1);
+        
         json.transactions.forEach((transaction) => {
             expect(transaction.kind).toBe("withdrawal");
         });
     });
 
     it("return proper transactions with paging_id param", async () => {
-        let { json } = await createTransaction(enabledCurrency, keyPair.publicKey(), toml, jwt, true, true);
+        let { json } = await createTransaction({
+            currency: enabledCurrency,
+            account: keyPair.publicKey(),
+            toml: toml,
+            jwt: jwt,
+            isDeposit: true
+        });
         const pagingId = json.id;
 
         const pagingTransaction = await fetch(
@@ -188,8 +252,20 @@ describe("Transactions", () => {
 
     it("return proper transactions with all param", async () => {
         const currentDate = new Date();
-        await createTransaction(enabledCurrency, keyPair.publicKey(), toml, jwt, true, true);
-        let { json } = await createTransaction(enabledCurrency, keyPair.publicKey(), toml, jwt, true, true);
+        await createTransaction({
+            currency: enabledCurrency,
+            account: keyPair.publicKey(),
+            toml: toml,
+            jwt: jwt,
+            isDeposit: true
+        });
+        let { json } = await createTransaction({
+            currency: enabledCurrency,
+            account: keyPair.publicKey(),
+            toml: toml,
+            jwt: jwt,
+            isDeposit: true
+        });
         const pagingId = json.id;
 
         const pagingTransaction = await fetch(
