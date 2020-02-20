@@ -27,7 +27,7 @@ jobs:
       - run: docker load -i /tmp/workspace/image.tar
       - run:
           command: |
-            docker login --username "$DOCKERHUB_USERNAME" --password "$DOCKERHUB_PASS"
+            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
             docker push $IMAGE_NAME:latest
 workflows:
   version: 2
