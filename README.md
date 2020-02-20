@@ -39,6 +39,22 @@ $ docker run  -p 3000:3000  transfer-server-validator
 $ docker run -e DOMAIN=http://<yourdomain.com transfer-server-validator
 ```
 
+### Running Optional Tests
+
+Normall optional tests do not run. You can include them in your test run in docker like so:
+
+```
+docker run -e RUN_OPTIONAL_TESTS=1 -e DOMAIN=http://<yourdomain.com transfer-server-validator
+```
+
+And if you're running `jest` directly, you can use the `--testPathIgnorePatterns` flag:
+
+```
+DOMAIN=https://stellar-anchor-server.herokuapp.com npx jest --testPathIgnorePatterns='\b(\w*optional\w*)\b'
+```
+
+The UI provides an option to run these optional tests as well.
+
 ### Running Locally
 
 ```
