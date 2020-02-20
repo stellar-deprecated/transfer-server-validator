@@ -2,9 +2,9 @@ version: 2.1
 executors:
   docker-publisher:
     environment:
-      IMAGE_NAME: jakeurban15/transfer-server-validator
+      IMAGE_NAME: stellar/transfer-server-validator
     docker:
-      - image: circleci/buildpack-deps:stretch
+      - image: circleci/node-latest
 jobs:
   build:
     executor: docker-publisher
