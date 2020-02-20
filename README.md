@@ -53,7 +53,7 @@ DOMAIN=https://stellar-anchor-server.herokuapp.com npx jest --testPathIgnorePatt
 
 The UI provides an option to run these optional tests as well.
 
-### Running Locally
+### Running the Server Locally
 
 ```
 # Run the server+client
