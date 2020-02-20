@@ -12,3 +12,12 @@
   font-size: 24px;
   flex-grow: 0;
 }
+
+.FieldRow {
+  padding-top: 10px;
+  font-size: 20px;
+}
+
+.CheckboxField {
+  zoom: 2;
+}

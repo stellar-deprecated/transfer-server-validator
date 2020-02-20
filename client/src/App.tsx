@@ -13,6 +13,9 @@ function App() {
   const [testList, setTestList] = useState<ResultList>([]);
   const [busy, setBusy] = useState<boolean>(false);
   const [domain, setDomain] = useState("https://testanchor.stellar.org");
+  const [runOptionalTests, setRunOptionalTests] = useState<boolean>(
+    Boolean(parseInt(process.env.RUN_OPTIONAL_TESTS || "0")) || false
+  );
 
   useEffect(() => {
     const fetchList = async () => {
@@ -20,10 +23,14 @@ function App() {
       const list: string[] = await res.json();
       setTestList(
         list.map((name) => {
+          let status = TestStatus.PENDING;
+          if (name.includes(".optional")) {
+            status = TestStatus.SKIPPED
+          };
           return {
             name: name,
             results: [],
-            status: TestStatus.PENDING,
+            status: status,
             numFailedTests: 0,
             numPassedTests: 0,
           };
@@ -33,7 +40,21 @@ function App() {
     fetchList();
   }, []);
 
-  const runAllTests = useCallback(
+  useEffect(() => {
+    const changeOptionalTestStatuses = () => {
+      setTestList(testList.map((test) => {
+        let op_status = runOptionalTests ? TestStatus.PENDING : TestStatus.SKIPPED;
+        if (test.name.includes("optional")) {
+          test.status = op_status;
+        };
+        return test;
+      }));
+    };
+    changeOptionalTestStatuses()
+  // eslint-disable-next-line
+  }, [runOptionalTests]);
+
+  const runTests = useCallback(
     async (_) => {
       try {
         setBusy(true);
@@ -69,11 +90,20 @@ function App() {
         ></input>
         <button
           className={s.ValidateButton}
-          onClick={runAllTests}
+          onClick={runTests}
           disabled={busy}
         >
-          {busy ? "Running..." : "Run all tests"}
+          {busy ? "Running..." : "Run tests"}
         </button>
+      </div>
+      <div className={s.FieldRow}>
+        <span className={s.FieldLabel}>Run optional tests: </span>
+        <input
+          className={s.CheckboxField}
+          type="checkbox"
+          checked={runOptionalTests}
+          onChange={(e) => setRunOptionalTests(e.target.checked)}
+        ></input>
       </div>
       <ErrorMessage message={errorMessage} />
       <TestList testList={testList} />
