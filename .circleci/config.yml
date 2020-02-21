@@ -22,6 +22,11 @@ jobs:
       - checkout
       - run: 
           command: |
+            curl https://cli-assets.heroku.com/install.sh | sh
+            touch ~/.netrc
+            printf "machine api.heroku.com\n  login $HEROKU_EMAIL\n  password $HEROKU_API_KEY\n" >> ~/.netrc
+            printf "machine git.heroku.com\n  login $HEROKU_EMAIL\n  password $HEROKU_API_KEY\n" >> ~/.netrc
+            heroku login 
             git remote add heroku https://git.heroku.com/anchor-validator.git || true
             git push heroku master
 workflows:
