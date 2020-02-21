@@ -6,17 +6,16 @@ executors:
     docker:
       - image: circleci/node:latest
 jobs:
-  build:
+  publish-build:
     executor: docker-publisher
     steps:
       - checkout
       - setup_remote_docker
       - run: docker build -t $IMAGE_NAME:latest .
-      - run: docker save -o image.tar $IMAGE_NAME
-      - persist_to_workspace:
-          root: .
-          paths:
-            - ./image.tar
+      - run:
+          command: |
+            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            docker push $IMAGE_NAME:latest
   deploy:
     executor: docker-publisher
     steps:
@@ -25,28 +24,15 @@ jobs:
           command: |
             git remote add heroku https://git.heroku.com/anchor-validator.git || true
             git push heroku master
-  publish-latest:
-    executor: docker-publisher
-    steps:
-      - attach_workspace:
-          at: /tmp/workspace
-      - setup_remote_docker
-      - run: docker load -i /tmp/workspace/image.tar
-      - run:
-          command: |
-            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            docker push $IMAGE_NAME:latest
 workflows:
   version: 2
-  publish-image:
+  publish-build:
     jobs:
       - build:
           filters:
             branches:
               only: master
-      - publish-latest:
-          requires:
-            - build
+      - deploy:
           filters:
             branches:
               only: master
