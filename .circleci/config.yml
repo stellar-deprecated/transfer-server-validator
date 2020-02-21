@@ -21,9 +21,10 @@ jobs:
     executor: docker-publisher
     steps:
       - checkout
-      - run: |
-        git remote add heroku https://git.heroku.com/anchor-validator.git || true
-        git push heroku master
+      - run: 
+          command: |
+            git remote add heroku https://git.heroku.com/anchor-validator.git || true
+            git push heroku master
   publish-latest:
     executor: docker-publisher
     steps:
