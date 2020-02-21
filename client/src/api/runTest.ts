@@ -43,6 +43,16 @@ export default async (domain: string, test: string): Promise<TestResult[]> => {
   });
   const results: TestResult[] = apiResult.testResults[0].assertionResults.map(
     (testResult: any) => {
+      if (testResult.status === "pending") {
+        /*
+        Jest json test results do not have a 'skipped' status. Instead, skipped
+        tests come back with pending status. Since we know the test completed,
+        we can assume a 'pending' testResult.status is actually a skipped test.
+
+        https://jestjs.io/docs/en/configuration#testresultsprocessor-string
+        */
+        testResult.status = "skipped";
+      }
       return {
         name: [...testResult.ancestorTitles, testResult.title].join(" > "),
         status: enumFromStatusString(testResult.status)
