@@ -11,13 +11,19 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
-      - run: 
-          command: docker build -t $IMAGE_NAME:latest .
+      - run: docker build -t $IMAGE_NAME:latest .
       - run: docker save -o image.tar $IMAGE_NAME
       - persist_to_workspace:
           root: .
           paths:
             - ./image.tar
+  deploy:
+    executor: docker-publisher
+    steps:
+      - checkout
+      - run: |
+        git remote add heroku https://git.heroku.com/anchor-validator.git || true
+        git push heroku master
   publish-latest:
     executor: docker-publisher
     steps:
