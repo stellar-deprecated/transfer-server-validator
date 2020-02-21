@@ -43,9 +43,9 @@ function App() {
   useEffect(() => {
     const changeOptionalTestStatuses = () => {
       setTestList(testList.map((test) => {
-        let op_status = runOptionalTests ? TestStatus.PENDING : TestStatus.SKIPPED;
+        let opStatus = runOptionalTests ? TestStatus.PENDING : TestStatus.SKIPPED;
         if (test.name.includes("optional")) {
-          test.status = op_status;
+          test.status = opStatus;
         };
         return test;
       }));

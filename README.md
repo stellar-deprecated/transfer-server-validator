@@ -41,7 +41,7 @@ $ docker run -e DOMAIN=http://<yourdomain.com transfer-server-validator
 
 ### Running Optional Tests
 
-Normall optional tests do not run. You can include them in your test run in docker like so:
+Normally optional tests do not run. You can include them in your test run in docker like so:
 ```
 docker run -e RUN_OPTIONAL_TESTS=1 -e DOMAIN=http://<yourdomain.com transfer-server-validator
 ```
