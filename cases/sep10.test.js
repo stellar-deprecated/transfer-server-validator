@@ -13,24 +13,40 @@ const secret = "SAUOSXXF7ZDO5PKHRFR445DRKZ66Q5HIM2HIPQGWBTUKJZQAOP3VGH3L";
 const keyPair = StellarSDK.Keypair.fromSecret(secret);
 const server = new StellarSDK.Server("https://horizon-testnet.stellar.org");
 
-let accountPool = [];
-let poolIdx = 0;
-const getAccount = _ => {
-  try {
-    return accountPool[poolIdx++];
-  } catch {
-    console.error("Not enough accounts in the pool!");
-  }
-};
+const accountPool = [];
+const dataAccountPool = [];
+
+const getAccount = function() {
+  let accountPoolIdx = 0;
+  let dataAccountPoolIdx = 0;
+  return ({with_data = false} = {}) => {
+    try {
+      if (with_data) {
+        return dataAccountPool[dataAccountPoolIdx++];
+      } else {
+        return accountPool[accountPoolIdx++];
+      };
+    } catch {
+      throw "Not enough accounts!";
+    }
+  };
+}();
 
 beforeAll(async () => {
   for (let i = 0; i < 9; i++) {
     let kp = StellarSDK.Keypair.random();
     await friendbot(kp);
-    accountPool.push({
-      kp: kp,
-      data: await server.loadAccount(kp.publicKey())
-    });
+    if (i < 4) {
+      dataAccountPool.push({
+        kp: kp,
+        data: await server.loadAccount(kp.publicKey())
+      })
+    } else {
+      accountPool.push({
+        kp: kp,
+        data: null
+      });
+    }
   };
 });
 
@@ -223,7 +239,7 @@ describe("SEP10", () => {
      * get a token with its own signature.
      */
     it("fails for an account that can't sign for itself", async () => {
-      const account = getAccount();
+      const account = getAccount({with_data: true});
       const transaction = new StellarSDK.TransactionBuilder(account.data, {
         fee: StellarSDK.BASE_FEE,
         networkPassphrase: StellarSDK.Networks.TESTNET,
@@ -245,7 +261,7 @@ describe("SEP10", () => {
     });
 
     it("succeeds for a signer of an account", async () => {
-      const userAccount = getAccount();
+      const userAccount = getAccount({with_data: true});
       const signerAccount = getAccount();
       const transaction = new StellarSDK.TransactionBuilder(userAccount.data, {
         fee: StellarSDK.BASE_FEE,
@@ -277,7 +293,7 @@ describe("SEP10", () => {
      * count its weight twice.
      */
     it("fails when trying to reuse the same signer to gain weight", async () => {
-      const userAccount = getAccount();
+      const userAccount = getAccount({with_data: true});
       const signerAccount = getAccount();
       const transaction = new StellarSDK.TransactionBuilder(userAccount.data, {
         fee: StellarSDK.BASE_FEE,
@@ -306,7 +322,7 @@ describe("SEP10", () => {
     });
 
     it("succeeds with multiple signers", async () => {
-      const userAccount = getAccount();
+      const userAccount = getAccount({with_data: true});
       const signerAccount1 = getAccount();
       const signerAccount2 = getAccount();
       const transaction = new StellarSDK.TransactionBuilder(userAccount.data, {
