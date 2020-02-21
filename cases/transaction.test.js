@@ -35,7 +35,8 @@ describe("Transaction", () => {
         enabledCurrency = currencies.find(
             currency => infoJSON.deposit[currency].enabled
         );
-
+        
+        expect(enabledCurrency).toBeDefined();
         expect(toml.TRANSFER_SERVER).toBeDefined();
     });
 

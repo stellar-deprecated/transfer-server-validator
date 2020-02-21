@@ -38,6 +38,7 @@ describe("Transactions", () => {
             currency => infoJSON.deposit[currency].enabled
         );
 
+        expect(enabledCurrency).toBeDefined();
         expect(toml.TRANSFER_SERVER).toBeDefined();
         expect(toml.WEB_AUTH_ENDPOINT).toBeDefined();
     });

@@ -169,26 +169,10 @@ export const infoSchema = {
       },
       required: ["enabled"]
     },
-    transaction: {
-      type: "object",
-      properties: {
-        enabled: { type: "boolean" },
-      },
-      required: ["enabled"]
-    },
-    transactions: {
-      type: "object",
-      properties: {
-        enabled: { type: "boolean" },
-      },
-      required: ["enabled"]
-    },
   },
   required: [
     "deposit",
     "withdraw",
     "fee",
-    "transaction",
-    "transactions",
   ]
 };

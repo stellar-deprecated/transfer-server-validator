@@ -14,6 +14,7 @@ jest.setTimeout(30000);
 describe("Fee", () => {
   let jwt;
   let toml;
+  let needFeeAuth;
   let depositAsset = {};
 
   beforeAll(async () => {
@@ -37,9 +38,9 @@ describe("Fee", () => {
       (currency) => json.deposit[currency],
     );
     depositAsset.minAmount = json.deposit[depositAsset.code].min_amount;
-    depositAsset.needAuth = Boolean(json.fee.authentication_required);
+    needFeeAuth = Boolean(json.fee.authentication_required);
 
-    if (depositAsset.needAuth) {
+    if (needFeeAuth) {
       jwt = await getSep10Token(url, keyPair);
     }
   });
@@ -63,7 +64,7 @@ describe("Fee", () => {
 
   it("returns a proper fee schema for deposit fee request", async () => {
     const paramString = `operation=deposit&asset_code=${depositAsset.code}&amount=${depositAsset.minAmount}`;
-    const headers = depositAsset.needAuth ? { Authorization: `Bearer ${jwt}` } : { Origin: "https://www.website.com" };
+    const headers = needFeeAuth ? { Authorization: `Bearer ${jwt}` } : { Origin: "https://www.website.com" };
     const response = await fetch(toml.TRANSFER_SERVER + `/fee?${paramString}`, { headers });
 
     const json = await response.json();
