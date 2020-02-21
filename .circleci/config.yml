@@ -1,4 +1,6 @@
 version: 2.1
+orbs:
+  heroku: circleci/heroku@0.0.10.
 executors:
   docker-publisher:
     environment:
@@ -16,28 +18,17 @@ jobs:
           command: |
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
             docker push $IMAGE_NAME:latest
-  deploy:
-    executor: docker-publisher
-    steps:
-      - checkout
-      - run: 
-          command: |
-            curl https://cli-assets.heroku.com/install.sh | sh
-            touch ~/.netrc
-            printf "machine api.heroku.com\n  login $HEROKU_EMAIL\n  password $HEROKU_API_KEY\n" >> ~/.netrc
-            printf "machine git.heroku.com\n  login $HEROKU_EMAIL\n  password $HEROKU_API_KEY\n" >> ~/.netrc
-            heroku login 
-            git remote add heroku https://git.heroku.com/anchor-validator.git || true
-            git push heroku master
 workflows:
   version: 2
-  publish-build:
+  publish-build-deploy:
     jobs:
       - publish-build:
           filters:
             branches:
               only: master
-      - deploy:
+      - heroku/deploy-via-git:
+          requires:
+            - publish-build
           filters:
             branches:
               only: master
