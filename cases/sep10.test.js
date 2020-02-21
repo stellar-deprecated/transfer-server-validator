@@ -26,14 +26,11 @@ const getAccount = function() {
 }();
 
 beforeAll(async () => {
-  let kps = [];
   for (let i = 0; i < 9; i++) {
-    let kp = StellarSDK.Keypair.random();
-    kps.push(kp);
-    accountPool.push({kp: kp});
+    accountPool.push({kp: StellarSDK.Keypair.random(), data: null});
   }
-  await Promise.all(kps.map(friendbot));
   await Promise.all(accountPool.map(async (acc) => {
+    await friendbot(acc.kp);
     acc.data = await server.loadAccount(acc.kp.publicKey());
   }));
 });
