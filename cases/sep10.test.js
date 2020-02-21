@@ -12,20 +12,13 @@ const account = "GCQJX6WGG7SSFU2RBO5QANTFXY7C5GTTFJDCBAAO42JCCFIMZ7PEBURP";
 const secret = "SAUOSXXF7ZDO5PKHRFR445DRKZ66Q5HIM2HIPQGWBTUKJZQAOP3VGH3L";
 const keyPair = StellarSDK.Keypair.fromSecret(secret);
 const server = new StellarSDK.Server("https://horizon-testnet.stellar.org");
-
 const accountPool = [];
-const dataAccountPool = [];
 
 const getAccount = function() {
   let accountPoolIdx = 0;
-  let dataAccountPoolIdx = 0;
-  return ({with_data = false} = {}) => {
+  return _ => {
     try {
-      if (with_data) {
-        return dataAccountPool[dataAccountPoolIdx++];
-      } else {
-        return accountPool[accountPoolIdx++];
-      };
+      return accountPool[accountPoolIdx++];
     } catch {
       throw "Not enough accounts!";
     }
@@ -34,21 +27,15 @@ const getAccount = function() {
 
 beforeAll(async () => {
   let kps = [];
-  for (let i = 0; i < 9; i++) kps.push(StellarSDK.Keypair.random());
+  for (let i = 0; i < 9; i++) {
+    let kp = StellarSDK.Keypair.random();
+    kps.push(kp);
+    accountPool.push({kp: kp});
+  }
   await Promise.all(kps.map(friendbot));
-  for (let i = 0; i < 9; i++){
-    if (i < 4) {
-      dataAccountPool.push({
-        kp: kps[i],
-        data: await server.loadAccount(kps[i].publicKey())
-      })
-    } else {
-      accountPool.push({
-        kp: kps[i],
-        data: null
-      });
-    }
-  };
+  await Promise.all(accountPool.map(async (acc) => {
+    acc.data = await server.loadAccount(acc.kp.publicKey());
+  }));
 });
 
 describe("SEP10", () => {
