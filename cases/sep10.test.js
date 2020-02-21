@@ -5,8 +5,6 @@ import friendbot from "./util/friendbot";
 import getTomlFile from "./util/getTomlFile";
 import getSep10Token from "./util/sep10";
 
-// Friendbot usage makes this very slow.  Need to create an account pool at
-// the beginning and reuse them.
 jest.setTimeout(100000);
 const urlBuilder = new URL(process.env.DOMAIN);
 const url = urlBuilder.toString();
@@ -14,6 +12,28 @@ const account = "GCQJX6WGG7SSFU2RBO5QANTFXY7C5GTTFJDCBAAO42JCCFIMZ7PEBURP";
 const secret = "SAUOSXXF7ZDO5PKHRFR445DRKZ66Q5HIM2HIPQGWBTUKJZQAOP3VGH3L";
 const keyPair = StellarSDK.Keypair.fromSecret(secret);
 const server = new StellarSDK.Server("https://horizon-testnet.stellar.org");
+const accountPool = [];
+
+const getAccount = function() {
+  let accountPoolIdx = 0;
+  return _ => {
+    try {
+      return accountPool[accountPoolIdx++];
+    } catch {
+      throw "Not enough accounts!";
+    }
+  };
+}();
+
+beforeAll(async () => {
+  for (let i = 0; i < 9; i++) {
+    accountPool.push({kp: StellarSDK.Keypair.random(), data: null});
+  }
+  await Promise.all(accountPool.map(async (acc) => {
+    await friendbot(acc.kp);
+    acc.data = await server.loadAccount(acc.kp.publicKey());
+  }));
+});
 
 describe("SEP10", () => {
   let toml;
@@ -204,10 +224,8 @@ describe("SEP10", () => {
      * get a token with its own signature.
      */
     it("fails for an account that can't sign for itself", async () => {
-      const accountA = StellarSDK.Keypair.random();
-      await friendbot(accountA);
-      const accountData = await server.loadAccount(accountA.publicKey());
-      const transaction = new StellarSDK.TransactionBuilder(accountData, {
+      const account = getAccount({with_data: true});
+      const transaction = new StellarSDK.TransactionBuilder(account.data, {
         fee: StellarSDK.BASE_FEE,
         networkPassphrase: StellarSDK.Networks.TESTNET,
       })
@@ -221,18 +239,16 @@ describe("SEP10", () => {
         )
         .setTimeout(30)
         .build();
-      transaction.sign(accountA);
+      transaction.sign(account.kp);
       await server.submitTransaction(transaction);
-      const token = await getSep10Token(url, accountA, [accountA]);
+      const token = await getSep10Token(url, account.kp, [account.kp]);
       expect(token).toBeFalsy();
     });
 
     it("succeeds for a signer of an account", async () => {
-      const userAccount = StellarSDK.Keypair.random();
-      const signerAccount = StellarSDK.Keypair.random();
-      await Promise.all([friendbot(userAccount), friendbot(signerAccount)]);
-      const accountData = await server.loadAccount(userAccount.publicKey());
-      const transaction = new StellarSDK.TransactionBuilder(accountData, {
+      const userAccount = getAccount({with_data: true});
+      const signerAccount = getAccount();
+      const transaction = new StellarSDK.TransactionBuilder(userAccount.data, {
         fee: StellarSDK.BASE_FEE,
         networkPassphrase: StellarSDK.Networks.TESTNET,
       })
@@ -242,16 +258,16 @@ describe("SEP10", () => {
             medThreshold: 1,
             highThreshold: 1,
             signer: {
-              ed25519PublicKey: signerAccount.publicKey(),
+              ed25519PublicKey: signerAccount.kp.publicKey(),
               weight: 1,
             },
           }),
         )
         .setTimeout(30)
         .build();
-      transaction.sign(userAccount);
+      transaction.sign(userAccount.kp);
       await server.submitTransaction(transaction);
-      const token = await getSep10Token(url, userAccount, [signerAccount]);
+      const token = await getSep10Token(url, userAccount.kp, [signerAccount.kp]);
       expect(token).toBeTruthy();
     });
 
@@ -262,11 +278,9 @@ describe("SEP10", () => {
      * count its weight twice.
      */
     it("fails when trying to reuse the same signer to gain weight", async () => {
-      const userAccount = StellarSDK.Keypair.random();
-      const signerAccount = StellarSDK.Keypair.random();
-      await Promise.all([friendbot(userAccount), friendbot(signerAccount)]);
-      const accountData = await server.loadAccount(userAccount.publicKey());
-      const transaction = new StellarSDK.TransactionBuilder(accountData, {
+      const userAccount = getAccount({with_data: true});
+      const signerAccount = getAccount();
+      const transaction = new StellarSDK.TransactionBuilder(userAccount.data, {
         fee: StellarSDK.BASE_FEE,
         networkPassphrase: StellarSDK.Networks.TESTNET,
       })
@@ -276,33 +290,27 @@ describe("SEP10", () => {
             medThreshold: 2,
             highThreshold: 2,
             signer: {
-              ed25519PublicKey: signerAccount.publicKey(),
+              ed25519PublicKey: signerAccount.kp.publicKey(),
               weight: 1,
             },
           }),
         )
         .setTimeout(30)
         .build();
-      transaction.sign(userAccount);
+      transaction.sign(userAccount.kp);
       await server.submitTransaction(transaction);
-      const token = await getSep10Token(url, userAccount, [
-        signerAccount,
-        signerAccount,
+      const token = await getSep10Token(url, userAccount.kp, [
+        signerAccount.kp,
+        signerAccount.kp,
       ]);
       expect(token).toBeFalsy();
     });
 
     it("succeeds with multiple signers", async () => {
-      const userAccount = StellarSDK.Keypair.random();
-      const signerAccount1 = StellarSDK.Keypair.random();
-      const signerAccount2 = StellarSDK.Keypair.random();
-      await Promise.all([
-        friendbot(userAccount),
-        friendbot(signerAccount1),
-        friendbot(signerAccount2),
-      ]);
-      const accountData = await server.loadAccount(userAccount.publicKey());
-      const transaction = new StellarSDK.TransactionBuilder(accountData, {
+      const userAccount = getAccount({with_data: true});
+      const signerAccount1 = getAccount();
+      const signerAccount2 = getAccount();
+      const transaction = new StellarSDK.TransactionBuilder(userAccount.data, {
         fee: StellarSDK.BASE_FEE,
         networkPassphrase: StellarSDK.Networks.TESTNET,
       })
@@ -312,7 +320,7 @@ describe("SEP10", () => {
             medThreshold: 2,
             highThreshold: 2,
             signer: {
-              ed25519PublicKey: signerAccount1.publicKey(),
+              ed25519PublicKey: signerAccount1.kp.publicKey(),
               weight: 1,
             },
           }),
@@ -320,18 +328,18 @@ describe("SEP10", () => {
         .addOperation(
           StellarSDK.Operation.setOptions({
             signer: {
-              ed25519PublicKey: signerAccount2.publicKey(),
+              ed25519PublicKey: signerAccount2.kp.publicKey(),
               weight: 1,
             },
           }),
         )
         .setTimeout(30)
         .build();
-      transaction.sign(userAccount);
+      transaction.sign(userAccount.kp);
       await server.submitTransaction(transaction);
-      const token = await getSep10Token(url, userAccount, [
-        signerAccount1,
-        signerAccount2,
+      const token = await getSep10Token(url, userAccount.kp, [
+        signerAccount1.kp,
+        signerAccount2.kp,
       ]);
       expect(token).toBeTruthy();
     });
