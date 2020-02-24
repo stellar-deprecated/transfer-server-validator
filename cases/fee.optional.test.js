@@ -3,6 +3,7 @@ import StellarSDK from "stellar-sdk";
 import { fetch } from "./util/fetchShim";
 import getTomlFile from "./util/getTomlFile";
 import getSep10Token from "./util/sep10";
+import { errorSchema, feeSchema } from "./util/schema";
 
 const keyPair = StellarSDK.Keypair.random();
 const urlBuilder = new URL(process.env.DOMAIN);
@@ -13,6 +14,7 @@ jest.setTimeout(30000);
 describe("Fee", () => {
   let jwt;
   let toml;
+  let needFeeAuth;
   let depositAsset = {};
 
   beforeAll(async () => {
@@ -36,8 +38,11 @@ describe("Fee", () => {
       (currency) => json.deposit[currency],
     );
     depositAsset.minAmount = json.deposit[depositAsset.code].min_amount;
+    needFeeAuth = Boolean(json.fee.authentication_required);
 
-    jwt = await getSep10Token(url, keyPair);
+    if (needFeeAuth) {
+      jwt = await getSep10Token(url, keyPair);
+    }
   });
 
   it("has CORS on the fee endpoint", async () => {
@@ -51,13 +56,7 @@ describe("Fee", () => {
 
   it("returns a proper error schema for a non-params fee request", async () => {
     const response = await fetch(toml.TRANSFER_SERVER + "/fee");
-
     const json = await response.json();
-    const errorSchema = {
-      properties: {
-        error: { type: "string" },
-      },
-    };
 
     expect(response.status).not.toEqual(200);
     expect(json).toMatchSchema(errorSchema);
@@ -65,19 +64,10 @@ describe("Fee", () => {
 
   it("returns a proper fee schema for deposit fee request", async () => {
     const paramString = `operation=deposit&asset_code=${depositAsset.code}&amount=${depositAsset.minAmount}`;
-    const response = await fetch(toml.TRANSFER_SERVER + `/fee?${paramString}`, {
-      headers: {
-        Authorization: `Bearer ${jwt}`,
-      },
-    });
+    const headers = needFeeAuth ? { Authorization: `Bearer ${jwt}` } : { Origin: "https://www.website.com" };
+    const response = await fetch(toml.TRANSFER_SERVER + `/fee?${paramString}`, { headers });
 
     const json = await response.json();
-    const feeSchema = {
-      properties: {
-        fee: { type: "number" },
-      },
-    };
-
     expect(response.status).toEqual(200);
     expect(json).toMatchSchema(feeSchema);
   });

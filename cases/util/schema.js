@@ -1,11 +1,11 @@
-export const transactionSchema = {
+const transactionSchema = {
   type: "object",
   properties: {
     transaction: {
       type: "object",
       properties: {
         id: { type: "string" },
-        kind: { type: "string", pattern: "deposit|withdraw" },
+        kind: { type: "string", pattern: "deposit|withdrawal" },
         status: {
           type: "string",
           pattern:
@@ -46,11 +46,133 @@ export const transactionSchema = {
           type: ["string", "null"],
         },
         refunded: {
-          type: "boolean",
+          type: "boolean"
         },
       },
-      required: ["id", "kind", "status", "more_info_url"],
-    },
+      required: [
+        "id",
+        "kind",
+        "status",
+        "more_info_url",
+        "amount_in",
+        "amount_out",
+        "amount_fee",
+        "started_at",
+        "completed_at",
+        "stellar_transaction_id",
+        "refunded",
+      ]
+    }
   },
   required: ["transaction"],
+};
+
+export function getTransactionSchema(isDeposit) {
+  const schema = JSON.parse(JSON.stringify(transactionSchema));
+  const requiredDepositParams = ["from", "to"];
+  const requiredWithdrawParams = ["from", "to", "withdraw_memo", "withdraw_memo_type", "withdraw_anchor_account"];
+
+  const depositProperties = {
+    deposit_memo: {
+      type: ["string", "null"]
+    },
+    deposit_memo_type: {
+      type: ["string", "null"]
+    },
+    from: {
+      type: ["string", "null"]
+    },
+    to: {
+      type: ["string", "null"]
+    }
+  };
+
+  const withdrawProperties = {
+    withdraw_anchor_account: {
+      type: ["string", "null"]
+    },
+    withdraw_memo: {
+      type: ["string", "null"]
+    },
+    withdraw_memo_type: {
+      type: ["string", "null"]
+    },
+    from: {
+      type: ["string", "null"]
+    },
+    to: {
+      type: ["string", "null"]
+    }
+  };
+
+  if (isDeposit) {
+    schema.properties.transaction.required = schema.properties.transaction.required.concat(requiredDepositParams);
+    Object.assign(schema.properties.transaction.properties, depositProperties);
+  } else {
+    schema.properties.transaction.required = schema.properties.transaction.required.concat(requiredWithdrawParams);
+    Object.assign(schema.properties.transaction.properties, withdrawProperties);
+  }
+  
+  return schema;
+}
+
+export const transactionsSchema = {
+  type: "object",
+  properties: {
+    transactions: { type: "array" }
+  },
+  required: ["transactions"]
+}
+
+export const errorSchema = {
+  type: "object",
+  properties: {
+    error: { type: "string" }
+  },
+  required: ["error"]
+};
+
+export const feeSchema = {
+  type: "object",
+  properties: {
+    fee: { type: "number" }
+  },
+  required: ["fee"]
+};
+
+const depositAndWithdrawSchema = {
+  type: "object",
+  patternProperties: {
+    ".*": {
+      properties: {
+        enabled: { type: "boolean" },
+        fee_fixed: { type: "number" },
+        fee_percent: { type: "number" },
+        min_amount: { type: "number" },
+        max_amount: { type: "number" },
+      },
+      required: ["enabled"]
+    },
+  },
+};
+
+export const infoSchema = {
+  type: "object",
+  properties: {
+    deposit: depositAndWithdrawSchema,
+    withdraw: depositAndWithdrawSchema,
+    fee: {
+      type: "object",
+      properties: {
+        enabled: { type: "boolean" },
+        authentication_required: { type: "boolean" }
+      },
+      required: ["enabled"]
+    },
+  },
+  required: [
+    "deposit",
+    "withdraw",
+    "fee",
+  ]
 };
