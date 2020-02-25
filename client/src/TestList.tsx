@@ -5,7 +5,7 @@ import { TestResultSet, TestResult, TestStatus } from "./TestResults";
 function iconFromStatus(status: TestStatus): string {
   switch (status) {
     case TestStatus.FAILURE:
-      return "🔴";
+      return "❌";
     case TestStatus.PENDING:
       return "⚪️";
     case TestStatus.SUCCESS:

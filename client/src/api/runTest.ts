@@ -2,7 +2,7 @@ import { TestResult, TestStatus } from "../TestResults";
 
 function enumFromStatusString(status: string): string {
   switch (status) {
-    case "failure":
+    case "failed":
       return TestStatus.FAILURE;
 
     case "pending":
@@ -17,7 +17,7 @@ function enumFromStatusString(status: string): string {
     case "running":
       return TestStatus.RUNNING;
   }
-  console.error("Unkown enum ", status);
+  console.error("Unknown enum ", status);
   return "none";
 }
 
