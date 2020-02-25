@@ -3,60 +3,57 @@ import React, { useCallback, useState, useEffect } from "react";
 import "./App.css";
 import ErrorMessage from "./ErrorMessage";
 import TestList from "./TestList";
-import { TestResultSet, TestStatus } from "./TestResults";
+import { TestResultSet, TestStatus, makeTestResultSet } from "./TestResults";
 import runTest from "./api/runTest";
 import s from "./App.module.css";
 
-type ResultList = TestResultSet[];
 function App() {
   const [errorMessage, setErrorMessage] = useState<String | null>(null);
-  const [testList, setTestList] = useState<ResultList>([]);
+  // All tests available from the server
+  const [availableTests, setAvailableTests] = useState<string[]>([]);
+  // Current (pending) test runs
+  const [testList, setTestList] = useState<TestResultSet[]>([]);
   const [busy, setBusy] = useState<boolean>(false);
   const [domain, setDomain] = useState("https://testanchor.stellar.org");
   const [runOptionalTests, setRunOptionalTests] = useState<boolean>(
-    Boolean(parseInt(process.env.RUN_OPTIONAL_TESTS || "0")) || false
+    Boolean(parseInt(process.env.RUN_OPTIONAL_TESTS || "0")) || false,
   );
 
   useEffect(() => {
     const fetchList = async () => {
       const res = await fetch("/list");
-      const list: string[] = await res.json();
-      setTestList(
-        list.map((name) => {
-          let status = TestStatus.PENDING;
-          if (name.includes(".optional")) {
-            status = TestStatus.SKIPPED
-          };
-          return {
-            name: name,
-            results: [],
-            status: status,
-            numFailedTests: 0,
-            numPassedTests: 0,
-          };
-        }),
-      );
+      const testNames: string[] = await res.json();
+      setAvailableTests(testNames);
     };
     fetchList();
   }, []);
 
+  const resetTests = useCallback(() => {
+    setTestList(availableTests.map(makeTestResultSet));
+  }, [availableTests]);
+  useEffect(resetTests, [availableTests]);
+
   useEffect(() => {
     const changeOptionalTestStatuses = () => {
-      setTestList(testList.map((test) => {
-        let opStatus = runOptionalTests ? TestStatus.PENDING : TestStatus.SKIPPED;
-        if (test.name.includes("optional")) {
-          test.status = opStatus;
-        };
-        return test;
-      }));
+      setTestList((previousTestList) => {
+        return previousTestList.map((test) => {
+          let opStatus = runOptionalTests
+            ? TestStatus.PENDING
+            : TestStatus.SKIPPED;
+          if (test.name.includes("optional")) {
+            test.status = opStatus;
+          }
+          return test;
+        });
+      });
     };
-    changeOptionalTestStatuses()
-  // eslint-disable-next-line
+    changeOptionalTestStatuses();
   }, [runOptionalTests]);
 
   const runTests = useCallback(
     async (_) => {
       try {
+        resetTests();
         setBusy(true);
         var nextTest: TestResultSet | undefined;
         while (
@@ -78,7 +75,7 @@ function App() {
       }
       setBusy(false);
     },
-    [testList, domain],
+    [testList, domain, resetTests],
   );
 
   return (
@@ -91,11 +88,7 @@ function App() {
           placeholder="home_domain"
           onChange={(e) => setDomain(e.target.value)}
         ></input>
-        <button
-          className={s.ValidateButton}
-          onClick={runTests}
-          disabled={busy}
-        >
+        <button className={s.ValidateButton} onClick={runTests} disabled={busy}>
           {busy ? "Running..." : "Run tests"}
         </button>
       </div>
