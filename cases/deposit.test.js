@@ -6,7 +6,7 @@ import getSep10Token from "./util/sep10";
 import StellarSDK from "stellar-sdk";
 import FormData from "form-data";
 import { waitForLoad, openObservableWindow } from "./util/browser-util";
-import { transactionSchema } from "./util/schema";
+import { getTransactionSchema } from "./util/schema";
 import getTomlFile from "./util/getTomlFile";
 const urlBuilder = new URL(process.env.DOMAIN);
 const url = urlBuilder.toString();
@@ -19,6 +19,31 @@ describe("Deposit", () => {
   let enabledCurrency;
   let jwt;
   let toml;
+
+  beforeAll(async () => {
+    await fetch(`https://friendbot.stellar.org?addr=${keyPair.publicKey()}`);
+    try {
+      toml = await getTomlFile(url);
+    } catch (e) {
+      throw "Invalid TOML formatting";
+    }
+
+    const infoResponse = await fetch(toml.TRANSFER_SERVER + "/info", {
+      headers: {
+        Origin: "https://www.website.com",
+      },
+    });
+    infoJSON = await infoResponse.json();
+    const currencies = Object.keys(infoJSON.deposit);
+    enabledCurrency = currencies.find(
+      (currency) => infoJSON.deposit[currency].enabled,
+    );
+    jwt = await getSep10Token(url, keyPair);
+  });
+
+  it("has a currency enabled for deposit", () => {
+    expect(enabledCurrency).toEqual(expect.any(String));
+  });
 
   const doPost = async (asset_code, account, authenticate) => {
     const params = new FormData();
@@ -45,30 +70,6 @@ describe("Deposit", () => {
       json,
     };
   };
-  beforeAll(async () => {
-    await fetch(`https://friendbot.stellar.org?addr=${keyPair.publicKey()}`);
-    try {
-      toml = await getTomlFile(url);
-    } catch (e) {
-      throw "Invalid TOML formatting";
-    }
-
-    const infoResponse = await fetch(toml.TRANSFER_SERVER + "/info", {
-      headers: {
-        Origin: "https://www.website.com",
-      },
-    });
-    infoJSON = await infoResponse.json();
-    const currencies = Object.keys(infoJSON.deposit);
-    enabledCurrency = currencies.find(
-      (currency) => infoJSON.deposit[currency].enabled,
-    );
-    jwt = await getSep10Token(url, keyPair);
-  });
-
-  it("has a currency enabled for deposit", () => {
-    expect(enabledCurrency).toEqual(expect.any(String));
-  });
 
   it("returns a proper error with no JWT", async () => {
     const { status, json } = await doPost(
@@ -113,14 +114,19 @@ describe("Deposit", () => {
       expect(status).toEqual(200);
     });
 
-    it.skip("can load get through the interactive flow", async (done) => {
-      const builder = new URL(interactiveURL);
+    it("can load get through the interactive flow", async (done) => {
+      const { status, json } = await doPost(
+        enabledCurrency,
+        keyPair.publicKey(),
+        true,
+      );
+      const builder = new URL(json.url);
       builder.searchParams.set("callback", "postMessage");
       const window = await openObservableWindow(builder.toString());
       // Lets wait until the whole flow finishes by observering for
       // a postMessage awaiting user transfer start
       window.observePostMessage((message) => {
-        expect(message).toMatchSchema(transactionSchema);
+        expect(message).toMatchSchema(getTransactionSchema(true));
         if (message.transaction.status == "pending_user_transfer_start") {
           done();
         }
