@@ -2,7 +2,8 @@ import { fetch } from "./util/fetchShim";
 import getSep10Token from "./util/sep10";
 import getTomlFile from "./util/getTomlFile";
 import StellarSDK from "stellar-sdk";
-import { createTransaction } from "./util/transactions";
+import { getTransactionBy } from "./util/transactions";
+import { createTransaction } from "./util/interactive";
 import { errorSchema, getTransactionSchema } from "./util/schema";
 
 jest.setTimeout(60000);
@@ -37,23 +38,6 @@ describe("Transaction", () => {
     expect(toml.TRANSFER_SERVER).toBeDefined();
   });
 
-  async function getTransactionBy({
-    value,
-    iden = "id",
-    expectStatus = 200,
-  } = {}) {
-    const response = await fetch(
-      toml.TRANSFER_SERVER + `/transaction?${iden}=${value}`,
-      {
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
-      },
-    );
-    expect(response.status).toEqual(expectStatus);
-    return await response.json();
-  }
-
   async function checkTransactionResponse({ json, isDeposit }) {
     expect(json.error).not.toBeDefined();
     const schema = getTransactionSchema(isDeposit);
@@ -77,7 +61,7 @@ describe("Transaction", () => {
       jwt: jwt,
       isDeposit: true,
     });
-    json = await getTransactionBy({ value: json.id });
+    json = await getTransactionBy({ value: json.id, toml: toml, jwt: jwt });
     await checkTransactionResponse({ json: json, isDeposit: true });
   });
 
@@ -90,7 +74,11 @@ describe("Transaction", () => {
       isDeposit: false,
     });
 
-    json = await getTransactionBy({ value: json.id });
+    json = await getTransactionBy({
+      value: json.id,
+      toml: toml,
+      jwt: jwt,
+    });
     await checkTransactionResponse({ json: json, isDeposit: false });
   });
 
@@ -104,6 +92,8 @@ describe("Transaction", () => {
     let json = await getTransactionBy({
       iden: "stellar_transaction_id",
       value: json.stellar_transaction_id,
+      toml: toml,
+      jwt: jwt,
     });
     await checkTransactionResponse({ json: json, isDeposit: true });
   });
@@ -117,7 +107,11 @@ describe("Transaction", () => {
       isDeposit: true,
     });
 
-    json = await getTransactionBy({ value: json.id });
+    json = await getTransactionBy({
+      value: json.id,
+      toml: toml,
+      jwt: jwt,
+    });
     const moreInfo = await fetch(json.transaction.more_info_url);
     expect(moreInfo.status).toEqual(200);
   });
@@ -138,6 +132,8 @@ describe("Transaction", () => {
     const json = await getTransactionBy({
       value: "1277bd18-a2bd-4acd-9a87-2f541c7b8933",
       expectStatus: 404,
+      toml: toml,
+      jwt: jwt,
     });
     expect(json).toMatchSchema(errorSchema);
   });
@@ -147,6 +143,8 @@ describe("Transaction", () => {
       iden: "stellar_transaction_id",
       value: "17a670bc424ff5ce3b386dbfaae9990b66a2a37b4fbe51547e8794962a3f9e6a",
       expectStatus: 404,
+      toml: toml,
+      jwt: jwt,
     });
     expect(json).toMatchSchema(errorSchema);
   });
@@ -156,6 +154,8 @@ describe("Transaction", () => {
       iden: "external_transaction_id",
       value: "2dd16cb409513026fbe7defc0c6f826c2d2c65c3da993f747d09bf7dafd31093",
       expectStatus: 404,
+      jwt: jwt,
+      toml: toml,
     });
     expect(json).toMatchSchema(errorSchema);
   });
