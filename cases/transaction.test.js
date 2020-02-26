@@ -40,6 +40,24 @@ describe("Transaction", () => {
         expect(toml.TRANSFER_SERVER).toBeDefined();
     });
 
+    async function getTransactionBy({ value, iden = "id" } = {}) {
+        const response = await fetch(
+            toml.TRANSFER_SERVER + `/transaction?${iden}=${value}`, {
+            headers: {
+                Authorization: `Bearer ${jwt}`
+            }
+        });
+        return await response.json();
+    };
+
+    async function checkTransactionResponse({ response, isDeposit }) {
+        expect(response.status).toEqual(200);
+        expect(json.error).not.toBeDefined();
+
+        const schema = getTransactionSchema(isDeposit);
+        expect(json).toMatchSchema(schema);
+    };
+
     it("has CORS on the transaction endpoint", async () => {
         const response = await fetch(toml.TRANSFER_SERVER + "/transaction", {
             headers: {
@@ -58,19 +76,8 @@ describe("Transaction", () => {
             isDeposit: true
         });
 
-        const response = await fetch(
-            toml.TRANSFER_SERVER + "/transaction?id=" + json.id, {
-            headers: {
-                Authorization: `Bearer ${jwt}`
-            }
-        });
-        json = await response.json();
-
-        expect(response.status).toEqual(200);
-        expect(json.error).not.toBeDefined();
-
-        const schema = getTransactionSchema(true);
-        expect(json).toMatchSchema(schema);
+        let json = await getTransactionBy({ value: json.id});
+        await checkTransactionResponse({ response: json, isDeposit: true })
     });
 
     it("has the correct object schema for an existing withdrawal transaction", async () => {
@@ -81,20 +88,36 @@ describe("Transaction", () => {
             jwt: jwt,
             isDeposit: false
         });
+        
+        let json = await getTransactionBy({ value: json.id});
+        await checkTransactionResponse({ response: json, isDeposit: false});
+    });
 
-        const response = await fetch(
-            toml.TRANSFER_SERVER + "/transaction?id=" + json.id, {
-            headers: {
-                Authorization: `Bearer ${jwt}`
-            }
+    it("has the correct object schema for an existing deposit transaction", async () => {
+        let { json } = await createTransaction({
+            currency: enabledCurrency,
+            account: keyPair.publicKey(),
+            toml: toml,
+            jwt: jwt,
+            isDeposit: true 
         });
-        json = await response.json();
+        
+        let json = getTransactionBy({ value: json.id });
+        await checkTransactionResponse({ response: json, isDeposit: true});
+    });
 
-        expect(response.status).toEqual(200);
-        expect(json.error).not.toBeDefined();
+    it.skip("json retreived by stellar_transaction_id returns correct object schema", async () => {
+        // Can't this test wouldn't succeed because stellar_transaction_id would be populated
+        // after the anchor submited the deposit to the stellar network. This test will have
+        // to wait until we have the code to walk through the interactive flow working.
 
-        const schema = getTransactionSchema(false);
-        expect(json).toMatchSchema(schema);
+        // do interactive flow, then:
+
+        let json = getTransactionBy({ 
+            iden: "stellar_transaction_id", 
+            value: json.stellar_transaction_id 
+        });
+        await checkTransactionResponse({ response: json, isDeposit: true });
     });
 
     it("return a proper available more_info_url transaction link", async () => {
@@ -106,14 +129,7 @@ describe("Transaction", () => {
             isDeposit: true
         });
 
-        const transaction = await fetch(
-            toml.TRANSFER_SERVER + "/transaction?id=" + json.id, {
-            headers: {
-                Authorization: `Bearer ${jwt}`
-            }
-        });
-
-        json = await transaction.json();
+        let json = getTransactionBy({ value: json.id })
         const moreInfo = await fetch(json.transaction.more_info_url);
         expect(moreInfo.status).toEqual(200);
     });
@@ -132,43 +148,27 @@ describe("Transaction", () => {
     });
 
     it("returns a proper error for a non-existing transaction by id", async () => {
-        const response = await fetch(
-            toml.TRANSFER_SERVER +
-            "/transaction?id=1277bd18-a2bd-4acd-9a87-2f541c7b8933", {
-            headers: {
-                Authorization: `Bearer ${jwt}`
-            }
+        const json = await getTransactionBy({ 
+            value: "1277bd18-a2bd-4acd-9a87-2f541c7b8933"
         });
-
-        const json = await response.json();
         expect(response.status).toEqual(404);
         expect(json).toMatchSchema(errorSchema);
     });
 
     it("returns a proper error for a non-existing transaction by stellar_transaction_id", async () => {
-        const response = await fetch(
-            toml.TRANSFER_SERVER +
-            "/transaction?stellar_transaction_id=17a670bc424ff5ce3b386dbfaae9990b66a2a37b4fbe51547e8794962a3f9e6a", {
-            headers: {
-                Authorization: `Bearer ${jwt}`
-            }
+        const json = await getTransactionBy({
+            iden: "stellar_transaction_id",
+            value: "17a670bc424ff5ce3b386dbfaae9990b66a2a37b4fbe51547e8794962a3f9e6a"
         });
-
-        const json = await response.json();
         expect(response.status).toEqual(404);
         expect(json).toMatchSchema(errorSchema);
     });
 
     it("returns a proper error for a non-existing transaction by external_transaction_id", async () => {
-        const response = await fetch(
-            toml.TRANSFER_SERVER +
-            "/transaction?external_transaction_id=2dd16cb409513026fbe7defc0c6f826c2d2c65c3da993f747d09bf7dafd31093", {
-            headers: {
-                Authorization: `Bearer ${jwt}`
-            }
+        const json = await getTransactionBy({
+            iden: "external_transaction_id",
+            value: "2dd16cb409513026fbe7defc0c6f826c2d2c65c3da993f747d09bf7dafd31093"
         });
-
-        const json = await response.json();
         expect(response.status).toEqual(404);
         expect(json).toMatchSchema(errorSchema);
     });
