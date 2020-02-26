@@ -65,7 +65,7 @@ function App() {
           setTestList([...testList]);
           nextTest.results = await runTest(domain, nextTest.name);
           nextTest.status = nextTest.results.every(
-            result => { return result.status === TestStatus.SUCCESS }
+            result => { return [TestStatus.SUCCESS, TestStatus.SKIPPED].includes(result.status) }
           ) ? TestStatus.SUCCESS : TestStatus.FAILURE;
           setTestList([...testList]);
         }

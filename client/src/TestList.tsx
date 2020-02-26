@@ -18,6 +18,7 @@ function iconFromStatus(status: TestStatus): string {
   console.log("Unknown status", status);
   return "";
 }
+
 function TestListItem({ result }: { result: TestResult }) {
   return (
     <div className={s.SingleTestResult}>
