@@ -5,6 +5,9 @@ ENV APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn
 RUN mkdir -p /usr/share/man/man1
 RUN apt-get update && \
   apt-get install -y --no-install-recommends \
+  make \
+  build-essential \
+  python \
   curl \
   default-jre \
   gnupg2 \ 
