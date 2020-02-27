@@ -9,6 +9,7 @@ export enum TestStatus {
 export interface TestResult {
   name: string;
   status: TestStatus;
+  failureMessages?: string[];
 }
 export interface TestResultSet {
   name: string;
