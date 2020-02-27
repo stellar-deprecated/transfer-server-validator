@@ -1,3 +1,6 @@
+/**
+ * @jest-environment ./cases/environment.js
+ */
 import { fetch } from "./util/fetchShim";
 import getSep10Token from "./util/sep10";
 import StellarSDK from "stellar-sdk";
@@ -111,7 +114,7 @@ describe("Deposit", () => {
       expect(status).toEqual(200);
     });
 
-    it.skip("can load get through the interactive flow", async (done) => {
+    it("can load get through the interactive flow", async (done) => {
       const { status, json } = await doPost(
         enabledCurrency,
         keyPair.publicKey(),
