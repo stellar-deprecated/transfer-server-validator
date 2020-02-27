@@ -40,20 +40,19 @@ describe("Transaction", () => {
         expect(toml.TRANSFER_SERVER).toBeDefined();
     });
 
-    async function getTransactionBy({ value, iden = "id" } = {}) {
+    async function getTransactionBy({ value, iden = "id", expectStatus = 200} = {}) {
         const response = await fetch(
             toml.TRANSFER_SERVER + `/transaction?${iden}=${value}`, {
             headers: {
                 Authorization: `Bearer ${jwt}`
             }
         });
+        expect(response.status).toEqual(expectStatus);
         return await response.json();
     };
 
-    async function checkTransactionResponse({ response, isDeposit }) {
-        expect(response.status).toEqual(200);
+    async function checkTransactionResponse({ json, isDeposit }) {
         expect(json.error).not.toBeDefined();
-
         const schema = getTransactionSchema(isDeposit);
         expect(json).toMatchSchema(schema);
     };
@@ -75,9 +74,8 @@ describe("Transaction", () => {
             jwt: jwt,
             isDeposit: true
         });
-
-        let json = await getTransactionBy({ value: json.id});
-        await checkTransactionResponse({ response: json, isDeposit: true })
+        json = await getTransactionBy({ value: json.id });
+        await checkTransactionResponse({ json: json, isDeposit: true })
     });
 
     it("has the correct object schema for an existing withdrawal transaction", async () => {
@@ -89,21 +87,8 @@ describe("Transaction", () => {
             isDeposit: false
         });
         
-        let json = await getTransactionBy({ value: json.id});
-        await checkTransactionResponse({ response: json, isDeposit: false});
-    });
-
-    it("has the correct object schema for an existing deposit transaction", async () => {
-        let { json } = await createTransaction({
-            currency: enabledCurrency,
-            account: keyPair.publicKey(),
-            toml: toml,
-            jwt: jwt,
-            isDeposit: true 
-        });
-        
-        let json = getTransactionBy({ value: json.id });
-        await checkTransactionResponse({ response: json, isDeposit: true});
+        json = await getTransactionBy({ value: json.id});
+        await checkTransactionResponse({ json: json, isDeposit: false});
     });
 
     it.skip("json retreived by stellar_transaction_id returns correct object schema", async () => {
@@ -113,11 +98,11 @@ describe("Transaction", () => {
 
         // do interactive flow, then:
 
-        let json = getTransactionBy({ 
+        let json = await getTransactionBy({ 
             iden: "stellar_transaction_id", 
             value: json.stellar_transaction_id 
         });
-        await checkTransactionResponse({ response: json, isDeposit: true });
+        await checkTransactionResponse({ json: json, isDeposit: true });
     });
 
     it("return a proper available more_info_url transaction link", async () => {
@@ -129,7 +114,8 @@ describe("Transaction", () => {
             isDeposit: true
         });
 
-        let json = getTransactionBy({ value: json.id })
+        json = await getTransactionBy({ value: json.id })
+        console.log(json);
         const moreInfo = await fetch(json.transaction.more_info_url);
         expect(moreInfo.status).toEqual(200);
     });
@@ -149,27 +135,27 @@ describe("Transaction", () => {
 
     it("returns a proper error for a non-existing transaction by id", async () => {
         const json = await getTransactionBy({ 
-            value: "1277bd18-a2bd-4acd-9a87-2f541c7b8933"
+            value: "1277bd18-a2bd-4acd-9a87-2f541c7b8933",
+            expectStatus: 404
         });
-        expect(response.status).toEqual(404);
         expect(json).toMatchSchema(errorSchema);
     });
 
     it("returns a proper error for a non-existing transaction by stellar_transaction_id", async () => {
         const json = await getTransactionBy({
             iden: "stellar_transaction_id",
-            value: "17a670bc424ff5ce3b386dbfaae9990b66a2a37b4fbe51547e8794962a3f9e6a"
+            value: "17a670bc424ff5ce3b386dbfaae9990b66a2a37b4fbe51547e8794962a3f9e6a",
+            expectStatus: 404
         });
-        expect(response.status).toEqual(404);
         expect(json).toMatchSchema(errorSchema);
     });
 
     it("returns a proper error for a non-existing transaction by external_transaction_id", async () => {
         const json = await getTransactionBy({
             iden: "external_transaction_id",
-            value: "2dd16cb409513026fbe7defc0c6f826c2d2c65c3da993f747d09bf7dafd31093"
+            value: "2dd16cb409513026fbe7defc0c6f826c2d2c65c3da993f747d09bf7dafd31093",
+            expectStatus: 404
         });
-        expect(response.status).toEqual(404);
         expect(json).toMatchSchema(errorSchema);
     });
 });

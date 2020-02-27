@@ -81,6 +81,25 @@ describe("Transactions", () => {
         });
     });
 
+    it("return empty list for new account transactions", async () => {
+        const kp_secret = "SAAG4XF7PRKFASDQTENBOQ7QQVVVV4ZH2WFABWVFWU3UL2QJARBUSGTY";
+        const kp = StellarSDK.Keypair.fromSecret(kp_secret);
+        const sep10JWT = await getSep10Token(domain, kp);
+
+        const response = await fetch(
+            toml.TRANSFER_SERVER + `/transactions?asset_code=${enabledCurrency}&limit=1`, {
+                headers: {
+                    Authorization: `Bearer ${sep10JWT}`
+                }
+            }
+        );
+        const json = await response.json();
+
+        expect(response.status).toEqual(200);
+        expect(json.error).not.toBeDefined();
+        expect(json.transactions.length).toEqual(0);
+    });
+
     it("return proper amount of transactions with limit param", async () => {
         await createTransaction({
             currency: enabledCurrency,
