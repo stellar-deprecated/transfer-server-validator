@@ -25,9 +25,9 @@ export default async (domain: string, test: string): Promise<TestResult[]> => {
   const apiResult: any = await new Promise<TestResult[]>((resolve, reject) => {
     const evtSource = new EventSource(
       `${process.env.REACT_APP_API_HOST ||
-        ""}/run?domain=${domain}&test=${test}`
+        ""}/run?domain=${domain}&test=${test}`,
     );
-    evtSource.addEventListener("message", event => {
+    evtSource.addEventListener("message", (event) => {
       const message = JSON.parse(event.data);
       if (message.results) {
         resolve(message.results);
@@ -35,7 +35,7 @@ export default async (domain: string, test: string): Promise<TestResult[]> => {
       }
     });
 
-    evtSource.onerror = e => {
+    evtSource.onerror = (e) => {
       console.error(e);
       reject();
       evtSource.close();
@@ -55,9 +55,10 @@ export default async (domain: string, test: string): Promise<TestResult[]> => {
       }
       return {
         name: [...testResult.ancestorTitles, testResult.title].join(" > "),
-        status: enumFromStatusString(testResult.status)
+        status: enumFromStatusString(testResult.status),
+        failureMessages: testResult.failureMessages,
       };
-    }
+    },
   );
   return results;
 };

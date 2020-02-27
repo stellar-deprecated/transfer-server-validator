@@ -17,6 +17,15 @@
   background-color: azure;
 }
 
-.SingleTestResult {
-  
+.SingleTestTitle {
+  cursor: pointer;
+}
+
+.ErrorMessages {
+  white-space: pre;
+  font-family: monospace;
+}
+
+.ErrorMessages > div {
+  margin: 8px;
 }
