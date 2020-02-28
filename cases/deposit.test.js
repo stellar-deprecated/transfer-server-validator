@@ -4,10 +4,10 @@
 import { fetch } from "./util/fetchShim";
 import getSep10Token from "./util/sep10";
 import StellarSDK from "stellar-sdk";
-import FormData from "form-data";
-import { waitForLoad, openObservableWindow } from "./util/browser-util";
-import { getTransactionSchema } from "./util/schema";
 import getTomlFile from "./util/getTomlFile";
+import { getTransactionBy } from "./util/transactions";
+import { createTransaction, doInteractiveFlow } from "./util/interactive";
+import { getTransactionSchema } from "./util/schema";
 const urlBuilder = new URL(process.env.DOMAIN);
 const url = urlBuilder.toString();
 const keyPair = StellarSDK.Keypair.random();
@@ -45,68 +45,53 @@ describe("Deposit", () => {
     expect(enabledCurrency).toEqual(expect.any(String));
   });
 
-  const doPost = async (asset_code, account, authenticate) => {
-    const params = new FormData();
-    if (asset_code) params.append("asset_code", asset_code);
-    if (account) params.append("account", account);
-    const authenticatedHeaders = Object.assign(
-      {
-        Authorization: `Bearer ${jwt}`,
-      },
-      params.getHeaders(),
-    );
-    const response = await fetch(
-      toml.TRANSFER_SERVER + "/transactions/deposit/interactive",
-      {
-        headers: authenticate ? authenticatedHeaders : params.getHeaders(),
-        method: "POST",
-        body: params,
-      },
-    );
-    const status = response.status;
-    const json = await response.json();
-    return {
-      status,
-      json,
-    };
-  };
-
   it("returns a proper error with no JWT", async () => {
-    const { status, json } = await doPost(
-      enabledCurrency,
-      keyPair.publicKey(),
-      false,
-    );
+    const { status, json } = await createTransaction({
+      asset_code: enabledCurrency,
+      account: keyPair.publicKey(),
+      jwt: null,
+      toml: toml,
+      isDeposit: true,
+    });
     expect(status).not.toEqual(200);
     expect(json.error).toBeTruthy();
   });
 
   it("returns a proper error with missing params", async () => {
-    const { status, json } = await doPost(null, null, true);
+    const { status, json } = await createTransaction({
+      asset_code: null,
+      account: null,
+      jwt: jwt,
+      toml: toml,
+      isDeposit: true,
+    });
     expect(status).not.toEqual(200);
     expect(json.error).toBeTruthy();
   });
 
   it("returns a proper error with unsupported currency", async () => {
-    const { status, json } = await doPost(
-      "NOTREAL",
-      keyPair.publicKey(),
-      false,
-    );
+    const { status, json } = await createTransaction({
+      asset_code: "NOTREAL",
+      account: keyPair.publicKey(),
+      jwt: jwt,
+      toml: toml,
+      isDeposit: true,
+    });
     expect(status).not.toEqual(200);
     expect(json.error).toBeTruthy();
   });
 
   describe("happy path", () => {
-    let interactiveURL;
     it("returns successfully with an interactive url and a transaction id", async () => {
       expect.assertions(5);
-      const { status, json } = await doPost(
-        enabledCurrency,
-        keyPair.publicKey(),
-        true,
-      );
-      interactiveURL = json.url;
+      const { status, json } = await createTransaction({
+        currency: enabledCurrency,
+        account: keyPair.publicKey(),
+        jwt: jwt,
+        toml: toml,
+        isDeposit: true,
+      });
+      let interactiveURL = json.url;
       expect(json.error).toBeFalsy();
       expect(json.type).toEqual("interactive_customer_info_needed");
       expect(json.id).toEqual(expect.any(String));
@@ -114,49 +99,20 @@ describe("Deposit", () => {
       expect(status).toEqual(200);
     });
 
-    it("can load get through the interactive flow", async (done) => {
-      const { status, json } = await doPost(
-        enabledCurrency,
-        keyPair.publicKey(),
-        true,
-      );
-      const builder = new URL(json.url);
-      builder.searchParams.set("callback", "postMessage");
-      const window = await openObservableWindow(builder.toString());
-      // Lets wait until the whole flow finishes by observering for
-      // a postMessage awaiting user transfer start
-      window.observePostMessage((message) => {
-        expect(message).toMatchSchema(getTransactionSchema(true));
-        if (message.transaction.status == "pending_user_transfer_start") {
-          done();
-        }
+    it("can load get through the interactive flow", async () => {
+      let transactionId = await doInteractiveFlow({
+        currency: enabledCurrency,
+        account: keyPair.publicKey(),
+        jwt: jwt,
+        toml: toml,
+        isDeposit: true,
       });
-      const completePage = async () => {
-        try {
-          const elements = await driver.findElements(By.css("[test-value]"));
-          elements.forEach((el) => {
-            const val = el.getAttribute("test-value");
-            el.sendKeys(val);
-          });
-          const submitButton = await driver.findElement(
-            By.css("[test-action='submit']"),
-          );
-          await new Promise((resolve) => {
-            setTimeout(resolve, 100);
-          });
-          await submitButton.click();
-        } catch (e) {
-          // Not an automatable page, could be the receipt page postMessaging
-        }
-      };
-      return new Promise(async (resolve, reject) => {
-        while (true) {
-          await waitForLoad();
-          await completePage();
-          await new Promise((resolve) => {
-            setTimeout(resolve, 100);
-          });
-        }
+      await getTransactionBy({
+        iden: "id",
+        value: transactionId,
+        expectStatus: 200,
+        toml: toml,
+        jwt: jwt,
       });
     });
   });
