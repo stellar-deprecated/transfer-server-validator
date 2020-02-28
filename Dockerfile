@@ -26,7 +26,7 @@ RUN apt-get update && \
 
 WORKDIR /usr/src/app
 COPY . .
-RUN npm install --no-optional ; cd client ; npm install --no-optional ; npm run build ; rm -rf node_modules ; cd ..
+RUN npm upgrade chromedriver; npm install --no-optional ; cd client ; npm install --no-optional ; npm run build ; rm -rf node_modules ; cd ..
 ENV PORT=3000
 EXPOSE $PORT
 CMD [ "npm", "start" ]
