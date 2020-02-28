@@ -7,7 +7,6 @@ import StellarSDK from "stellar-sdk";
 import getTomlFile from "./util/getTomlFile";
 import { getTransactionBy } from "./util/transactions";
 import { createTransaction, doInteractiveFlow } from "./util/interactive";
-import { getTransactionSchema } from "./util/schema";
 const urlBuilder = new URL(process.env.DOMAIN);
 const url = urlBuilder.toString();
 const keyPair = StellarSDK.Keypair.random();
@@ -53,7 +52,8 @@ describe("Deposit", () => {
       toml: toml,
       isDeposit: true,
     });
-    expect(status).not.toEqual(200);
+    expect(status).toBeGreaterThanOrEqual(400);
+    expect(status).toBeLessThan(500);
     expect(json.error).toBeTruthy();
   });
 
@@ -65,7 +65,8 @@ describe("Deposit", () => {
       toml: toml,
       isDeposit: true,
     });
-    expect(status).not.toEqual(200);
+    expect(status).toBeGreaterThanOrEqual(400);
+    +expect(status).toBeLessThan(500);
     expect(json.error).toBeTruthy();
   });
 
@@ -77,7 +78,8 @@ describe("Deposit", () => {
       toml: toml,
       isDeposit: true,
     });
-    expect(status).not.toEqual(200);
+    expect(status).toBeGreaterThanOrEqual(400);
+    +expect(status).toBeLessThan(500);
     expect(json.error).toBeTruthy();
   });
 
@@ -110,7 +112,6 @@ describe("Deposit", () => {
       await getTransactionBy({
         iden: "id",
         value: transactionId,
-        expectStatus: 200,
         toml: toml,
         jwt: jwt,
       });

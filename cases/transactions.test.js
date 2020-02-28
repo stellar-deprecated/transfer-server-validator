@@ -52,6 +52,23 @@ describe("Transactions", () => {
     expect(response.headers.get("access-control-allow-origin")).toBe("*");
   });
 
+  it("returns error schema for a request without jwt", async () => {
+    await createTransaction({
+      currency: enabledCurrency,
+      account: keyPair.publicKey(),
+      toml: toml,
+      jwt: jwt,
+      isDeposit: true,
+    });
+
+    const response = await fetch(
+      toml.TRANSFER_SERVER + `/transactions?asset_code=${enabledCurrency}`,
+    );
+    expect(response.status).toBeGreaterThanOrEqual(400);
+    expect(response.status).toBeLessThan(500);
+    expect(await response.json()).toMatchSchema(errorSchema);
+  });
+
   it("return proper formatted transactions list", async () => {
     await createTransaction({
       currency: enabledCurrency,

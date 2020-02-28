@@ -5,7 +5,8 @@ export async function getTransactionBy({
   toml,
   jwt,
   iden = "id",
-  expectStatus = 200,
+  expectStatusIn = [200],
+  expectStatusBetween = null,
 } = {}) {
   const response = await fetch(
     toml.TRANSFER_SERVER + `/transaction?${iden}=${value}`,
@@ -15,6 +16,13 @@ export async function getTransactionBy({
       },
     },
   );
-  expect(response.status).toEqual(expectStatus);
-  return await response.json();
+  let json = await response.json();
+  if (!expectStatusBetween) {
+    expect(expectStatusIn).toContain(response.status);
+  } else {
+    let [low, high] = expectStatusBetween;
+    expect(response.status).toBeGreaterThanOrEqual(low);
+    expect(response.status).toBeLessThan(high);
+  }
+  return json;
 }
