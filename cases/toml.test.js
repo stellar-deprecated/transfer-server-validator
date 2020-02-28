@@ -1,5 +1,6 @@
 import { fetch } from "./util/fetchShim";
 import TOML from "toml";
+import { isURLvalid }  from "./util/validateURL";
 
 const urlBuilder = new URL(process.env.DOMAIN);
 const url = urlBuilder.toString();
@@ -45,6 +46,10 @@ describe("TOML File", () => {
 
     it("has a network passphrase", () => {
       expect(toml.NETWORK_PASSPHRASE).toBeTruthy();
+    });
+
+    it("has a valid transfer server URL", () => {
+      expect(isURLvalid(toml.TRANSFER_SERVER)).toBeTruthy();
     });
 
     it("has issuer documentation", () => {
