@@ -13,7 +13,7 @@ const keyPair = StellarSDK.Keypair.random();
 
 jest.setTimeout(200000); // 20 sec timeout since we're actually stepping through web forms
 
-describe("Deposit", () => {
+describe("Withdraw", () => {
   let infoJSON;
   let enabledCurrency;
   let jwt;
@@ -33,14 +33,14 @@ describe("Deposit", () => {
       },
     });
     infoJSON = await infoResponse.json();
-    const currencies = Object.keys(infoJSON.deposit);
+    const currencies = Object.keys(infoJSON.withdraw);
     enabledCurrency = currencies.find(
-      (currency) => infoJSON.deposit[currency].enabled,
+      (currency) => infoJSON.withdraw[currency].enabled,
     );
     jwt = await getSep10Token(url, keyPair);
   });
 
-  it("has a currency enabled for deposit", () => {
+  it("has a currency enabled for withdraw", () => {
     expect(enabledCurrency).toEqual(expect.any(String));
   });
 
@@ -50,7 +50,7 @@ describe("Deposit", () => {
       account: keyPair.publicKey(),
       jwt: null,
       toml: toml,
-      isDeposit: true,
+      isDeposit: false,
     });
     expect(status).not.toEqual(200);
     expect(json.error).toBeTruthy();
@@ -62,7 +62,7 @@ describe("Deposit", () => {
       account: null,
       jwt: jwt,
       toml: toml,
-      isDeposit: true,
+      isDeposit: false,
     });
     expect(status).not.toEqual(200);
     expect(json.error).toBeTruthy();
@@ -74,7 +74,7 @@ describe("Deposit", () => {
       account: keyPair.publicKey(),
       jwt: jwt,
       toml: toml,
-      isDeposit: true,
+      isDeposit: false,
     });
     expect(status).not.toEqual(200);
     expect(json.error).toBeTruthy();
@@ -87,7 +87,7 @@ describe("Deposit", () => {
       account: keyPair.publicKey(),
       jwt: jwt,
       toml: toml,
-      isDeposit: true,
+      isDeposit: false,
     });
     let interactiveURL = json.url;
     expect(json.error).toBeFalsy();
@@ -104,7 +104,7 @@ describe("Deposit", () => {
         account: keyPair.publicKey(),
         jwt: jwt,
         toml: toml,
-        isDeposit: true,
+        isDeposit: false,
       });
       await getTransactionBy({
         iden: "id",
