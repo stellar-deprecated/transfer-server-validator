@@ -54,18 +54,37 @@ describe("Fee", () => {
     expect(response.headers.get("access-control-allow-origin")).toBe("*");
   });
 
+  it("returns error for request with no authorization header if fee_required", async () => {
+    if (needFeeAuth) {
+      let response = await fetch(toml.TRANSFER_SERVER + "/fee");
+      expect(response.status).toBeGreaterThanOrEqual(400);
+      expect(response.status).toBeLessThan(500);
+      expect(await response.json()).toMatchSchema(errorSchema);
+    }
+  });
+
   it("returns a proper error schema for a non-params fee request", async () => {
-    const response = await fetch(toml.TRANSFER_SERVER + "/fee");
+    const headers = needFeeAuth
+      ? { Authorization: `Bearer ${jwt}` }
+      : { Origin: "https://www.website.com" };
+    const response = await fetch(toml.TRANSFER_SERVER + "/fee", {
+      headers: headers,
+    });
     const json = await response.json();
 
-    expect(response.status).not.toEqual(200);
+    expect(response.status).toBeGreaterThanOrEqual(400);
+    expect(response.status).toBeLessThan(500);
     expect(json).toMatchSchema(errorSchema);
   });
 
   it("returns a proper fee schema for deposit fee request", async () => {
     const paramString = `operation=deposit&asset_code=${depositAsset.code}&amount=${depositAsset.minAmount}`;
-    const headers = needFeeAuth ? { Authorization: `Bearer ${jwt}` } : { Origin: "https://www.website.com" };
-    const response = await fetch(toml.TRANSFER_SERVER + `/fee?${paramString}`, { headers });
+    const headers = needFeeAuth
+      ? { Authorization: `Bearer ${jwt}` }
+      : { Origin: "https://www.website.com" };
+    const response = await fetch(toml.TRANSFER_SERVER + `/fee?${paramString}`, {
+      headers,
+    });
 
     const json = await response.json();
     expect(response.status).toEqual(200);
