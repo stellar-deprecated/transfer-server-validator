@@ -96,5 +96,15 @@ the test-bot which button should be pressed to continue on in the flow.
 Polaris does this automatically for anyone using the Forms stack
 [here](https://github.com/stellar/django-polaris/blob/fd5900d68fec6b0e31ce720262e8d787fcbf8aac/polaris/polaris/templates/withdraw/form.html#L38)
 
+#### Example of fully annotated form
+
+```
+<form action="/submit">
+  <input type="text" id="full-name" test-value="Albert Einstein">
+  <input type="text" id="email" test-value="325235@gmail.com" />
+  <input type="submit" test-action="submit" value="Continue">
+</form>
+```
+
 With these steps completed, the validation tooling should be able to exercise
 the entirety of your implementation.
