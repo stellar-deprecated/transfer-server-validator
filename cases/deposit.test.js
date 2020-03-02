@@ -66,7 +66,7 @@ describe("Deposit", () => {
       isDeposit: true,
     });
     expect(status).toBeGreaterThanOrEqual(400);
-    +expect(status).toBeLessThan(500);
+    expect(status).toBeLessThan(500);
     expect(json.error).toBeTruthy();
   });
 
@@ -79,7 +79,7 @@ describe("Deposit", () => {
       isDeposit: true,
     });
     expect(status).toBeGreaterThanOrEqual(400);
-    +expect(status).toBeLessThan(500);
+    expect(status).toBeLessThan(500);
     expect(json.error).toBeTruthy();
   });
 

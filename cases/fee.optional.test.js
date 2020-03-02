@@ -73,7 +73,7 @@ describe("Fee", () => {
     const json = await response.json();
 
     expect(response.status).toBeGreaterThanOrEqual(400);
-    +expect(response.status).toBeLessThan(500);
+    expect(response.status).toBeLessThan(500);
     expect(json).toMatchSchema(errorSchema);
   });
 
