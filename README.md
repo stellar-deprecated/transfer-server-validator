@@ -68,6 +68,12 @@ $ npm run start:dev
 
 ## Instructions for anchors
 
+### Automatic Deposit Approval
+
+Our automated testing assumes that deposits are automatically approved for
+testnet deployments. This also makes it easier for manual testing so people can
+complete the flow without any coordination with the anchors.
+
 ### Interactive flow instrumentation
 
 The interactive flow of SEP24 is custom for each anchor which makes it difficult
