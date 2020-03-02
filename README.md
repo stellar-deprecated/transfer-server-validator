@@ -70,9 +70,9 @@ $ npm run start:dev
 
 ### Interactive flow instrumentation
 
-The interactive flow of SEP24 is custom for each anchor. In order to help the
-automated tests complete your interactive flow, any form fields need to be
-annotated with expected values.
+The interactive flow of SEP24 is custom for each anchor which makes it difficult
+to automate. In order to help the automated tests complete your interactive
+flow, any form fields need to be annotated with expected values.
 
 There are two things that need to be done: provide valid values for each field,
 and identify which button should be pressed to continue.
