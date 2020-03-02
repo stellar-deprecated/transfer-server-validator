@@ -82,6 +82,7 @@ and identify which button should be pressed to continue.
 Any form field that is required should have a `test-value` attribute which is
 set to a valid value for that field. For example an email field would look like
 `<input type='text' id='email_address' test-value='dummyaddress2342@gmail.com' />`.
+The number can be randomized at render time to avoid reuse.
 
 An example of doing this using Polaris's form stack can be seen
 [here](https://github.com/stellar/django-polaris/blob/fd5900d68fec6b0e31ce720262e8d787fcbf8aac/example/server/forms.py#L10,L15)
