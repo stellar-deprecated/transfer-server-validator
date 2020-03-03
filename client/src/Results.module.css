@@ -29,3 +29,9 @@
 .ErrorMessages > div {
   margin: 8px;
 }
+
+.OpenCaseLink {
+  margin-left: 8px;
+  color: blue;
+  text-decoration: none;
+}

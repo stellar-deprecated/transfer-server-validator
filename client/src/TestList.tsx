@@ -48,7 +48,17 @@ function TestListRow({ testListItem }: { testListItem: TestResultSet }) {
         <span className={s.TestListStatus}>
           {iconFromStatus(testListItem.status)}{" "}
         </span>
-        <span className={s.TestListItemName}>{testListItem.name}</span>
+        <span className={s.TestListItemName}>
+          {testListItem.name}
+          <a
+            href={`https://github.com/stellar/transfer-server-validator/blob/master/cases/${testListItem.name}.test.js`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={s.OpenCaseLink}
+          >
+            ↗
+          </a>
+        </span>
       </div>
       <div className={s.TestListResults}>
         {testListItem.results.map((result) => (
