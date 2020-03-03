@@ -8,6 +8,10 @@ describe("TOML File", () => {
   it("exists", async () => {
     const response = await fetch(url + ".well-known/stellar.toml");
     expect(response.status).toBe(200);
+  });
+
+  it("has correct content-type", async () => {
+    const response = await fetch(url + ".well-known/stellar.toml");
     expect(response.headers.get("content-type")).toEqual(
       expect.stringContaining("text/plain"),
     );
