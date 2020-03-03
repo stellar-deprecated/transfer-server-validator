@@ -1,17 +1,13 @@
-/**
- * @jest-environment ./cases/environment.js
- */
 import { fetch } from "./util/fetchShim";
 import getSep10Token from "./util/sep10";
 import StellarSDK from "stellar-sdk";
 import getTomlFile from "./util/getTomlFile";
-import { getTransactionBy } from "./util/transactions";
-import { createTransaction, doInteractiveFlow } from "./util/interactive";
+import { createTransaction } from "./util/interactive";
 const urlBuilder = new URL(process.env.DOMAIN);
 const url = urlBuilder.toString();
 const keyPair = StellarSDK.Keypair.random();
 
-jest.setTimeout(200000); // 20 sec timeout since we're actually stepping through web forms
+jest.setTimeout(20000); // 20 sec timeout since we're actually stepping through web forms
 
 describe("Withdraw", () => {
   let infoJSON;
@@ -95,24 +91,5 @@ describe("Withdraw", () => {
     expect(json.id).toEqual(expect.any(String));
     expect(() => new global.URL(interactiveURL)).not.toThrow();
     expect(status).toEqual(200);
-  });
-
-  describe("happy path", () => {
-    it("can load get through the interactive flow", async () => {
-      let transactionId = await doInteractiveFlow({
-        currency: enabledCurrency,
-        account: keyPair.publicKey(),
-        jwt: jwt,
-        toml: toml,
-        isDeposit: false,
-      });
-      await getTransactionBy({
-        iden: "id",
-        value: transactionId,
-        expectStatus: 200,
-        toml: toml,
-        jwt: jwt,
-      });
-    });
   });
 });
