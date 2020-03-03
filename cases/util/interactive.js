@@ -57,9 +57,10 @@ export const doInteractiveFlow = async ({
   // Lets wait until the whole flow finishes by observering for
   // a postMessage awaiting user transfer start
   let complete = false;
-  window.observePostMessage((message) => {
+  window.observePostMessage(async (message) => {
     expect(message).toMatchSchema(getTransactionSchema(true));
     if (message.transaction.status == "pending_user_transfer_start") {
+      await window.close();
       complete = true;
     }
   });

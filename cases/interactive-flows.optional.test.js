@@ -25,6 +25,26 @@ let distributionAccount;
 let asset;
 let account;
 
+function waitUntilTruthy(valObj, timeAllowed, interval) {
+  return new Promise(async (resolve, reject) => {
+    await new Promise(async (resolve) => {
+      let timePassed = 0;
+      while (!valObj.val && timePassed < timeAllowed) {
+        await new Promise((resolve) => {
+          setTimeout(resolve, interval);
+        });
+        timePassed += interval;
+      }
+      resolve();
+    });
+    if (valObj.val) {
+      resolve();
+    } else {
+      reject("Timed out while waiting for test to finish!");
+    }
+  });
+}
+
 beforeAll(async () => {
   await fetch(`https://friendbot.stellar.org?addr=${keyPair.publicKey()}`);
   try {
@@ -67,13 +87,10 @@ beforeAll(async () => {
     .build();
   transaction.sign(keyPair);
 
-  try {
-    await server.submitTransaction(transaction);
-  } catch (e) {
-    console.log(e);
-  }
+  await server.submitTransaction(transaction);
 });
 
+let isDepositComplete = false;
 describe("Deposit Flow", () => {
   let transactionId;
   let transactionJSON;
@@ -96,23 +113,15 @@ describe("Deposit Flow", () => {
 
   it("pending transactions are completed on testnet", async () => {
     // Wait for interactive flow to complete
-    await new Promise(async (resolve) => {
-      let timePassed = 0;
-      while (!transactionJSON && timePassed < 10000) {
-        await new Promise((resolve) => {
-          setTimeout(resolve, 1000);
-        });
-        timePassed += 500;
-      }
-      resolve();
-    });
-    expect(transactionJSON).not.toEqual(undefined);
+    await waitUntilTruthy({ val: transactionJSON }, 10000, 1000);
+    console.log(
+      `DEPOSIT JSON RECEIVED: ${JSON.stringify(transactionJSON, null, 4)}`,
+    );
 
     // Poll /transaction endpoint until deposit is marked as complete
-    let isComplete = false;
     await new Promise(async (resolve) => {
       let timePassed = 0;
-      while (!isComplete && timePassed < 50000) {
+      while (!isDepositComplete && timePassed < 50000) {
         await new Promise((resolve) => {
           setTimeout(resolve, 2000);
         });
@@ -127,12 +136,12 @@ describe("Deposit Flow", () => {
         );
         let transactionRespJSON = await transactionResp.json();
         if (transactionRespJSON.transaction.status === "completed") {
-          isComplete = true;
+          isDepositComplete = true;
         }
       }
       resolve();
     });
-    expect(isComplete).toBeTruthy();
+    expect(isDepositComplete).toBeTruthy();
   });
 });
 
@@ -140,6 +149,10 @@ describe("Withdraw Flow", () => {
   let transactionId;
   let transactionJSON;
   it("can complete interactive flow", async () => {
+    // Wait for deposit flow to complete
+    await waitUntilTruthy({ val: isDepositComplete }, 20000, 2000);
+    console.log(`DEPOSIT COMPLETE: ${isDepositComplete}`);
+
     transactionId = await doInteractiveFlow({
       currency: enabledCurrency,
       account: keyPair.publicKey(),
@@ -159,20 +172,12 @@ describe("Withdraw Flow", () => {
 
   it("marks transaction as complete after submission", async () => {
     // Wait for transactionJSON to be defined
-    await new Promise(async (resolve) => {
-      let timePassed = 0;
-      while (!transactionJSON && timePassed < 10000) {
-        await new Promise((resolve) => {
-          setTimeout(resolve, 1000);
-        });
-        timePassed += 500;
-      }
-      resolve();
-    });
-    expect(transactionJSON).not.toEqual(undefined);
+    await waitUntilTruthy({ val: transactionJSON }, 10000, 1000);
+    console.log(
+      `WITHDRAW JSON RECEIVED: ${JSON.stringify(transactionJSON, null, 4)}`,
+    );
 
     const distributionAccount = transactionJSON.withdraw_anchor_account;
-
     let transaction = new StellarSDK.TransactionBuilder(account, {
       fee: StellarSDK.BASE_FEE,
       networkPassphrase: "Test SDF Network ; September 2015",
@@ -188,12 +193,13 @@ describe("Withdraw Flow", () => {
       .setTimeout(30)
       .build();
     transaction.sign(keyPair);
+    let submitResponse;
     try {
-      let submitResponse = await server.submitTransaction(transaction);
+      submitResponse = await server.submitTransaction(transaction);
     } catch (e) {
       console.log(e);
+      throw e;
     }
-    console.log("json", await submitResponse.json());
   });
 
   /*it("fee charged matched /info or /fee responses", async () => {
