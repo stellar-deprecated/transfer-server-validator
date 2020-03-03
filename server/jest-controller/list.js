@@ -13,14 +13,15 @@ module.exports = async () => {
 
     jest.on("close", (code) => {
       const orderedTests = [
-        'toml',
-        'info',
-        'sep10',
-        'deposit',
-        'withdraw',
-        'transaction',
-        'transactions',
-        'fee.optional'
+        "toml",
+        "info",
+        "sep10",
+        "deposit",
+        "withdraw",
+        "transaction",
+        "transactions",
+        "fee.optional",
+        "interactive-flows.optional",
       ];
 
       const unorderedTests = output
@@ -28,10 +29,13 @@ module.exports = async () => {
         .split("\n")
         .map((line) => {
           const testName = path.basename(line).split(".test.js")[0];
-          if (orderedTests.includes(testName)) { return null; }
+          if (orderedTests.includes(testName)) {
+            return null;
+          }
           return testName;
-        }).filter(name => name !== null);
-      
+        })
+        .filter((name) => name !== null);
+
       const fullList = [...orderedTests, ...unorderedTests];
       resolve(fullList);
     });

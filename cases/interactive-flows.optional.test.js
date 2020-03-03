@@ -7,6 +7,7 @@ import StellarSDK from "stellar-sdk";
 import getTomlFile from "./util/getTomlFile";
 import { getTransactionBy } from "./util/transactions";
 import { doInteractiveFlow } from "./util/interactive";
+import { getTransactionSchema } from "./util/schema";
 const urlBuilder = new URL(process.env.DOMAIN);
 const url = urlBuilder.toString();
 const keyPair = StellarSDK.Keypair.random();
@@ -216,7 +217,7 @@ describe("Withdraw Flow", () => {
   });
 
   it("fee charged matched /info or /fee responses", async () => {
-    // Wait for _ to be defined
+    // Wait for withdrawJSON to be defined
     waitUntilTruthy({ val: withdrawJSON }, 30000, 2000);
 
     let feeForTransaction;
@@ -246,5 +247,23 @@ describe("Withdraw Flow", () => {
         (withdrawJSON.amount_in - withdrawJSON.amount_out) * 10000000,
       ) / 10000000;
     expect(feeForTransaction).toEqual(calculatedFee);
+  });
+
+  it("Can retreive transaction by stellar_transaction_id once completed", async () => {
+    // Wait for withdrawJSON to be defined
+    waitUntilTruthy({ val: withdrawJSON }, 30000, 2000);
+
+    let urlArgs = `stellar_transaction_id=${withdrawJSON.stellar_transaction_id}`;
+    let response = await fetch(
+      toml.TRANSFER_SERVER + `/transaction?${urlArgs}`,
+      {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      },
+    );
+    expect(response.status).toEqual(200);
+    let json = await response.json();
+    expect(json).toMatchSchema(getTransactionSchema(false));
   });
 });
