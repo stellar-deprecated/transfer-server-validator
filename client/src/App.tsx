@@ -14,12 +14,19 @@ function App() {
   // Current (pending) test runs
   const [testList, setTestList] = useState<TestResultSet[]>([]);
   const [busy, setBusy] = useState<boolean>(false);
-  const [domain, setDomain] = useState("https://testanchor.stellar.org");
+  const [domain, setDomain] = useState("testanchor.stellar.org");
   const [runOptionalTests, setRunOptionalTests] = useState<boolean>(
     Boolean(parseInt(process.env.RUN_OPTIONAL_TESTS || "0")) || false,
   );
 
   useEffect(() => {
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    const domain = urlParams.get('home_domain');
+    if (domain) {
+      setDomain(domain);
+    }
+
     const fetchList = async () => {
       const res = await fetch("/list");
       const testNames: string[] = await res.json();
@@ -50,11 +57,19 @@ function App() {
     changeOptionalTestStatuses();
   }, [runOptionalTests]);
 
+  const getValidDomain = useCallback(() => {
+    let newDomain = domain;
+    newDomain = newDomain.includes('http://') ? newDomain.replace('http', 'https') : `https://${newDomain}`;
+    newDomain = newDomain.substr(-1) === '/' ? newDomain.slice(0, -1) : newDomain;
+    return newDomain;
+  }, [domain]);
+
   const runTests = useCallback(
     async (_) => {
       try {
         resetTests();
         setBusy(true);
+        const domainForTests = getValidDomain();
         var nextTest: TestResultSet | undefined;
         while (
           (nextTest = testList.find(
@@ -63,7 +78,7 @@ function App() {
         ) {
           nextTest.status = TestStatus.RUNNING;
           setTestList([...testList]);
-          nextTest.results = await runTest(domain, nextTest.name);
+          nextTest.results = await runTest(domainForTests, nextTest.name);
           nextTest.status = nextTest.results.every(
             result => { return [TestStatus.SUCCESS, TestStatus.SKIPPED].includes(result.status) }
           ) ? TestStatus.SUCCESS : TestStatus.FAILURE;
@@ -75,7 +90,7 @@ function App() {
       }
       setBusy(false);
     },
-    [testList, domain, resetTests],
+    [testList, getValidDomain, resetTests],
   );
 
   return (
