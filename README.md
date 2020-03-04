@@ -8,7 +8,7 @@ Test suite for validating services support for SEP24.
 
 ```
 $ yarn
-$ DOMAIN=https://stellar-anchor-server.herokuapp.com npx jest
+$ DOMAIN=https://testanchor.stellar.org npx jest
 ```
 
 ### Running a specific test
@@ -89,6 +89,11 @@ Any form field that is required should have a `test-value` attribute which is
 set to a valid value for that field. For example an email field would look like
 `<input type='text' id='email_address' test-value='dummyaddress2342@gmail.com' />`.
 The number can be randomized at render time to avoid reuse.
+
+Make sure the `test-value` for the deposit's 'Amount' field is greater than the
+`test-value` for the withdraw's 'Amount' field _plus_ the fee that will be
+charged for the deposit transaction. If this isn't the case, submitting the
+withdraw transaction to the stellar network will fail due to insufficient funds.
 
 An example of doing this using Polaris's form stack can be seen
 [here](https://github.com/stellar/django-polaris/blob/fd5900d68fec6b0e31ce720262e8d787fcbf8aac/example/server/forms.py#L10,L15)
