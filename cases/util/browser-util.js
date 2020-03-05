@@ -29,7 +29,6 @@ export const openObservableWindow = async (url) => {
     const lastMessage = await driver.executeScript((_) => {
       const lastMessage = window.__LAST_POST_MESSAGE__;
       delete window.__LAST_POST_MESSAGE__;
-      console.log("GOT lastMessage");
       return lastMessage;
     });
     await driver.switchTo().window(handles[1]);

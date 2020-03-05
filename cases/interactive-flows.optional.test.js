@@ -25,14 +25,26 @@ let issuerAccount;
 let asset;
 let account;
 
+function sleep(interval) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, interval);
+  });
+}
+
+/*
+ ** waitUntilTruthy() and waitUntilTransactionComplete() block the test
+ ** they are called from until their condition is met. This makes the
+ ** tests in this file run serially. For example, the 'Withdraw Flow's
+ ** 'can complete interactive flow' is blocked until depositTransactionJSON
+ ** is defined, signaling to the withdraw test that the deposit was
+ ** completed.
+ */
 function waitUntilTruthy(valObj, timeAllowed, interval) {
   return new Promise(async (resolve, reject) => {
     await new Promise(async (resolve) => {
       let timePassed = 0;
       while (!valObj.val && timePassed < timeAllowed) {
-        await new Promise((resolve) => {
-          setTimeout(resolve, interval);
-        });
+        await sleep(interval);
         timePassed += interval;
       }
       resolve();
@@ -51,9 +63,7 @@ function waitUntilTransactionComplete(transactionId, timeAllowed, interval) {
       let respJSON;
       let timePassed = 0;
       while (timePassed < timeAllowed) {
-        await new Promise((resolve) => {
-          setTimeout(resolve, interval);
-        });
+        await sleep(interval);
         timePassed += interval;
         let transactionResp = await fetch(
           toml.TRANSFER_SERVER + `/transaction?id=${transactionId}`,
