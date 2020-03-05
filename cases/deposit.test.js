@@ -1,12 +1,8 @@
-/**
- * @jest-environment ./cases/environment.js
- */
 import { fetch } from "./util/fetchShim";
 import getSep10Token from "./util/sep10";
 import StellarSDK from "stellar-sdk";
 import getTomlFile from "./util/getTomlFile";
-import { getTransactionBy } from "./util/transactions";
-import { createTransaction, doInteractiveFlow } from "./util/interactive";
+import { createTransaction } from "./util/interactive";
 const urlBuilder = new URL(process.env.DOMAIN);
 const url = urlBuilder.toString();
 const keyPair = StellarSDK.Keypair.random();
@@ -98,23 +94,5 @@ describe("Deposit", () => {
     expect(json.id).toEqual(expect.any(String));
     expect(() => new global.URL(interactiveURL)).not.toThrow();
     expect(status).toEqual(200);
-  });
-
-  describe("happy path", () => {
-    it("can load get through the interactive flow", async () => {
-      let transactionId = await doInteractiveFlow({
-        currency: enabledCurrency,
-        account: keyPair.publicKey(),
-        jwt: jwt,
-        toml: toml,
-        isDeposit: true,
-      });
-      await getTransactionBy({
-        iden: "id",
-        value: transactionId,
-        toml: toml,
-        jwt: jwt,
-      });
-    });
   });
 });

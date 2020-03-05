@@ -99,22 +99,6 @@ describe("Transaction", () => {
     await checkTransactionResponse({ json: json, isDeposit: false });
   });
 
-  it.skip("json retreived by stellar_transaction_id returns correct object schema", async () => {
-    // Can't this test wouldn't succeed because stellar_transaction_id would be populated
-    // after the anchor submited the deposit to the stellar network. This test will have
-    // to wait until we have the code to walk through the interactive flow working.
-
-    // do interactive flow, then:
-
-    let json = await getTransactionBy({
-      iden: "stellar_transaction_id",
-      value: json.stellar_transaction_id,
-      toml: toml,
-      jwt: jwt,
-    });
-    await checkTransactionResponse({ json: json, isDeposit: true });
-  });
-
   it("return a proper available more_info_url transaction link", async () => {
     let { json } = await createTransaction({
       currency: enabledCurrency,

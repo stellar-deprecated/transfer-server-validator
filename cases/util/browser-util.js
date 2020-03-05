@@ -24,7 +24,7 @@ export const openObservableWindow = async (url) => {
   });
   await driver.switchTo().window(handles[1]);
   let observers = [];
-  setInterval(async () => {
+  let passPostMessage = setInterval(async () => {
     await driver.switchTo().window(handles[0]);
     const lastMessage = await driver.executeScript((_) => {
       const lastMessage = window.__LAST_POST_MESSAGE__;
@@ -40,6 +40,12 @@ export const openObservableWindow = async (url) => {
   return {
     observePostMessage: (cb) => {
       observers.push(cb);
+    },
+    close: async () => {
+      clearInterval(passPostMessage);
+      await driver.switchTo().window(handles[1]);
+      driver.close();
+      await driver.switchTo().window(handles[0]);
     },
   };
 };
