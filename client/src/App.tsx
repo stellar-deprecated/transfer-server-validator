@@ -22,13 +22,12 @@ function App() {
   useEffect(() => {
     const queryString = window.location.search;
     const urlParams = new URLSearchParams(queryString);
-    const domain = urlParams.get('home_domain');
+    const domain = urlParams.get("home_domain");
     if (domain) {
       setDomain(domain);
     }
-
     const fetchList = async () => {
-      const res = await fetch("/list");
+      const res = await fetch(`${process.env.REACT_APP_API_HOST || ""}/list`);
       const testNames: string[] = await res.json();
       setAvailableTests(testNames);
     };
@@ -59,8 +58,11 @@ function App() {
 
   const getValidDomain = useCallback(() => {
     let newDomain = domain;
-    newDomain = newDomain.includes('http://') ? newDomain.replace('http', 'https') : `https://${newDomain}`;
-    newDomain = newDomain.substr(-1) === '/' ? newDomain.slice(0, -1) : newDomain;
+    if (newDomain.indexOf("http") !== 0) {
+      newDomain = `https://${newDomain}`;
+    }
+    newDomain =
+      newDomain.substr(-1) === "/" ? newDomain.slice(0, -1) : newDomain;
     return newDomain;
   }, [domain]);
 
@@ -79,9 +81,13 @@ function App() {
           nextTest.status = TestStatus.RUNNING;
           setTestList([...testList]);
           nextTest.results = await runTest(domainForTests, nextTest.name);
-          nextTest.status = nextTest.results.every(
-            result => { return [TestStatus.SUCCESS, TestStatus.SKIPPED].includes(result.status) }
-          ) ? TestStatus.SUCCESS : TestStatus.FAILURE;
+          nextTest.status = nextTest.results.every((result) => {
+            return [TestStatus.SUCCESS, TestStatus.SKIPPED].includes(
+              result.status,
+            );
+          })
+            ? TestStatus.SUCCESS
+            : TestStatus.FAILURE;
           setTestList([...testList]);
         }
       } catch (e) {
