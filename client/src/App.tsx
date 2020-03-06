@@ -72,6 +72,7 @@ function App() {
         resetTests();
         setBusy(true);
         const domainForTests = getValidDomain();
+        window.history.replaceState(null, '', `?home_domain=${domain}`);
         var nextTest: TestResultSet | undefined;
         while (
           (nextTest = testList.find(
@@ -96,7 +97,7 @@ function App() {
       }
       setBusy(false);
     },
-    [testList, getValidDomain, resetTests],
+    [testList, domain, getValidDomain, resetTests],
   );
 
   return (
