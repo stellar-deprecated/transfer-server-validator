@@ -9,10 +9,9 @@ export default async function getSep10Token(domain, keyPair, signers) {
     toml.WEB_AUTH_ENDPOINT + "?account=" + keyPair.publicKey(),
   );
   const json = await response.json();
-  const tx = new StellarSDK.Transaction(
-    json.transaction,
-    json.network_passphrase,
-  );
+  const network_passphrase =
+    toml.NETWORK_PASSPHRASE || StellarSDK.Networks.TESTNET;
+  const tx = new StellarSDK.Transaction(json.transaction, network_passphrase);
   signers.forEach((keyPair) => {
     tx.sign(keyPair);
   });
