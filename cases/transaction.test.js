@@ -17,12 +17,14 @@ describe("Transaction", () => {
   let toml;
   let enabledCurrency;
   let jwt;
+  let transferServer;
 
   beforeAll(async () => {
     toml = await getTomlFile(domain);
     jwt = await getSep10Token(domain, keyPair);
 
-    const infoResponse = await fetch(toml.TRANSFER_SERVER + "/info", {
+    transferServer = toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER;
+    const infoResponse = await fetch(transferServer + "/info", {
       headers: {
         Origin: "https://www.website.com",
       },
@@ -35,7 +37,7 @@ describe("Transaction", () => {
     );
 
     expect(enabledCurrency).toBeDefined();
-    expect(toml.TRANSFER_SERVER).toBeDefined();
+    expect(transferServer).toBeDefined();
   });
 
   async function checkTransactionResponse({ json, isDeposit }) {
@@ -45,7 +47,7 @@ describe("Transaction", () => {
   }
 
   it("has CORS on the transaction endpoint", async () => {
-    const response = await fetch(toml.TRANSFER_SERVER + "/transaction", {
+    const response = await fetch(transferServer + "/transaction", {
       headers: {
         Origin: "https://www.website.com",
       },
@@ -118,7 +120,7 @@ describe("Transaction", () => {
   });
 
   it("returns a proper error with missing params", async () => {
-    const response = await fetch(toml.TRANSFER_SERVER + "/transaction", {
+    const response = await fetch(transferServer + "/transaction", {
       headers: {
         Authorization: `Bearer ${jwt}`,
       },

@@ -9,6 +9,7 @@ const url = urlBuilder.toString();
 
 describe("Info", () => {
   let toml;
+  let transferServer;
   beforeAll(async () => {
     try {
       toml = await getTomlFile(url);
@@ -17,13 +18,14 @@ describe("Info", () => {
     }
   });
 
-  it("has a TRANSFER_SERVER url in the toml", () => {
-    expect(toml.TRANSFER_SERVER).toEqual(expect.stringContaining("http"));
-    expect(() => new URL(toml.TRANSFER_SERVER)).not.toThrow();
+  it("has a TRANSFER_SERVER or TRANSFER_SERVER_SEP0024 url in the toml", () => {
+    transferServer = toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER;
+    expect(transferServer).toEqual(expect.stringContaining("http"));
+    expect(() => new URL(transferServer)).not.toThrow();
   });
 
   it("has CORS on the info endpoint", async () => {
-    const response = await fetch(toml.TRANSFER_SERVER + "/info", {
+    const response = await fetch(transferServer + "/info", {
       headers: {
         Origin: "https://www.website.com",
       },
@@ -35,7 +37,7 @@ describe("Info", () => {
     let json;
 
     beforeAll(async () => {
-      const response = await fetch(toml.TRANSFER_SERVER + "/info", {
+      const response = await fetch(transferServer + "/info", {
         headers: {
           Origin: "https://www.website.com",
         },

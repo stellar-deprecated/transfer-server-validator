@@ -19,8 +19,9 @@ export async function createTransaction({
     params.getHeaders(),
   );
 
+  const transferServer = toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER;
   const transactionsUrl =
-    toml.TRANSFER_SERVER +
+    transferServer +
     `/transactions/${isDeposit ? "deposit" : "withdraw"}/interactive`;
   const response = await fetch(transactionsUrl, {
     headers,

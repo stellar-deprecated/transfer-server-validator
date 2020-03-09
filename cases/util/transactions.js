@@ -8,8 +8,9 @@ export async function getTransactionBy({
   expectStatusIn = [200],
   expectStatusBetween = null,
 } = {}) {
+  const transferServer = toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER;
   const response = await fetch(
-    toml.TRANSFER_SERVER + `/transaction?${iden}=${value}`,
+    transferServer + `/transaction?${iden}=${value}`,
     {
       headers: {
         Authorization: `Bearer ${jwt}`,

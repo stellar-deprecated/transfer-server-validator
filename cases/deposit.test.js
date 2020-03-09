@@ -22,8 +22,8 @@ describe("Deposit", () => {
     } catch (e) {
       throw "Invalid TOML formatting";
     }
-
-    const infoResponse = await fetch(toml.TRANSFER_SERVER + "/info", {
+    const transferServer = toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER;
+    const infoResponse = await fetch(transferServer + "/info", {
       headers: {
         Origin: "https://www.website.com",
       },

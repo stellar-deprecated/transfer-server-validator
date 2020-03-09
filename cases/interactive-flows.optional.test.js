@@ -24,6 +24,7 @@ let currencyInfo;
 let issuerAccount;
 let asset;
 let account;
+let transferServer;
 
 function sleep(interval) {
   return new Promise((resolve) => {
@@ -66,7 +67,7 @@ function waitUntilTransactionComplete(transactionId, timeAllowed, interval) {
         await sleep(interval);
         timePassed += interval;
         let transactionResp = await fetch(
-          toml.TRANSFER_SERVER + `/transaction?id=${transactionId}`,
+          transferServer + `/transaction?id=${transactionId}`,
           {
             headers: {
               Authorization: `Bearer ${jwt}`,
@@ -96,7 +97,8 @@ beforeAll(async () => {
     throw "Invalid TOML formatting";
   }
 
-  const infoResponse = await fetch(toml.TRANSFER_SERVER + "/info", {
+  transferServer = toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER;
+  const infoResponse = await fetch(transferServer + "/info", {
     headers: {
       Origin: "https://www.website.com",
     },
@@ -233,12 +235,9 @@ describe("Withdraw Flow", () => {
     let feeForTransaction;
     if (infoJSON.fee.authentication_required) {
       const paramString = `operation=withdraw&asset_code=${enabledCurrency}&amount=${withdrawJSON.amount_in}`;
-      const feeResponse = await fetch(
-        toml.TRANSFER_SERVER + `/fee?${paramString}`,
-        {
-          headers: { Authorization: `Bearer ${jwt}` },
-        },
-      );
+      const feeResponse = await fetch(transferServer + `/fee?${paramString}`, {
+        headers: { Authorization: `Bearer ${jwt}` },
+      });
       const feeJSON = await feeResponse.json();
       feeForTransaction = feeJSON.fee;
     } else {
@@ -264,14 +263,11 @@ describe("Withdraw Flow", () => {
     waitUntilTruthy({ val: withdrawJSON }, 30000, 2000);
 
     let urlArgs = `stellar_transaction_id=${withdrawJSON.stellar_transaction_id}`;
-    let response = await fetch(
-      toml.TRANSFER_SERVER + `/transaction?${urlArgs}`,
-      {
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
+    let response = await fetch(transferServer + `/transaction?${urlArgs}`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
       },
-    );
+    });
     expect(response.status).toEqual(200);
     let json = await response.json();
     expect(json).toMatchSchema(getTransactionSchema(false));

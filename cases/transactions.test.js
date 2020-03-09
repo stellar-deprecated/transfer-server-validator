@@ -20,12 +20,14 @@ describe("Transactions", () => {
   let toml;
   let enabledCurrency;
   let jwt;
+  let transferServer;
 
   beforeAll(async () => {
     toml = await getTomlFile(domain);
     jwt = await getSep10Token(domain, keyPair);
 
-    const infoResponse = await fetch(toml.TRANSFER_SERVER + "/info", {
+    transferServer = toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER;
+    const infoResponse = await fetch(transferServer + "/info", {
       headers: {
         Origin: "https://www.website.com",
       },
@@ -39,12 +41,12 @@ describe("Transactions", () => {
     );
 
     expect(enabledCurrency).toBeDefined();
-    expect(toml.TRANSFER_SERVER).toBeDefined();
+    expect(transferServer).toBeDefined();
     expect(toml.WEB_AUTH_ENDPOINT).toBeDefined();
   });
 
   it("has CORS on the transactions endpoint", async () => {
-    const response = await fetch(toml.TRANSFER_SERVER + "/transactions", {
+    const response = await fetch(transferServer + "/transactions", {
       headers: {
         Origin: "https://www.website.com",
       },
@@ -62,7 +64,7 @@ describe("Transactions", () => {
     });
 
     const response = await fetch(
-      toml.TRANSFER_SERVER + `/transactions?asset_code=${enabledCurrency}`,
+      transferServer + `/transactions?asset_code=${enabledCurrency}`,
     );
     expect(response.status).toBeGreaterThanOrEqual(400);
     expect(response.status).toBeLessThan(500);
@@ -79,7 +81,7 @@ describe("Transactions", () => {
     });
 
     const response = await fetch(
-      toml.TRANSFER_SERVER + `/transactions?asset_code=${enabledCurrency}`,
+      transferServer + `/transactions?asset_code=${enabledCurrency}`,
       {
         headers: {
           Authorization: `Bearer ${jwt}`,
@@ -106,8 +108,7 @@ describe("Transactions", () => {
     const sep10JWT = await getSep10Token(domain, kp);
 
     const response = await fetch(
-      toml.TRANSFER_SERVER +
-        `/transactions?asset_code=${enabledCurrency}&limit=1`,
+      transferServer + `/transactions?asset_code=${enabledCurrency}&limit=1`,
       {
         headers: {
           Authorization: `Bearer ${sep10JWT}`,
@@ -138,8 +139,7 @@ describe("Transactions", () => {
     });
 
     const response = await fetch(
-      toml.TRANSFER_SERVER +
-        `/transactions?asset_code=${enabledCurrency}&limit=1`,
+      transferServer + `/transactions?asset_code=${enabledCurrency}&limit=1`,
       {
         headers: {
           Authorization: `Bearer ${jwt}`,
@@ -171,7 +171,7 @@ describe("Transactions", () => {
     });
 
     const response = await fetch(
-      toml.TRANSFER_SERVER +
+      transferServer +
         `/transactions?asset_code=${enabledCurrency}&no_older_than=${currentDate.toISOString()}`,
       {
         headers: {
@@ -210,7 +210,7 @@ describe("Transactions", () => {
     });
 
     const response = await fetch(
-      toml.TRANSFER_SERVER +
+      transferServer +
         `/transactions?asset_code=${enabledCurrency}&kind=deposit`,
       {
         headers: {
@@ -246,7 +246,7 @@ describe("Transactions", () => {
     });
 
     const response = await fetch(
-      toml.TRANSFER_SERVER +
+      transferServer +
         `/transactions?asset_code=${enabledCurrency}&kind=withdrawal`,
       {
         headers: {
@@ -276,7 +276,7 @@ describe("Transactions", () => {
     const pagingId = json.id;
 
     const pagingTransaction = await fetch(
-      toml.TRANSFER_SERVER + `/transaction?id=${pagingId}`,
+      transferServer + `/transaction?id=${pagingId}`,
       {
         headers: {
           Authorization: `Bearer ${jwt}`,
@@ -286,7 +286,7 @@ describe("Transactions", () => {
     const pagingJson = await pagingTransaction.json();
 
     const transactionsResponse = await fetch(
-      toml.TRANSFER_SERVER +
+      transferServer +
         `/transactions?asset_code=${enabledCurrency}&paging_id=${pagingId}`,
       {
         headers: {
@@ -327,7 +327,7 @@ describe("Transactions", () => {
     const pagingId = json.id;
 
     const pagingTransaction = await fetch(
-      toml.TRANSFER_SERVER + `/transaction?id=${pagingId}`,
+      transferServer + `/transaction?id=${pagingId}`,
       {
         headers: {
           Authorization: `Bearer ${jwt}`,
@@ -337,9 +337,7 @@ describe("Transactions", () => {
     const pagingJson = await pagingTransaction.json();
 
     const transactionsResponse = await fetch(
-      `${
-        toml.TRANSFER_SERVER
-      }/transactions?asset_code=${enabledCurrency}&kind=deposit&limit=1&paging_id=${pagingId}&no_older_than=${currentDate.toISOString()}`,
+      `${transferServer}/transactions?asset_code=${enabledCurrency}&kind=deposit&limit=1&paging_id=${pagingId}&no_older_than=${currentDate.toISOString()}`,
       {
         headers: {
           Authorization: `Bearer ${jwt}`,
@@ -366,7 +364,7 @@ describe("Transactions", () => {
   });
 
   it("return proper error with missing params", async () => {
-    const response = await fetch(toml.TRANSFER_SERVER + `/transactions`, {
+    const response = await fetch(transferServer + `/transactions`, {
       headers: {
         Authorization: `Bearer ${jwt}`,
       },
@@ -379,7 +377,7 @@ describe("Transactions", () => {
 
   it("return proper error for a non-supported currency", async () => {
     const response = await fetch(
-      toml.TRANSFER_SERVER + `/transactions?asset_code=XYXCEZZYBD`,
+      transferServer + `/transactions?asset_code=XYXCEZZYBD`,
       {
         headers: {
           Authorization: `Bearer ${jwt}`,
