@@ -16,7 +16,7 @@ const transactionSchema = {
           format: "uri",
         },
         status_eta: {
-          type: "number",
+          type: ["number", "null"],
         },
         amount_in: {
           type: ["string", "null"],
