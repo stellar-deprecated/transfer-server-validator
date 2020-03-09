@@ -41,7 +41,7 @@ describe("TOML File", () => {
       }
     });
 
-    it("Uses TRANSFER_SERVER_SEP0024", async () => {
+    it("uses TRANSFER_SERVER_SEP0024", async () => {
       expect(toml.TRANSFER_SERVER_SEP0024).toBeTruthy();
     });
 
