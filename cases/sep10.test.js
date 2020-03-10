@@ -84,6 +84,27 @@ describe("SEP10", () => {
     expect(json.error).toBeTruthy();
   });
 
+  it("works for an unfunded account", async () => {
+    const unfundedKeypair = StellarSDK.Keypair.random();
+    const json = await fetch(
+      toml.WEB_AUTH_ENDPOINT + "?account=" + unfundedKeypair.publicKey(),
+    ).then((r) => r.json());
+    const tx = new StellarSDK.Transaction(
+      json.transaction,
+      toml.NETWORK_PASSPHRASE || StellarSDK.Networks.TESTNET,
+    );
+    tx.sign(unfundedKeypair);
+    let tokenJson = await fetch(toml.WEB_AUTH_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ transaction: tx.toXDR() }),
+    }).then((r) => r.json());
+    expect(tokenJson.error).toBeFalsy();
+    expect(tokenJson.token).toBeTruthy();
+  });
+
   describe("GET Challenge", () => {
     let json;
     let network_passphrase;
