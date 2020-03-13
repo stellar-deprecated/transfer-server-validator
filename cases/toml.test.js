@@ -26,7 +26,7 @@ describe("TOML File", () => {
     });
     expect(
       response.headers.get("access-control-allow-origin"),
-      "access-control-allow-origin response header should be set to *",
+      "access-control-allow-origin response header for toml file should be set to *",
     ).toBe("*");
   });
 
