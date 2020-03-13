@@ -22,15 +22,16 @@
   "dependencies": {
     "@babel/core": "^7.8.6",
     "@babel/preset-env": "^7.8.6",
-    "bufferutil": "^4.0.1",
-    "canvas": "^2.5.0",
     "@stellar/prettier-config": "^1.0.1",
     "babel-jest": "^25.1.0",
+    "bufferutil": "^4.0.1",
+    "canvas": "^2.5.0",
     "chromedriver": "^80.0.1",
     "concurrently": "^5.0.2",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "jest": "^24.9.0",
+    "jest-expect-message": "^1.0.2",
     "jest-json-schema": "^2.1.0",
     "jest-junit": "^10.0.0",
     "jsonwebtoken": "^8.5.1",
@@ -51,7 +52,8 @@
       "jest-junit"
     ],
     "setupFilesAfterEnv": [
-      "./cases/util/setup.js"
+      "./cases/util/setup.js",
+      "jest-expect-message"
     ]
   },
   "husky": {

@@ -24,7 +24,10 @@ describe("TOML File", () => {
         Origin: "https://test.com",
       },
     });
-    expect(response.headers.get("access-control-allow-origin")).toBe("*");
+    expect(
+      response.headers.get("access-control-allow-origin"),
+      "access-control-allow-origin response header should be set to *",
+    ).toBe("*");
   });
 
   describe("fields", () => {
