@@ -8,17 +8,6 @@ module.exports = async (req, res) => {
     "Access-Control-Allow-Origin": "*",
   });
 
-  let i = 0;
-  const sendLoadingMessage = (_) => {
-    const message = ["Running Tests", "Still running tests", "Still going"][
-      i++ % 3
-    ];
-    res.write(`data: ${JSON.stringify({ loadingMessage: message })}\n\n`);
-  };
-  sendLoadingMessage();
-
-  const timer = setInterval(sendLoadingMessage, 5000);
   const results = await runTest(req.query.domain, req.query.test);
-  clearInterval(timer);
   res.write(`data: ${JSON.stringify({ results })}\n\n`);
 };

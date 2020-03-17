@@ -13,7 +13,7 @@ module.exports = async (domain, test) => {
     );
     let jsonStr = "";
     jest.stdout.on("data", (data) => {
-      jsonStr += data.toString();
+      jsonStr += data.toString().replace(/\\u001b\[[0-9]{1,2}m/g, "");
     });
 
     jest.stderr.on("data", (data) => {
