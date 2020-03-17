@@ -8,6 +8,10 @@ module.exports = async (req, res) => {
     "Access-Control-Allow-Origin": "*",
   });
 
+  // It's important to write something to the stream immediately
+  // otherwise heroku will timeout with an H15 Idle Connection error
+  res.write("message: Starting Tests\n\n");
+
   const results = await runTest(req.query.domain, req.query.test);
   res.write(`data: ${JSON.stringify({ results })}\n\n`);
 };
