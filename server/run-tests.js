@@ -1,5 +1,4 @@
 const runTest = require("./jest-controller/run-test");
-
 module.exports = async (req, res) => {
   // Set up server-sent events
   res.writeHead(200, {
