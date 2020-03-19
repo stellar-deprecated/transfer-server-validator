@@ -5,7 +5,7 @@ export async function getTransactionBy({
   toml,
   jwt,
   iden = "id",
-  expectStatusIn = [200],
+  expectStatus = 200,
   expectStatusBetween = null,
 } = {}) {
   const transferServer = toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER;
@@ -19,7 +19,7 @@ export async function getTransactionBy({
   );
   let json = await response.json();
   if (!expectStatusBetween) {
-    expect(expectStatusIn).toContain(response.status);
+    expect(response.status).toBe(expectStatus);
   } else {
     let [low, high] = expectStatusBetween;
     expect(response.status).toBeGreaterThanOrEqual(low);

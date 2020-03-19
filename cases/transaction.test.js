@@ -134,7 +134,7 @@ describe("Transaction", () => {
   it("returns a proper error for a non-existing transaction by id", async () => {
     const json = await getTransactionBy({
       value: "1277bd18-a2bd-4acd-9a87-2f541c7b8933",
-      expectStatusIn: [404],
+      expectStatus: 404,
       toml: toml,
       jwt: jwt,
     });
@@ -145,7 +145,7 @@ describe("Transaction", () => {
     const json = await getTransactionBy({
       iden: "stellar_transaction_id",
       value: "17a670bc424ff5ce3b386dbfaae9990b66a2a37b4fbe51547e8794962a3f9e6a",
-      expectStatusIn: [404],
+      expectStatus: 404,
       toml: toml,
       jwt: jwt,
     });
@@ -156,7 +156,7 @@ describe("Transaction", () => {
     const json = await getTransactionBy({
       iden: "external_transaction_id",
       value: "2dd16cb409513026fbe7defc0c6f826c2d2c65c3da993f747d09bf7dafd31093",
-      expectStatusIn: [404],
+      expectStatus: 404,
       jwt: jwt,
       toml: toml,
     });
