@@ -19,7 +19,7 @@ export async function getTransactionBy({
   );
   let json = await response.json();
   if (!expectStatusBetween) {
-    expect(expectStatusIn).toContain(response.status);
+    expect(response.status).toContain(expectStatusIn);
   } else {
     let [low, high] = expectStatusBetween;
     expect(response.status).toBeGreaterThanOrEqual(low);
