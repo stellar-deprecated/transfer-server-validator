@@ -1,4 +1,10 @@
+const e = require("express");
 const runTest = require("./jest-controller/run-test");
+
+/**
+ * @param {e.Request} req
+ * @param {e.Response} res
+ */
 module.exports = async (req, res) => {
   // Set up server-sent events
   res.writeHead(200, {
@@ -14,4 +20,5 @@ module.exports = async (req, res) => {
 
   const results = await runTest(req.query.domain, req.query.test);
   res.write(`data: ${JSON.stringify({ results })}\n\n`);
+  res.end();
 };
