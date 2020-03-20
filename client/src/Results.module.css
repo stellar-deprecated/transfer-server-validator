@@ -35,3 +35,31 @@
   color: blue;
   text-decoration: none;
 }
+
+.SourceLineSet {
+  background: white;
+  margin: 8px;
+}
+
+.SourceLineNumber {
+  width: 32px;
+  padding: 4px;
+  border-right: 1px solid black;
+  display: inline-block;
+}
+
+.SourceLineContent {
+  padding: 4px;
+}
+
+.SourceLine:nth-child(even) {
+  background: rgb(240, 240, 240);
+}
+
+.SourceLine:nth-child(odd) {
+  background: rgb(255, 255, 255);
+}
+
+.SourceLineActive {
+  background: rgba(241, 147, 147, 1) !important;
+}

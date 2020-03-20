@@ -36,6 +36,26 @@ function TestListItem({ result }: { result: TestResult }) {
         {result.failureMessages?.map((m) => (
           <div>{m}</div>
         ))}
+        <div className={s.SourceLineSet}>
+          {result.releventSource?.map((sourceLine) => {
+            return (
+              <div
+                className={`${s.SourceLine} ${
+                  sourceLine.isErrorLine ? s.SourceLineActive : ""
+                }`}
+              >
+                <span className={s.SourceLineNumber}>
+                  <a href={sourceLine.directLink} target="_blank">
+                    {sourceLine.lineNumber}
+                  </a>
+                </span>
+                <span className={s.SourceLineContent}>
+                  {sourceLine.content}
+                </span>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

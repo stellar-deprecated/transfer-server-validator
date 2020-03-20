@@ -57,6 +57,7 @@ export default async (domain: string, test: string): Promise<TestResult[]> => {
         name: [...testResult.ancestorTitles, testResult.title].join(" > "),
         status: enumFromStatusString(testResult.status),
         failureMessages: testResult.failureMessages,
+        releventSource: testResult.releventSource,
       };
     },
   );
