@@ -15,10 +15,16 @@ module.exports = async (req, res) => {
   });
 
   // It's important to write something to the stream immediately
-  // otherwise heroku will timeout with an H15 Idle Connection error
-  res.write("message: Starting Tests\n\n");
+  // and intermittently otherwise heroku will timeout with
+  // an H15 Idle Connection error
+  const sendPing = () => {
+    res.write("message: Running Tests\n\n");
+  };
+  sendPing();
+  const timer = setInterval(sendPing, 15000);
 
   const results = await runTest(req.query.domain, req.query.test);
+  clearTimeout(timer);
   res.write(`data: ${JSON.stringify({ results })}\n\n`);
   res.end();
 };

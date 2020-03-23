@@ -28,22 +28,30 @@ module.exports = async (domain, test) => {
         const name = testResult.name.split("/").reduce((prev, cur) => cur);
         testResult.assertionResults.forEach((assertionResult) => {
           assertionResult.failureMessages.forEach((failureMessage) => {
+            console.log("Failure message", failureMessage);
             const [_, file, lineStr] = firstLineRegex.exec(failureMessage);
+            console.log("File", file);
             const errorLine = parseInt(lineStr);
-            const fileContents = fs.readFileSync(file).toString();
-            const fileLines = fileContents.split("\n");
-            const start = Math.max(0, errorLine - 4);
-            const end = Math.min(fileLines.length - 1, errorLine + 3);
-            const selectedLines = fileLines.slice(start, end).map((line, i) => {
-              const lineNumber = i + start + 1;
-              return {
-                content: line,
-                lineNumber: lineNumber,
-                isErrorLine: lineNumber === errorLine,
-                directLink: `https://github.com/stellar/transfer-server-validator/blob/master/cases/${name}#L${lineNumber}`,
-              };
-            });
-            assertionResult.releventSource = selectedLines;
+            try {
+              const fileContents = fs.readFileSync(file).toString();
+              const fileLines = fileContents.split("\n");
+              const start = Math.max(0, errorLine - 4);
+              const end = Math.min(fileLines.length - 1, errorLine + 3);
+              const selectedLines = fileLines
+                .slice(start, end)
+                .map((line, i) => {
+                  const lineNumber = i + start + 1;
+                  return {
+                    content: line,
+                    lineNumber: lineNumber,
+                    isErrorLine: lineNumber === errorLine,
+                    directLink: `https://github.com/stellar/transfer-server-validator/blob/master/cases/${name}#L${lineNumber}`,
+                  };
+                });
+              assertionResult.releventSource = selectedLines;
+            } catch (e) {
+              console.log("Couldn't read the file to create selected lines", e);
+            }
           });
         });
       });
