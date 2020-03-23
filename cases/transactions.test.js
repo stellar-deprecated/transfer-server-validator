@@ -13,8 +13,7 @@ jest.setTimeout(60000);
 
 const urlBuilder = new URL(process.env.DOMAIN);
 const domain = urlBuilder.toString();
-const secret = "SAUOSXXF7ZDO5PKHRFR445DRKZ66Q5HIM2HIPQGWBTUKJZQAOP3VGH3L";
-const keyPair = StellarSDK.Keypair.fromSecret(secret);
+const keyPair = StellarSDK.Keypair.random();
 
 describe("Transactions", () => {
   let toml;
@@ -335,7 +334,6 @@ describe("Transactions", () => {
       },
     );
     const pagingJson = await pagingTransaction.json();
-
     const transactionsResponse = await fetch(
       `${transferServer}/transactions?asset_code=${enabledCurrency}&kind=deposit&limit=1&paging_id=${pagingId}&no_older_than=${currentDate.toISOString()}`,
       {
