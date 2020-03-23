@@ -28,7 +28,9 @@ module.exports = async (domain, test) => {
         const name = testResult.name.split("/").reduce((prev, cur) => cur);
         testResult.assertionResults.forEach((assertionResult) => {
           assertionResult.failureMessages.forEach((failureMessage) => {
+            console.log("Failure message", failureMessage);
             const [_, file, lineStr] = firstLineRegex.exec(failureMessage);
+            console.log("File", file);
             const errorLine = parseInt(lineStr);
             const fileContents = fs.readFileSync(file).toString();
             const fileLines = fileContents.split("\n");
