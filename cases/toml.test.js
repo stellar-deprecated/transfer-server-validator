@@ -67,7 +67,6 @@ describe("TOML File", () => {
       expect(urlBuilder.protocol).toMatch("https:");
     });
 
-
     it("has currency section", () => {
       expect(toml.CURRENCIES).not.toBeNull();
     });
