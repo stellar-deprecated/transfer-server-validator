@@ -249,7 +249,7 @@ describe("Withdraw Flow", () => {
       feeForTransaction = Math.round(feeForTransaction * 10000000) / 10000000;
     }
 
-    expect(feeForTransaction.toString()).toEqual(withdrawJSON.amount_fee);
+    expect(feeForTransaction).toEqual(parseFloat(withdrawJSON.amount_fee));
     // Adjust for floating point errors. Stellar supports up to 7 decimals
     let calculatedFee =
       Math.round(
