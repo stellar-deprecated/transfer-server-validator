@@ -9,6 +9,10 @@ describe("TOML File", () => {
   it("exists", async () => {
     const response = await fetch(url + ".well-known/stellar.toml");
     expect(response.status).toBe(200);
+  });
+
+  it("has correct content-type", async () => {
+    const response = await fetch(url + ".well-known/stellar.toml");
     expect(response.headers.get("content-type")).toEqual(
       expect.stringContaining("text/plain"),
     );
@@ -21,7 +25,10 @@ describe("TOML File", () => {
         Origin: "https://test.com",
       },
     });
-    expect(response.headers.get("access-control-allow-origin")).toBe("*");
+    expect(
+      response.headers.get("access-control-allow-origin"),
+      "access-control-allow-origin response header for toml file should be set to *",
+    ).toBe("*");
   });
 
   describe("fields", () => {
@@ -38,7 +45,9 @@ describe("TOML File", () => {
       }
     });
 
-    it("is well formatted", async () => {});
+    it("uses TRANSFER_SERVER_SEP0024", async () => {
+      expect(toml.TRANSFER_SERVER_SEP0024).toBeTruthy();
+    });
 
     it("has a max file size of 100kb", () => {
       expect(parseInt(fileSize)).not.toBeGreaterThan(100000);

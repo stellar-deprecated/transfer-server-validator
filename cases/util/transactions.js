@@ -1,30 +1,29 @@
 import { fetch } from "./fetchShim";
-import FormData from "form-data";
 
-export async function createTransaction({ currency, account, toml, jwt, isDeposit }) {
-    const params = new FormData();
-    if (currency) params.append("asset_code", currency);
-    if (account) params.append("account", account);
-
-    const headers = Object.assign(
-        { Authorization: `Bearer ${jwt}`},
-        params.getHeaders()
-    );
-
-    const transactionsUrl = toml.TRANSFER_SERVER + `/transactions/${isDeposit ? 'deposit' : 'withdraw'}/interactive`;
-    const response = await fetch(
-        transactionsUrl, {
-            headers,
-            method: "POST",
-            body: params
-        }
-    );
-
-    const status = response.status;
-    const json = await response.json();
-
-    return {
-        status,
-        json
-    };
-};
+export async function getTransactionBy({
+  value,
+  toml,
+  jwt,
+  iden = "id",
+  expectStatus = 200,
+  expectStatusBetween = null,
+} = {}) {
+  const transferServer = toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER;
+  const response = await fetch(
+    transferServer + `/transaction?${iden}=${value}`,
+    {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    },
+  );
+  let json = await response.json();
+  if (!expectStatusBetween) {
+    expect(response.status).toBe(expectStatus);
+  } else {
+    let [low, high] = expectStatusBetween;
+    expect(response.status).toBeGreaterThanOrEqual(low);
+    expect(response.status).toBeLessThan(high);
+  }
+  return json;
+}

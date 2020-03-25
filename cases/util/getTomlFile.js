@@ -9,6 +9,14 @@ export default async function(domain) {
   if (toml.TRANSFER_SERVER[toml.TRANSFER_SERVER.length - 1] === "/") {
     toml.TRANSFER_SERVER = toml.TRANSFER_SERVER.slice(0, -1);
   }
+  if (toml.TRANSFER_SERVER_SEP0024) {
+    if (
+      toml.TRANSFER_SERVER_SEP0024[toml.TRANSFER_SERVER_SEP0024.length - 1] ===
+      "/"
+    ) {
+      toml.TRANSFER_SERVER_SEP0024 = toml.TRANSFER_SERVER_SEP0024.slice(0, -1);
+    }
+  }
   expect(toml).toBeDefined();
   return toml;
 }

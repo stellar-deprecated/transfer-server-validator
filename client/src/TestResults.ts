@@ -6,9 +6,18 @@ export enum TestStatus {
   RUNNING = "Running",
 }
 
+export interface SourceLine {
+  content: string;
+  isErrorLine: boolean;
+  lineNumber: number;
+  directLink: string;
+}
+
 export interface TestResult {
   name: string;
   status: TestStatus;
+  failureMessages?: string[];
+  releventSource?: SourceLine[];
 }
 export interface TestResultSet {
   name: string;

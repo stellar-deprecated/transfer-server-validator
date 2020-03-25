@@ -14,25 +14,27 @@ const keyPair = StellarSDK.Keypair.fromSecret(secret);
 const server = new StellarSDK.Server("https://horizon-testnet.stellar.org");
 const accountPool = [];
 
-const getAccount = function() {
+const getAccount = (function() {
   let accountPoolIdx = 0;
-  return _ => {
+  return (_) => {
     try {
       return accountPool[accountPoolIdx++];
     } catch {
       throw "Not enough accounts!";
     }
   };
-}();
+})();
 
 beforeAll(async () => {
   for (let i = 0; i < 9; i++) {
-    accountPool.push({kp: StellarSDK.Keypair.random(), data: null});
+    accountPool.push({ kp: StellarSDK.Keypair.random(), data: null });
   }
-  await Promise.all(accountPool.map(async (acc) => {
-    await friendbot(acc.kp);
-    acc.data = await server.loadAccount(acc.kp.publicKey());
-  }));
+  await Promise.all(
+    accountPool.map(async (acc) => {
+      await friendbot(acc.kp);
+      acc.data = await server.loadAccount(acc.kp.publicKey());
+    }),
+  );
 });
 
 describe("SEP10", () => {
@@ -82,9 +84,33 @@ describe("SEP10", () => {
     expect(json.error).toBeTruthy();
   });
 
+  it("works for an unfunded account", async () => {
+    const unfundedKeypair = StellarSDK.Keypair.random();
+    const json = await fetch(
+      toml.WEB_AUTH_ENDPOINT + "?account=" + unfundedKeypair.publicKey(),
+    ).then((r) => r.json());
+    const tx = new StellarSDK.Transaction(
+      json.transaction,
+      toml.NETWORK_PASSPHRASE || StellarSDK.Networks.TESTNET,
+    );
+    tx.sign(unfundedKeypair);
+    let tokenJson = await fetch(toml.WEB_AUTH_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ transaction: tx.toXDR() }),
+    }).then((r) => r.json());
+    expect(tokenJson.error).toBeFalsy();
+    expect(tokenJson.token).toBeTruthy();
+  });
+
   describe("GET Challenge", () => {
     let json;
+    let network_passphrase;
     beforeAll(async () => {
+      network_passphrase =
+        toml.NETWORK_PASSPHRASE || StellarSDK.Networks.TESTNET;
       const response = await fetch(
         toml.WEB_AUTH_ENDPOINT + "?account=" + account,
       );
@@ -100,7 +126,7 @@ describe("SEP10", () => {
       expect(json.transaction).toBeTruthy();
       const tx = new StellarSDK.Transaction(
         json.transaction,
-        json.network_passphrase,
+        network_passphrase,
       );
 
       expect(tx.sequence).toBe("0");
@@ -115,7 +141,7 @@ describe("SEP10", () => {
       it("Accepts application/x-www-form-urlencoded", async () => {
         const tx = new StellarSDK.Transaction(
           json.transaction,
-          json.network_passphrase,
+          network_passphrase,
         );
         tx.sign(keyPair);
         let resp = await fetch(toml.WEB_AUTH_ENDPOINT, {
@@ -146,7 +172,7 @@ describe("SEP10", () => {
       it("fails if the client doesn't sign the challenge", async () => {
         const tx = new StellarSDK.Transaction(
           json.transaction,
-          json.network_passphrase,
+          network_passphrase,
         );
         let resp = await fetch(toml.WEB_AUTH_ENDPOINT, {
           method: "POST",
@@ -163,7 +189,7 @@ describe("SEP10", () => {
       it("fails if the signed challenge isn't signed by the servers SIGNING_KEY", async () => {
         const tx = new StellarSDK.Transaction(
           json.transaction,
-          json.network_passphrase,
+          network_passphrase,
         );
         // Remove the server signature, only sign by client
         tx.signatures = [];
@@ -184,7 +210,7 @@ describe("SEP10", () => {
       beforeAll(async () => {
         const tx = new StellarSDK.Transaction(
           json.transaction,
-          json.network_passphrase,
+          network_passphrase,
         );
         tx.sign(keyPair);
         let resp = await fetch(toml.WEB_AUTH_ENDPOINT, {
@@ -224,7 +250,7 @@ describe("SEP10", () => {
      * get a token with its own signature.
      */
     it("fails for an account that can't sign for itself", async () => {
-      const account = getAccount({with_data: true});
+      const account = getAccount({ with_data: true });
       const transaction = new StellarSDK.TransactionBuilder(account.data, {
         fee: StellarSDK.BASE_FEE,
         networkPassphrase: StellarSDK.Networks.TESTNET,
@@ -246,7 +272,7 @@ describe("SEP10", () => {
     });
 
     it("succeeds for a signer of an account", async () => {
-      const userAccount = getAccount({with_data: true});
+      const userAccount = getAccount({ with_data: true });
       const signerAccount = getAccount();
       const transaction = new StellarSDK.TransactionBuilder(userAccount.data, {
         fee: StellarSDK.BASE_FEE,
@@ -267,7 +293,9 @@ describe("SEP10", () => {
         .build();
       transaction.sign(userAccount.kp);
       await server.submitTransaction(transaction);
-      const token = await getSep10Token(url, userAccount.kp, [signerAccount.kp]);
+      const token = await getSep10Token(url, userAccount.kp, [
+        signerAccount.kp,
+      ]);
       expect(token).toBeTruthy();
     });
 
@@ -278,7 +306,7 @@ describe("SEP10", () => {
      * count its weight twice.
      */
     it("fails when trying to reuse the same signer to gain weight", async () => {
-      const userAccount = getAccount({with_data: true});
+      const userAccount = getAccount({ with_data: true });
       const signerAccount = getAccount();
       const transaction = new StellarSDK.TransactionBuilder(userAccount.data, {
         fee: StellarSDK.BASE_FEE,
@@ -307,7 +335,7 @@ describe("SEP10", () => {
     });
 
     it("succeeds with multiple signers", async () => {
-      const userAccount = getAccount({with_data: true});
+      const userAccount = getAccount({ with_data: true });
       const signerAccount1 = getAccount();
       const signerAccount2 = getAccount();
       const transaction = new StellarSDK.TransactionBuilder(userAccount.data, {

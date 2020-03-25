@@ -5,6 +5,9 @@ ENV APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn
 RUN mkdir -p /usr/share/man/man1
 RUN apt-get update && \
   apt-get install -y --no-install-recommends \
+  make \
+  build-essential \
+  python \
   curl \
   default-jre \
   gnupg2 \ 
@@ -23,7 +26,7 @@ RUN apt-get update && \
 
 WORKDIR /usr/src/app
 COPY . .
-RUN npm install --no-optional ; cd client ; npm install --no-optional ; npm run build ; rm -rf node_modules ; cd ..
+RUN npm upgrade chromedriver; npm install --no-optional ; cd client ; npm install --no-optional ; npm run build ; rm -rf node_modules ; cd ..
 ENV PORT=3000
 EXPOSE $PORT
 CMD [ "npm", "start" ]

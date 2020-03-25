@@ -16,7 +16,7 @@ const transactionSchema = {
           format: "uri",
         },
         status_eta: {
-          type: "number",
+          type: ["number", "null"],
         },
         amount_in: {
           type: ["string", "null"],
@@ -37,7 +37,6 @@ const transactionSchema = {
         },
         stellar_transaction_id: {
           type: ["string", "null"],
-          pattern: "G[A-Z0-9]{55}",
         },
         external_transaction_id: {
           type: ["string", "null"],
@@ -46,7 +45,7 @@ const transactionSchema = {
           type: ["string", "null"],
         },
         refunded: {
-          type: "boolean"
+          type: "boolean",
         },
       },
       required: [
@@ -61,8 +60,8 @@ const transactionSchema = {
         "completed_at",
         "stellar_transaction_id",
         "refunded",
-      ]
-    }
+      ],
+    },
   },
   required: ["transaction"],
 };
@@ -70,74 +69,84 @@ const transactionSchema = {
 export function getTransactionSchema(isDeposit) {
   const schema = JSON.parse(JSON.stringify(transactionSchema));
   const requiredDepositParams = ["from", "to"];
-  const requiredWithdrawParams = ["from", "to", "withdraw_memo", "withdraw_memo_type", "withdraw_anchor_account"];
+  const requiredWithdrawParams = [
+    "from",
+    "to",
+    "withdraw_memo",
+    "withdraw_memo_type",
+    "withdraw_anchor_account",
+  ];
 
   const depositProperties = {
     deposit_memo: {
-      type: ["string", "null"]
+      type: ["string", "null"],
     },
     deposit_memo_type: {
-      type: ["string", "null"]
+      type: ["string", "null"],
     },
     from: {
-      type: ["string", "null"]
+      type: ["string", "null"],
     },
     to: {
-      type: ["string", "null"]
-    }
+      type: ["string", "null"],
+    },
   };
 
   const withdrawProperties = {
     withdraw_anchor_account: {
-      type: ["string", "null"]
+      type: ["string", "null"],
     },
     withdraw_memo: {
-      type: ["string", "null"]
+      type: ["string", "null"],
     },
     withdraw_memo_type: {
-      type: ["string", "null"]
+      type: ["string", "null"],
     },
     from: {
-      type: ["string", "null"]
+      type: ["string", "null"],
     },
     to: {
-      type: ["string", "null"]
-    }
+      type: ["string", "null"],
+    },
   };
 
   if (isDeposit) {
-    schema.properties.transaction.required = schema.properties.transaction.required.concat(requiredDepositParams);
+    schema.properties.transaction.required = schema.properties.transaction.required.concat(
+      requiredDepositParams,
+    );
     Object.assign(schema.properties.transaction.properties, depositProperties);
   } else {
-    schema.properties.transaction.required = schema.properties.transaction.required.concat(requiredWithdrawParams);
+    schema.properties.transaction.required = schema.properties.transaction.required.concat(
+      requiredWithdrawParams,
+    );
     Object.assign(schema.properties.transaction.properties, withdrawProperties);
   }
-  
+
   return schema;
 }
 
 export const transactionsSchema = {
   type: "object",
   properties: {
-    transactions: { type: "array" }
+    transactions: { type: "array" },
   },
-  required: ["transactions"]
-}
+  required: ["transactions"],
+};
 
 export const errorSchema = {
   type: "object",
   properties: {
-    error: { type: "string" }
+    error: { type: "string" },
   },
-  required: ["error"]
+  required: ["error"],
 };
 
 export const feeSchema = {
   type: "object",
   properties: {
-    fee: { type: "number" }
+    fee: { type: "number" },
   },
-  required: ["fee"]
+  required: ["fee"],
 };
 
 const depositAndWithdrawSchema = {
@@ -151,7 +160,7 @@ const depositAndWithdrawSchema = {
         min_amount: { type: "number" },
         max_amount: { type: "number" },
       },
-      required: ["enabled"]
+      required: ["enabled"],
     },
   },
 };
@@ -165,14 +174,10 @@ export const infoSchema = {
       type: "object",
       properties: {
         enabled: { type: "boolean" },
-        authentication_required: { type: "boolean" }
+        authentication_required: { type: "boolean" },
       },
-      required: ["enabled"]
+      required: ["enabled"],
     },
   },
-  required: [
-    "deposit",
-    "withdraw",
-    "fee",
-  ]
+  required: ["deposit", "withdraw", "fee"],
 };
