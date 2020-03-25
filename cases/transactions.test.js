@@ -180,9 +180,10 @@ describe("Transactions", () => {
     );
 
     const json = await response.json();
-    expect(response.status).toEqual(200);
-    expect(json.error).not.toBeDefined();
-    expect(json.transactions.length).toBeGreaterThanOrEqual(2);
+    const errorMessage = "Response: " + JSON.stringify(json);
+    expect(response.status, errorMessage).toEqual(200);
+    expect(json.error, errorMessage).not.toBeDefined();
+    expect(json.transactions.length, errorMessage).toBeGreaterThanOrEqual(2);
 
     json.transactions.forEach((transaction) => {
       const transactionStartedTime = new Date(transaction.started_at).getTime();
