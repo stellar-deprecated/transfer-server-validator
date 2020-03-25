@@ -60,6 +60,12 @@ describe("TOML File", () => {
       expect(() => new URL(toml.TRANSFER_SERVER)).not.toThrow();
     });
 
+    it("all URLs are https", () => {
+      expect((new URL(toml.TRANSFER_SERVER)).protocol).toMatch("https:");
+      expect((new URL(toml.TRANSFER_SERVER_SEP0024)).protocol).toMatch("https:");
+      expect(urlBuilder.protocol).toMatch("https:");
+    });
+
     it("has issuer documentation", () => {
       expect(toml.DOCUMENTATION).toEqual(
         expect.objectContaining({
