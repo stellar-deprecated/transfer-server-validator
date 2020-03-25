@@ -2,6 +2,7 @@ import { fetch } from "./util/fetchShim";
 import getSep10Token from "./util/sep10";
 import getTomlFile from "./util/getTomlFile";
 import { createTransaction } from "./util/interactive";
+import { createLog }  from "./util/responseLogCreator";
 import StellarSDK from "stellar-sdk";
 import {
   errorSchema,
@@ -180,10 +181,10 @@ describe("Transactions", () => {
     );
 
     const json = await response.json();
-    const errorMessage = "Response: " + JSON.stringify(json);
-    expect(response.status, errorMessage).toEqual(200);
-    expect(json.error, errorMessage).not.toBeDefined();
-    expect(json.transactions.length, errorMessage).toBeGreaterThanOrEqual(2);
+    const responseLog = createLog(response)
+    expect(response.status, responseLog).toEqual(200);
+    expect(json.error, responseLog).not.toBeDefined();
+    expect(json.transactions.length, responseLog).toBeGreaterThanOrEqual(2);
 
     json.transactions.forEach((transaction) => {
       const transactionStartedTime = new Date(transaction.started_at).getTime();
