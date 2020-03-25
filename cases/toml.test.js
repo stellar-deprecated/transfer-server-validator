@@ -1,5 +1,6 @@
 import { fetch } from "./util/fetchShim";
 import TOML from "toml";
+import { currencySchema } from "./util/schema";
 
 const urlBuilder = new URL(process.env.DOMAIN);
 const url = urlBuilder.toString();
@@ -54,6 +55,26 @@ describe("TOML File", () => {
 
     it("has a network passphrase", () => {
       expect(toml.NETWORK_PASSPHRASE).toBeTruthy();
+    });
+
+    it("has a valid transfer server URL", () => {
+      expect(() => new URL(toml.TRANSFER_SERVER)).not.toThrow();
+    });
+
+    it("all URLs are https", () => {
+      expect((new URL(toml.TRANSFER_SERVER)).protocol).toMatch("https:");
+      expect((new URL(toml.TRANSFER_SERVER_SEP0024)).protocol).toMatch("https:");
+      expect(urlBuilder.protocol).toMatch("https:");
+    });
+
+    it("has currency section", () => {
+      expect(toml.CURRENCIES).not.toBeNull();
+    });
+
+    it("currencies have the correct schema", () => {
+      toml.CURRENCIES.forEach((currency) => {
+        expect(currency).toMatchSchema(currencySchema);
+      });  
     });
 
     it("has issuer documentation", () => {
