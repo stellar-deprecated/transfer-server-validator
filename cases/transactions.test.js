@@ -46,6 +46,7 @@ describe("Transactions", () => {
 
   it("has CORS on the transactions endpoint", async () => {
     const response = await fetch(transferServer + "/transactions", {
+      method: "OPTIONS",
       headers: {
         Origin: "https://www.website.com",
       },

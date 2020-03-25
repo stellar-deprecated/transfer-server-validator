@@ -26,6 +26,7 @@ describe("Info", () => {
 
   it("has CORS on the info endpoint", async () => {
     const response = await fetch(transferServer + "/info", {
+      method: "OPTIONS",
       headers: {
         Origin: "https://www.website.com",
       },
