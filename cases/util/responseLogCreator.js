@@ -1,9 +1,13 @@
 
-export const createLog = (response) => {
+export const createLog = (response, responseBody) => {
   
-  var log = "\nSTATUS: " + response.status;
-  log += "\nHEADERS: " + JSON.stringify(response.headers.raw(), null, 2);
-  log += "\nBODY: " + JSON.stringify(response.body, null, 2);
+  const rawHeaders = response.headers.raw();
+  const formattedHeaders = Object.keys(rawHeaders).map(key => `${key}: ${rawHeaders[key]}`).join("\n")
+  
+  var log = "\nRESPONSE ⬇️"
+  log += "\nSTATUS: " + response.status;
+  log += "\n\nHEADERS:\n" + formattedHeaders;
+  log += "\n\nBODY:\n" + JSON.stringify(responseBody, null, 2);
   
   return log;
 }

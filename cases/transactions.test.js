@@ -181,7 +181,7 @@ describe("Transactions", () => {
     );
 
     const json = await response.json();
-    const responseLog = createLog(response)
+    const responseLog = createLog(response, json);
     expect(response.status, responseLog).toEqual(200);
     expect(json.error, responseLog).not.toBeDefined();
     expect(json.transactions.length, responseLog).toBeGreaterThanOrEqual(2);
