@@ -2,7 +2,7 @@ import { fetch } from "./util/fetchShim";
 import getSep10Token from "./util/sep10";
 import getTomlFile from "./util/getTomlFile";
 import { createTransaction } from "./util/interactive";
-import { loggableFetch }  from "./util/fetcher";
+import { loggableFetch }  from "./util/loggableFetcher";
 import StellarSDK from "stellar-sdk";
 import {
   errorSchema,

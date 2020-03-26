@@ -5,8 +5,6 @@ export const loggableFetch = async (requestURL, requestDictionary) => {
     const response = await fetch(requestURL,requestDictionary);
     const json = await response.json();
 
-    const responseStatus = response.status;
-
     const rawHeaders = response.headers.raw();
     const formattedHeaders = Object.keys(rawHeaders).map(key => `${key}: ${rawHeaders[key]}`).join("\n")
   
@@ -26,5 +24,5 @@ export const loggableFetch = async (requestURL, requestDictionary) => {
     \nBODY: \n${JSON.stringify(json, null, 2)}
     \n -----------------------------`;
     
-    return [json,  responseStatus, logs];
+    return [json,  response.status, logs];
 }
