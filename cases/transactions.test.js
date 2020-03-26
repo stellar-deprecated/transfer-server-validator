@@ -186,7 +186,7 @@ describe("Transactions", () => {
 
     json.transactions.forEach((transaction) => {
       const transactionStartedTime = new Date(transaction.started_at).getTime();
-      expect(transactionStartedTime).toBeGreaterThanOrEqual(
+      expect(transactionStartedTime, logs).toBeGreaterThanOrEqual(
         currentDate.getTime(),
       );
     });
