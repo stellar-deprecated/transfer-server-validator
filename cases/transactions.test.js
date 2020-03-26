@@ -2,6 +2,7 @@ import { fetch } from "./util/fetchShim";
 import getSep10Token from "./util/sep10";
 import getTomlFile from "./util/getTomlFile";
 import { createTransaction } from "./util/interactive";
+import { loggableFetch }  from "./util/loggableFetcher";
 import StellarSDK from "stellar-sdk";
 import {
   errorSchema,
@@ -168,21 +169,20 @@ describe("Transactions", () => {
       jwt: jwt,
       isDeposit: false,
     });
-
-    const response = await fetch(
+    
+    const {json, status, logs} = await loggableFetch(
       transferServer +
         `/transactions?asset_code=${enabledCurrency}&no_older_than=${currentDate.toISOString()}`,
       {
         headers: {
           Authorization: `Bearer ${jwt}`,
         },
-      },
+      }
     );
 
-    const json = await response.json();
-    expect(response.status).toEqual(200);
-    expect(json.error).not.toBeDefined();
-    expect(json.transactions.length).toBeGreaterThanOrEqual(2);
+    expect(status, logs).toEqual(200);
+    expect(json.error, logs).not.toBeDefined();
+    expect(json.transactions.length, logs).toBeGreaterThanOrEqual(2);
 
     json.transactions.forEach((transaction) => {
       const transactionStartedTime = new Date(transaction.started_at).getTime();
