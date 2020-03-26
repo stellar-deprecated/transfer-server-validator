@@ -179,11 +179,11 @@ describe("Transactions", () => {
     const response = await fetch(requestURL,requestDictionary);
     const json = await response.json();
 
-    const responseLog = createLog(requestURL, requestDictionary, response, json);
+    const networkLog = createLog(requestURL, requestDictionary, response, json);
     
-    expect(response.status, responseLog).toEqual(200);
-    expect(json.error, responseLog).not.toBeDefined();
-    expect(json.transactions.length, responseLog).toBeGreaterThanOrEqual(2);
+    expect(response.status, networkLog).toEqual(200);
+    expect(json.error, networkLog).not.toBeDefined();
+    expect(json.transactions.length, networkLog).toBeGreaterThanOrEqual(50);
 
     json.transactions.forEach((transaction) => {
       const transactionStartedTime = new Date(transaction.started_at).getTime();
