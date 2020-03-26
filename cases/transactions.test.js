@@ -192,7 +192,7 @@ describe("Transactions", () => {
     });
   });
 
-  it("return only deposit transactions with kid=deponsit param", async () => {
+  it("return only deposit transactions with kind=deposit param", async () => {
     await createTransaction({
       currency: enabledCurrency,
       account: keyPair.publicKey(),
