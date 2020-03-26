@@ -208,7 +208,7 @@ describe("Transactions", () => {
       isDeposit: false,
     });
 
-    const response = await fetch(
+    const {json, status, logs} = await loggableFetch(
       transferServer +
         `/transactions?asset_code=${enabledCurrency}&kind=deposit`,
       {
@@ -218,13 +218,12 @@ describe("Transactions", () => {
       },
     );
 
-    const json = await response.json();
-    expect(response.status).toEqual(200);
-    expect(json.error).not.toBeDefined();
-    expect(json.transactions.length).toBeGreaterThanOrEqual(1);
+    expect(status, logs).toEqual(200);
+    expect(json.error, logs).not.toBeDefined();
+    expect(json.transactions.length, logs).toBeGreaterThanOrEqual(1);
 
     json.transactions.forEach((transaction) => {
-      expect(transaction.kind).toBe("deposit");
+      expect(transaction.kind, logs).toBe("deposit");
     });
   });
 
