@@ -192,7 +192,7 @@ describe("Transactions", () => {
     });
   });
 
-  it("return only deposit transactions with kind=deposit param", async () => {
+  it("return only deposit transactions with kid=deponsit param", async () => {
     await createTransaction({
       currency: enabledCurrency,
       account: keyPair.publicKey(),
@@ -245,7 +245,7 @@ describe("Transactions", () => {
 
     const {json, status, logs} = await loggableFetch(
       transferServer +
-        `/transactions?asset_code=${enabledCurrency}`,
+        `/transactions?asset_code=${enabledCurrency}&kind=withdrawal`,
       {
         headers: {
           Authorization: `Bearer ${jwt}`,
