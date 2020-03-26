@@ -170,7 +170,7 @@ describe("Transactions", () => {
       isDeposit: false,
     });
     
-    const [json, status, logs] = await loggableFetch(
+    const {json, status, logs} = await loggableFetch(
       transferServer +
         `/transactions?asset_code=${enabledCurrency}&no_older_than=${currentDate.toISOString()}`,
       {
