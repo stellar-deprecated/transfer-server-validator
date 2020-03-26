@@ -170,18 +170,17 @@ describe("Transactions", () => {
       isDeposit: false,
     });
 
-    const response = await fetch(
-      transferServer +
-        `/transactions?asset_code=${enabledCurrency}&no_older_than=${currentDate.toISOString()}`,
-      {
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
+    const requestURL = transferServer + `/transactions?asset_code=${enabledCurrency}&no_older_than=${currentDate.toISOString()}`;
+    const requestDictionary = {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
       },
-    );
-
+    };
+    const response = await fetch(requestURL,requestDictionary);
     const json = await response.json();
-    const responseLog = createLog(response, json);
+
+    const responseLog = createLog(requestURL, requestDictionary, response, json);
+    
     expect(response.status, responseLog).toEqual(200);
     expect(json.error, responseLog).not.toBeDefined();
     expect(json.transactions.length, responseLog).toBeGreaterThanOrEqual(2);
