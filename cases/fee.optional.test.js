@@ -4,6 +4,7 @@ import { fetch } from "./util/fetchShim";
 import getTomlFile from "./util/getTomlFile";
 import getSep10Token from "./util/sep10";
 import { errorSchema, feeSchema } from "./util/schema";
+import {ensureCORS} from "./util/ensureCORS"
 
 const keyPair = StellarSDK.Keypair.random();
 const urlBuilder = new URL(process.env.DOMAIN);
@@ -48,13 +49,11 @@ describe("Fee", () => {
   });
 
   it("has CORS on the fee endpoint", async () => {
-    const response = await fetch(transferServer + "/fee", {
-      method: "OPTIONS",
-      headers: {
-        Origin: "https://www.website.com",
-      },
-    });
-    expect(response.headers.get("access-control-allow-origin")).toBe("*");
+    
+    const {optionsCORS,  otherVerbCORS, log} = await ensureCORS(transferServer + "/fee", "GET");
+
+    expect(optionsCORS, log).toBe("*");
+    expect(otherVerbCORS, log).toBe("*");
   });
 
   it("returns error for request with no authorization header if fee_required", async () => {
