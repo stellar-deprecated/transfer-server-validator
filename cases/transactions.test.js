@@ -263,7 +263,7 @@ describe("Transactions", () => {
   });
 
   it("return proper transactions with paging_id param", async () => {
-    let { json } = await createTransaction({
+    var { json } = await createTransaction({
       currency: enabledCurrency,
       account: keyPair.publicKey(),
       toml: toml,
@@ -282,7 +282,7 @@ describe("Transactions", () => {
     );
     const pagingJson = await pagingTransaction.json();
 
-    const transactionsResponse = await fetch(
+    var {json, status, logs} = await loggableFetch(
       transferServer +
         `/transactions?asset_code=${enabledCurrency}&paging_id=${pagingId}`,
       {
@@ -292,16 +292,15 @@ describe("Transactions", () => {
       },
     );
 
-    const transactionsJson = await transactionsResponse.json();
-    expect(transactionsResponse.status).toEqual(200);
-    expect(transactionsJson.error).not.toBeDefined();
+    expect(status, logs).toEqual(200);
+    expect(json.error, logs).not.toBeDefined();
 
-    transactionsJson.transactions.forEach((transaction) => {
+    json.transactions.forEach((transaction) => {
       const transactionStartedTime = new Date(transaction.started_at).getTime();
       const pagingStartedTime = new Date(
         pagingJson.transaction.started_at,
       ).getTime();
-      expect(transactionStartedTime).toBeLessThan(pagingStartedTime);
+      expect(transactionStartedTime, logs).toBeLessThan(pagingStartedTime);
     });
   });
 
