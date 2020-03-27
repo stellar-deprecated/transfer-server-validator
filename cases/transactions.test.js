@@ -2,7 +2,7 @@ import { fetch } from "./util/fetchShim";
 import getSep10Token from "./util/sep10";
 import getTomlFile from "./util/getTomlFile";
 import { createTransaction } from "./util/interactive";
-import { loggableFetch }  from "./util/loggableFetcher";
+import { loggableFetch } from "./util/loggableFetcher";
 import StellarSDK from "stellar-sdk";
 import {
   errorSchema,
@@ -169,15 +169,15 @@ describe("Transactions", () => {
       jwt: jwt,
       isDeposit: false,
     });
-    
-    const {json, status, logs} = await loggableFetch(
+
+    const { json, status, logs } = await loggableFetch(
       transferServer +
         `/transactions?asset_code=${enabledCurrency}&no_older_than=${currentDate.toISOString()}`,
       {
         headers: {
           Authorization: `Bearer ${jwt}`,
         },
-      }
+      },
     );
 
     expect(status, logs).toEqual(200);
@@ -208,7 +208,7 @@ describe("Transactions", () => {
       isDeposit: false,
     });
 
-    const {json, status, logs} = await loggableFetch(
+    const { json, status, logs } = await loggableFetch(
       transferServer +
         `/transactions?asset_code=${enabledCurrency}&kind=deposit`,
       {
@@ -243,7 +243,7 @@ describe("Transactions", () => {
       isDeposit: false,
     });
 
-    const {json, status, logs} = await loggableFetch(
+    const { json, status, logs } = await loggableFetch(
       transferServer +
         `/transactions?asset_code=${enabledCurrency}&kind=withdrawal`,
       {
@@ -263,7 +263,7 @@ describe("Transactions", () => {
   });
 
   it("return proper transactions with paging_id param", async () => {
-    var { json } = await createTransaction({
+    let { json } = await createTransaction({
       currency: enabledCurrency,
       account: keyPair.publicKey(),
       toml: toml,
@@ -282,7 +282,7 @@ describe("Transactions", () => {
     );
     const pagingJson = await pagingTransaction.json();
 
-    var {json, status, logs} = await loggableFetch(
+    var { json: transactionsJson, status, logs } = await loggableFetch(
       transferServer +
         `/transactions?asset_code=${enabledCurrency}&paging_id=${pagingId}`,
       {
@@ -293,9 +293,9 @@ describe("Transactions", () => {
     );
 
     expect(status, logs).toEqual(200);
-    expect(json.error, logs).not.toBeDefined();
+    expect(transactionsJson.error, logs).not.toBeDefined();
 
-    json.transactions.forEach((transaction) => {
+    transactionsJson.transactions.forEach((transaction) => {
       const transactionStartedTime = new Date(transaction.started_at).getTime();
       const pagingStartedTime = new Date(
         pagingJson.transaction.started_at,
