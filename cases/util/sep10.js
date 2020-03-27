@@ -11,7 +11,10 @@ export default async function getSep10Token(domain, keyPair, signers) {
   const json = await response.json();
   const network_passphrase =
     toml.NETWORK_PASSPHRASE || StellarSDK.Networks.TESTNET;
-  const tx = new StellarSDK.Transaction(json.transaction, network_passphrase);
+  let tx;
+  expect(() => {
+    tx = new StellarSDK.Transaction(json.transaction, network_passphrase);
+  }, `This test needs a valid SEP10 token but can't build the returned challenge: "${json.transaction}" and error: "${json.error}"`).not.toThrow();
   signers.forEach((keyPair) => {
     tx.sign(keyPair);
   });
