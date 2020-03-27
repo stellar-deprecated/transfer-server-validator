@@ -2,7 +2,7 @@ import { fetch } from "./fetchShim";
 
 export const ensureCORS = async (URL, httpVerb) => {
    
-    var optionsResponse = await fetch(URL, {
+    const optionsResponse = await fetch(URL, {
         method: "OPTIONS",
         headers: {
           Origin: "https://www.website.com",
@@ -10,7 +10,7 @@ export const ensureCORS = async (URL, httpVerb) => {
       });
     const optionsCORS = optionsResponse.headers.get("access-control-allow-origin");
 
-    var otherVerbResponse = await fetch(URL, {
+    const otherVerbResponse = await fetch(URL, {
         method: httpVerb,
         headers: {
           Origin: "https://www.website.com",
