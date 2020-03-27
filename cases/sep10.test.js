@@ -89,6 +89,10 @@ describe("SEP10", () => {
     const json = await fetch(
       toml.WEB_AUTH_ENDPOINT + "?account=" + unfundedKeypair.publicKey(),
     ).then((r) => r.json());
+    expect(
+      json.error,
+      "Received an error trying to fetch a SEP10 challenge",
+    ).toBeFalsy();
     const tx = new StellarSDK.Transaction(
       json.transaction,
       toml.NETWORK_PASSPHRASE || StellarSDK.Networks.TESTNET,
