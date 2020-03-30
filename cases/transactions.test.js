@@ -327,7 +327,7 @@ describe("Transactions", () => {
       },
     );
     const pagingJson = await pagingTransaction.json();
-    const transactionsResponse = await fetch(
+    var { json: transactionsJson, status, logs } = await loggableFetch(
       `${transferServer}/transactions?asset_code=${enabledCurrency}&kind=deposit&limit=1&paging_id=${pagingId}&no_older_than=${currentDate.toISOString()}`,
       {
         headers: {
@@ -336,19 +336,18 @@ describe("Transactions", () => {
       },
     );
 
-    const transactionsJson = await transactionsResponse.json();
-    expect(transactionsResponse.status).toEqual(200);
-    expect(transactionsJson.error).not.toBeDefined();
-    expect(transactionsJson.transactions.length).toBe(1);
+    expect(status, logs).toEqual(200);
+    expect(transactionsJson.error, logs).not.toBeDefined();
+    expect(transactionsJson.transactions.length, logs).toBe(1);
 
     transactionsJson.transactions.forEach((transaction) => {
       const transactionStartedTime = new Date(transaction.started_at).getTime();
       const pagingStartedTime = new Date(
         pagingJson.transaction.started_at,
       ).getTime();
-      expect(transaction.kind).toBe("deposit");
-      expect(transactionStartedTime).toBeLessThan(pagingStartedTime);
-      expect(transactionStartedTime).toBeGreaterThanOrEqual(
+      expect(transaction.kind, logs).toBe("deposit");
+      expect(transactionStartedTime, logs).toBeLessThan(pagingStartedTime);
+      expect(transactionStartedTime, logs).toBeGreaterThanOrEqual(
         currentDate.getTime(),
       );
     });
