@@ -223,6 +223,12 @@ describe("SEP10", () => {
       await friendbot.destroyAllFriends();
     });
 
+    it("succeeds for a signer without an account", async () => {
+      const kp = StellarSDK.Keypair.random();
+      const token = getSep10Token(url, kp, [kp]);
+      expect(token).toBeTruthy();
+    });
+
     /**
      * Removing the masterWeight for an account means that it can
      * no longer sign for itself.  This should mean that it can't
