@@ -354,19 +354,21 @@ describe("Transactions", () => {
   });
 
   it("return proper error with missing params", async () => {
-    const response = await fetch(transferServer + `/transactions`, {
-      headers: {
-        Authorization: `Bearer ${jwt}`,
+    const { json, status, logs } = await loggableFetch(
+      transferServer + `/transactions`,
+      {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
       },
-    });
+    );
 
-    const json = await response.json();
-    expect(response.status).not.toEqual(200);
-    expect(json).toMatchSchema(errorSchema);
+    expect(status, logs).not.toEqual(200);
+    expect(json, logs).toMatchSchema(errorSchema);
   });
 
   it("return proper error for a non-supported currency", async () => {
-    const response = await fetch(
+    const { json, status, logs } = await loggableFetch(
       transferServer + `/transactions?asset_code=XYXCEZZYBD`,
       {
         headers: {
@@ -375,8 +377,7 @@ describe("Transactions", () => {
       },
     );
 
-    const json = await response.json();
-    expect(response.status).not.toEqual(200);
-    expect(json).toMatchSchema(errorSchema);
+    expect(status, logs).not.toEqual(200);
+    expect(json, logs).toMatchSchema(errorSchema);
   });
 });
