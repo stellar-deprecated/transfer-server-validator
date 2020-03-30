@@ -63,12 +63,12 @@ describe("Transactions", () => {
       isDeposit: true,
     });
 
-    const response = await fetch(
+    const { json, status, logs } = await loggableFetch(
       transferServer + `/transactions?asset_code=${enabledCurrency}`,
     );
-    expect(response.status).toBeGreaterThanOrEqual(400);
-    expect(response.status).toBeLessThan(500);
-    expect(await response.json()).toMatchSchema(errorSchema);
+    expect(status, logs).toBeGreaterThanOrEqual(400);
+    expect(status, logs).toBeLessThan(500);
+    expect(json, logs).toMatchSchema(errorSchema);
   });
 
   it("return proper formatted transactions list", async () => {
