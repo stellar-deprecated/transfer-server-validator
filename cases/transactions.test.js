@@ -136,7 +136,7 @@ describe("Transactions", () => {
       isDeposit: false,
     });
 
-    const response = await fetch(
+    const { json, status, logs } = await loggableFetch(
       transferServer + `/transactions?asset_code=${enabledCurrency}&limit=1`,
       {
         headers: {
@@ -144,11 +144,9 @@ describe("Transactions", () => {
         },
       },
     );
-
-    const json = await response.json();
-    expect(response.status).toEqual(200);
-    expect(json.error).not.toBeDefined();
-    expect(json.transactions.length).toBe(1);
+    expect(status, logs).toEqual(200);
+    expect(json.error, logs).not.toBeDefined();
+    expect(json.transactions.length, logs).toBe(1);
   });
 
   it("return proper transactions with no_older_than param", async () => {
