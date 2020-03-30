@@ -106,7 +106,7 @@ describe("Transactions", () => {
     const kp = StellarSDK.Keypair.fromSecret(kp_secret);
     const sep10JWT = await getSep10Token(domain, kp);
 
-    const response = await fetch(
+    const { json, status, logs } = await loggableFetch(
       transferServer + `/transactions?asset_code=${enabledCurrency}&limit=1`,
       {
         headers: {
@@ -114,11 +114,10 @@ describe("Transactions", () => {
         },
       },
     );
-    const json = await response.json();
 
-    expect(response.status).toEqual(200);
-    expect(json.error).not.toBeDefined();
-    expect(json.transactions.length).toEqual(0);
+    expect(status, logs).toEqual(200);
+    expect(json.error, logs).not.toBeDefined();
+    expect(json.transactions.length, logs).toEqual(0);
   });
 
   it("return proper amount of transactions with limit param", async () => {
