@@ -80,7 +80,7 @@ describe("Transactions", () => {
       isDeposit: true,
     });
 
-    const response = await fetch(
+    const { json, status, logs } = await loggableFetch(
       transferServer + `/transactions?asset_code=${enabledCurrency}`,
       {
         headers: {
@@ -89,15 +89,14 @@ describe("Transactions", () => {
       },
     );
 
-    const json = await response.json();
-    expect(response.status).toEqual(200);
-    expect(json.error).not.toBeDefined();
-    expect(json).toMatchSchema(transactionsSchema);
+    expect(status, logs).toEqual(200);
+    expect(json.error, logs).not.toBeDefined();
+    expect(json, logs).toMatchSchema(transactionsSchema);
 
     json.transactions.forEach((transaction) => {
       const isDeposit = transaction.kind === "deposit";
       const schema = getTransactionSchema(isDeposit);
-      expect(transaction).toMatchSchema(schema.properties.transaction);
+      expect(transaction, logs).toMatchSchema(schema.properties.transaction);
     });
   });
 
