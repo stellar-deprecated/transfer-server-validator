@@ -48,12 +48,11 @@ describe("Transaction", () => {
   }
 
   it("has CORS on the transaction endpoint", async () => {
-    const { optionsCORS, otherVerbCORS, logs } = await ensureCORS(
+    const { optionsCORS, getCORS, logs } = await ensureCORS(
       transferServer + "/transaction",
-      "GET",
     );
     expect(optionsCORS, logs).toBe("*");
-    expect(otherVerbCORS, logs).toBe("*");
+    expect(getCORS, logs).toBe("*");
   });
 
   it("returns error schema for a request without jwt", async () => {

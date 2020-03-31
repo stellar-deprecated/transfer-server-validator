@@ -59,12 +59,11 @@ describe("SEP10", () => {
   });
 
   it("has CORS on the auth endpoint", async () => {
-    const { optionsCORS, otherVerbCORS, logs } = await ensureCORS(
+    const { optionsCORS, getCORS, logs } = await ensureCORS(
       toml.WEB_AUTH_ENDPOINT + "?account=" + account,
-      "GET",
     );
     expect(optionsCORS, logs).toBe("*");
-    expect(otherVerbCORS, logs).toBe("*");
+    expect(getCORS, logs).toBe("*");
   });
 
   it("gives an error with no account provided", async () => {

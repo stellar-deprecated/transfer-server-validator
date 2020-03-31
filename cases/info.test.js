@@ -26,12 +26,11 @@ describe("Info", () => {
   });
 
   it("has CORS on the info endpoint", async () => {
-    const { optionsCORS, otherVerbCORS, logs } = await ensureCORS(
+    const { optionsCORS, getCORS, logs } = await ensureCORS(
       transferServer + "/info",
-      "GET",
     );
     expect(optionsCORS, logs).toBe("*");
-    expect(otherVerbCORS, logs).toBe("*");
+    expect(getCORS, logs).toBe("*");
   });
 
   describe("happy path", () => {

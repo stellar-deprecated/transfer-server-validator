@@ -20,12 +20,11 @@ describe("TOML File", () => {
   });
 
   it("has cors", async () => {
-    const { optionsCORS, otherVerbCORS, logs } = await ensureCORS(
+    const { optionsCORS, getCORS, logs } = await ensureCORS(
       url + ".well-known/stellar.toml",
-      "GET",
     );
     expect(optionsCORS, logs).toBe("*");
-    expect(otherVerbCORS, logs).toBe("*");
+    expect(getCORS, logs).toBe("*");
   });
 
   describe("fields", () => {
