@@ -1,6 +1,6 @@
 import { fetch } from "./fetchShim";
 
-export const ensureCORS = async (URL) => {
+export const ensureCORS = async (URL, httpVerb = "GET") => {
   const optionsResponse = await fetch(URL, {
     method: "OPTIONS",
     headers: {
@@ -12,15 +12,17 @@ export const ensureCORS = async (URL) => {
   );
 
   const otherVerbResponse = await fetch(URL, {
-    method: "GET",
+    method: httpVerb,
     headers: {
       Origin: "https://www.website.com",
     },
   });
-  const getCORS = otherVerbResponse.headers.get("access-control-allow-origin");
+  const otherVerbCORS = otherVerbResponse.headers.get(
+    "access-control-allow-origin",
+  );
 
   const logs =
     "In order for browsers-based wallets to validate the CORS headers, as specified by W3C, the preflight request (OPTIONS request) must be implemented in all the endpoints that support Cross-Origin.";
 
-  return { optionsCORS, getCORS, logs };
+  return { optionsCORS, otherVerbCORS, logs };
 };

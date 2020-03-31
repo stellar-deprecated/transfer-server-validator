@@ -49,12 +49,12 @@ describe("Fee", () => {
   });
 
   it("has CORS on the fee endpoint", async () => {
-    const { optionsCORS, getCORS, logs } = await ensureCORS(
+    const { optionsCORS, otherVerbCORS, logs } = await ensureCORS(
       transferServer + "/fee",
     );
 
     expect(optionsCORS, logs).toBe("*");
-    expect(getCORS, logs).toBe("*");
+    expect(otherVerbCORS, logs).toBe("*");
   });
 
   it("returns error for request with no authorization header if fee_required", async () => {
