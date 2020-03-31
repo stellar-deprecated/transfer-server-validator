@@ -303,7 +303,8 @@ describe("Transactions", () => {
       const pagingStartedTime = new Date(
         pagingJson.transaction.started_at,
       ).getTime();
-      expect(transactionStartedTime).toBeLessThan(pagingStartedTime);
+      expect(transactionStartedTime).toBeLessThanOrEqual(pagingStartedTime);
+      expect(transaction.id).not.toBe(pagingJson.transaction.id);
     });
   });
 
@@ -346,7 +347,10 @@ describe("Transactions", () => {
     const transactionsJson = await transactionsResponse.json();
     expect(transactionsResponse.status).toEqual(200);
     expect(transactionsJson.error).not.toBeDefined();
-    expect(transactionsJson.transactions.length).toBe(1);
+    expect(
+      transactionsJson.transactions.length,
+      "Limit of this request was set to 1",
+    ).toBe(1);
 
     transactionsJson.transactions.forEach((transaction) => {
       const transactionStartedTime = new Date(transaction.started_at).getTime();
