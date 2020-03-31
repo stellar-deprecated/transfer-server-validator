@@ -1,6 +1,7 @@
 import { fetch } from "./util/fetchShim";
 import getTomlFile from "./util/getTomlFile";
 import { infoSchema } from "./util/schema";
+import { ensureCORS } from "./util/ensureCORS";
 
 jest.setTimeout(30000);
 
@@ -25,13 +26,12 @@ describe("Info", () => {
   });
 
   it("has CORS on the info endpoint", async () => {
-    const response = await fetch(transferServer + "/info", {
-      method: "OPTIONS",
-      headers: {
-        Origin: "https://www.website.com",
-      },
-    });
-    expect(response.headers.get("access-control-allow-origin")).toBe("*");
+    const { optionsCORS, otherVerbCORS, logs } = await ensureCORS(
+      transferServer + "/info",
+      "GET",
+    );
+    expect(optionsCORS, logs).toBe("*");
+    expect(otherVerbCORS, logs).toBe("*");
   });
 
   describe("happy path", () => {

@@ -8,6 +8,7 @@ import {
   transactionsSchema,
   getTransactionSchema,
 } from "./util/schema";
+import { ensureCORS } from "./util/ensureCORS";
 
 jest.setTimeout(60000);
 
@@ -45,13 +46,12 @@ describe("Transactions", () => {
   });
 
   it("has CORS on the transactions endpoint", async () => {
-    const response = await fetch(transferServer + "/transactions", {
-      method: "OPTIONS",
-      headers: {
-        Origin: "https://www.website.com",
-      },
-    });
-    expect(response.headers.get("access-control-allow-origin")).toBe("*");
+    const { optionsCORS, otherVerbCORS, logs } = await ensureCORS(
+      transferServer + "/transactions",
+      "GET",
+    );
+    expect(optionsCORS, logs).toBe("*");
+    expect(otherVerbCORS, logs).toBe("*");
   });
 
   it("returns error schema for a request without jwt", async () => {

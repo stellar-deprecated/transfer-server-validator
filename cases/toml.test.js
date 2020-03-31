@@ -1,6 +1,7 @@
 import { fetch } from "./util/fetchShim";
 import TOML from "toml";
 import { currencySchema } from "./util/schema";
+import { ensureCORS } from "./util/ensureCORS";
 
 const urlBuilder = new URL(process.env.DOMAIN);
 const url = urlBuilder.toString();
@@ -19,16 +20,12 @@ describe("TOML File", () => {
   });
 
   it("has cors", async () => {
-    const response = await fetch(url + ".well-known/stellar.toml", {
-      method: "OPTIONS",
-      headers: {
-        Origin: "https://test.com",
-      },
-    });
-    expect(
-      response.headers.get("access-control-allow-origin"),
-      "access-control-allow-origin response header for toml file should be set to *",
-    ).toBe("*");
+    const { optionsCORS, otherVerbCORS, logs } = await ensureCORS(
+      url + ".well-known/stellar.toml",
+      "GET",
+    );
+    expect(optionsCORS, logs).toBe("*");
+    expect(otherVerbCORS, logs).toBe("*");
   });
 
   describe("fields", () => {
@@ -62,8 +59,8 @@ describe("TOML File", () => {
     });
 
     it("all URLs are https", () => {
-      expect((new URL(toml.TRANSFER_SERVER)).protocol).toMatch("https:");
-      expect((new URL(toml.TRANSFER_SERVER_SEP0024)).protocol).toMatch("https:");
+      expect(new URL(toml.TRANSFER_SERVER).protocol).toMatch("https:");
+      expect(new URL(toml.TRANSFER_SERVER_SEP0024).protocol).toMatch("https:");
       expect(urlBuilder.protocol).toMatch("https:");
     });
 
@@ -74,7 +71,7 @@ describe("TOML File", () => {
     it("currencies have the correct schema", () => {
       toml.CURRENCIES.forEach((currency) => {
         expect(currency).toMatchSchema(currencySchema);
-      });  
+      });
     });
 
     it("has issuer documentation", () => {

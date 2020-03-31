@@ -4,6 +4,7 @@ import StellarSDK from "stellar-sdk";
 import friendbot from "./util/friendbot";
 import getTomlFile from "./util/getTomlFile";
 import getSep10Token from "./util/sep10";
+import { ensureCORS } from "./util/ensureCORS";
 
 jest.setTimeout(100000);
 const urlBuilder = new URL(process.env.DOMAIN);
@@ -58,16 +59,12 @@ describe("SEP10", () => {
   });
 
   it("has CORS on the auth endpoint", async () => {
-    const response = await fetch(
+    const { optionsCORS, otherVerbCORS, logs } = await ensureCORS(
       toml.WEB_AUTH_ENDPOINT + "?account=" + account,
-      {
-        method: "OPTIONS",
-        headers: {
-          Origin: "https://www.website.com",
-        },
-      },
+      "GET",
     );
-    expect(response.headers.get("access-control-allow-origin")).toBe("*");
+    expect(optionsCORS, logs).toBe("*");
+    expect(otherVerbCORS, logs).toBe("*");
   });
 
   it("gives an error with no account provided", async () => {
