@@ -2,12 +2,14 @@ import { fetch } from "./util/fetchShim";
 import getSep10Token from "./util/sep10";
 import getTomlFile from "./util/getTomlFile";
 import { createTransaction } from "./util/interactive";
+import { loggableFetch } from "./util/loggableFetcher";
 import StellarSDK from "stellar-sdk";
 import {
   errorSchema,
   transactionsSchema,
   getTransactionSchema,
 } from "./util/schema";
+import { ensureCORS } from "./util/ensureCORS";
 
 jest.setTimeout(60000);
 
@@ -45,12 +47,11 @@ describe("Transactions", () => {
   });
 
   it("has CORS on the transactions endpoint", async () => {
-    const response = await fetch(transferServer + "/transactions", {
-      headers: {
-        Origin: "https://www.website.com",
-      },
-    });
-    expect(response.headers.get("access-control-allow-origin")).toBe("*");
+    const { optionsCORS, otherVerbCORS, logs } = await ensureCORS(
+      transferServer + "/transactions",
+    );
+    expect(optionsCORS, logs).toBe("*");
+    expect(otherVerbCORS, logs).toBe("*");
   });
 
   it("returns error schema for a request without jwt", async () => {
@@ -62,12 +63,12 @@ describe("Transactions", () => {
       isDeposit: true,
     });
 
-    const response = await fetch(
+    const { json, status, logs } = await loggableFetch(
       transferServer + `/transactions?asset_code=${enabledCurrency}`,
     );
-    expect(response.status).toBeGreaterThanOrEqual(400);
-    expect(response.status).toBeLessThan(500);
-    expect(await response.json()).toMatchSchema(errorSchema);
+    expect(status, logs).toBeGreaterThanOrEqual(400);
+    expect(status, logs).toBeLessThan(500);
+    expect(json, logs).toMatchSchema(errorSchema);
   });
 
   it("return proper formatted transactions list", async () => {
@@ -79,7 +80,7 @@ describe("Transactions", () => {
       isDeposit: true,
     });
 
-    const response = await fetch(
+    const { json, status, logs } = await loggableFetch(
       transferServer + `/transactions?asset_code=${enabledCurrency}`,
       {
         headers: {
@@ -88,15 +89,14 @@ describe("Transactions", () => {
       },
     );
 
-    const json = await response.json();
-    expect(response.status).toEqual(200);
-    expect(json.error).not.toBeDefined();
-    expect(json).toMatchSchema(transactionsSchema);
+    expect(status, logs).toEqual(200);
+    expect(json.error, logs).not.toBeDefined();
+    expect(json, logs).toMatchSchema(transactionsSchema);
 
     json.transactions.forEach((transaction) => {
       const isDeposit = transaction.kind === "deposit";
       const schema = getTransactionSchema(isDeposit);
-      expect(transaction).toMatchSchema(schema.properties.transaction);
+      expect(transaction, logs).toMatchSchema(schema.properties.transaction);
     });
   });
 
@@ -106,7 +106,7 @@ describe("Transactions", () => {
     const kp = StellarSDK.Keypair.fromSecret(kp_secret);
     const sep10JWT = await getSep10Token(domain, kp);
 
-    const response = await fetch(
+    const { json, status, logs } = await loggableFetch(
       transferServer + `/transactions?asset_code=${enabledCurrency}&limit=1`,
       {
         headers: {
@@ -114,11 +114,10 @@ describe("Transactions", () => {
         },
       },
     );
-    const json = await response.json();
 
-    expect(response.status).toEqual(200);
-    expect(json.error).not.toBeDefined();
-    expect(json.transactions.length).toEqual(0);
+    expect(status, logs).toEqual(200);
+    expect(json.error, logs).not.toBeDefined();
+    expect(json.transactions.length, logs).toEqual(0);
   });
 
   it("return proper amount of transactions with limit param", async () => {
@@ -137,7 +136,7 @@ describe("Transactions", () => {
       isDeposit: false,
     });
 
-    const response = await fetch(
+    const { json, status, logs } = await loggableFetch(
       transferServer + `/transactions?asset_code=${enabledCurrency}&limit=1`,
       {
         headers: {
@@ -145,11 +144,9 @@ describe("Transactions", () => {
         },
       },
     );
-
-    const json = await response.json();
-    expect(response.status).toEqual(200);
-    expect(json.error).not.toBeDefined();
-    expect(json.transactions.length).toBe(1);
+    expect(status, logs).toEqual(200);
+    expect(json.error, logs).not.toBeDefined();
+    expect(json.transactions.length, logs).toBe(1);
   });
 
   it("return proper transactions with no_older_than param", async () => {
@@ -169,7 +166,7 @@ describe("Transactions", () => {
       isDeposit: false,
     });
 
-    const response = await fetch(
+    const { json, status, logs } = await loggableFetch(
       transferServer +
         `/transactions?asset_code=${enabledCurrency}&no_older_than=${currentDate.toISOString()}`,
       {
@@ -179,14 +176,13 @@ describe("Transactions", () => {
       },
     );
 
-    const json = await response.json();
-    expect(response.status).toEqual(200);
-    expect(json.error).not.toBeDefined();
-    expect(json.transactions.length).toBeGreaterThanOrEqual(2);
+    expect(status, logs).toEqual(200);
+    expect(json.error, logs).not.toBeDefined();
+    expect(json.transactions.length, logs).toBeGreaterThanOrEqual(2);
 
     json.transactions.forEach((transaction) => {
       const transactionStartedTime = new Date(transaction.started_at).getTime();
-      expect(transactionStartedTime).toBeGreaterThanOrEqual(
+      expect(transactionStartedTime, logs).toBeGreaterThanOrEqual(
         currentDate.getTime(),
       );
     });
@@ -208,7 +204,7 @@ describe("Transactions", () => {
       isDeposit: false,
     });
 
-    const response = await fetch(
+    const { json, status, logs } = await loggableFetch(
       transferServer +
         `/transactions?asset_code=${enabledCurrency}&kind=deposit`,
       {
@@ -218,13 +214,12 @@ describe("Transactions", () => {
       },
     );
 
-    const json = await response.json();
-    expect(response.status).toEqual(200);
-    expect(json.error).not.toBeDefined();
-    expect(json.transactions.length).toBeGreaterThanOrEqual(1);
+    expect(status, logs).toEqual(200);
+    expect(json.error, logs).not.toBeDefined();
+    expect(json.transactions.length, logs).toBeGreaterThanOrEqual(1);
 
     json.transactions.forEach((transaction) => {
-      expect(transaction.kind).toBe("deposit");
+      expect(transaction.kind, logs).toBe("deposit");
     });
   });
 
@@ -244,7 +239,7 @@ describe("Transactions", () => {
       isDeposit: false,
     });
 
-    const response = await fetch(
+    const { json, status, logs } = await loggableFetch(
       transferServer +
         `/transactions?asset_code=${enabledCurrency}&kind=withdrawal`,
       {
@@ -254,13 +249,12 @@ describe("Transactions", () => {
       },
     );
 
-    const json = await response.json();
-    expect(response.status).toEqual(200);
-    expect(json.error).not.toBeDefined();
-    expect(json.transactions.length).toBeGreaterThanOrEqual(1);
+    expect(status, logs).toEqual(200);
+    expect(json.error, logs).not.toBeDefined();
+    expect(json.transactions.length, logs).toBeGreaterThanOrEqual(1);
 
     json.transactions.forEach((transaction) => {
-      expect(transaction.kind).toBe("withdrawal");
+      expect(transaction.kind, logs).toBe("withdrawal");
     });
   });
 
@@ -284,7 +278,7 @@ describe("Transactions", () => {
     );
     const pagingJson = await pagingTransaction.json();
 
-    const transactionsResponse = await fetch(
+    var { json: transactionsJson, status, logs } = await loggableFetch(
       transferServer +
         `/transactions?asset_code=${enabledCurrency}&paging_id=${pagingId}`,
       {
@@ -294,17 +288,19 @@ describe("Transactions", () => {
       },
     );
 
-    const transactionsJson = await transactionsResponse.json();
-    expect(transactionsResponse.status).toEqual(200);
-    expect(transactionsJson.error).not.toBeDefined();
+    expect(status, logs).toEqual(200);
+    expect(transactionsJson.error, logs).not.toBeDefined();
 
     transactionsJson.transactions.forEach((transaction) => {
       const transactionStartedTime = new Date(transaction.started_at).getTime();
       const pagingStartedTime = new Date(
         pagingJson.transaction.started_at,
       ).getTime();
-      expect(transactionStartedTime).toBeLessThanOrEqual(pagingStartedTime);
-      expect(transaction.id).not.toBe(pagingJson.transaction.id);
+      expect(transactionStartedTime, logs).toBeLessThanOrEqual(
+        pagingStartedTime,
+      );
+      expect(transaction.id, logs).not.toBe(pagingJson.transaction.id);
+      expect(transactionStartedTime, logs).toBeLessThan(pagingStartedTime);
     });
   });
 
@@ -335,7 +331,7 @@ describe("Transactions", () => {
       },
     );
     const pagingJson = await pagingTransaction.json();
-    const transactionsResponse = await fetch(
+    var { json: transactionsJson, status, logs } = await loggableFetch(
       `${transferServer}/transactions?asset_code=${enabledCurrency}&kind=deposit&limit=1&paging_id=${pagingId}&no_older_than=${currentDate.toISOString()}`,
       {
         headers: {
@@ -344,41 +340,39 @@ describe("Transactions", () => {
       },
     );
 
-    const transactionsJson = await transactionsResponse.json();
-    expect(transactionsResponse.status).toEqual(200);
-    expect(transactionsJson.error).not.toBeDefined();
-    expect(
-      transactionsJson.transactions.length,
-      "Limit of this request was set to 1",
-    ).toBe(1);
+    expect(status, logs).toEqual(200);
+    expect(transactionsJson.error, logs).not.toBeDefined();
+    expect(transactionsJson.transactions.length, logs).toBe(1);
 
     transactionsJson.transactions.forEach((transaction) => {
       const transactionStartedTime = new Date(transaction.started_at).getTime();
       const pagingStartedTime = new Date(
         pagingJson.transaction.started_at,
       ).getTime();
-      expect(transaction.kind).toBe("deposit");
-      expect(transactionStartedTime).toBeLessThan(pagingStartedTime);
-      expect(transactionStartedTime).toBeGreaterThanOrEqual(
+      expect(transaction.kind, logs).toBe("deposit");
+      expect(transactionStartedTime, logs).toBeLessThan(pagingStartedTime);
+      expect(transactionStartedTime, logs).toBeGreaterThanOrEqual(
         currentDate.getTime(),
       );
     });
   });
 
   it("return proper error with missing params", async () => {
-    const response = await fetch(transferServer + `/transactions`, {
-      headers: {
-        Authorization: `Bearer ${jwt}`,
+    const { json, status, logs } = await loggableFetch(
+      transferServer + `/transactions`,
+      {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
       },
-    });
+    );
 
-    const json = await response.json();
-    expect(response.status).not.toEqual(200);
-    expect(json).toMatchSchema(errorSchema);
+    expect(status, logs).not.toEqual(200);
+    expect(json, logs).toMatchSchema(errorSchema);
   });
 
   it("return proper error for a non-supported currency", async () => {
-    const response = await fetch(
+    const { json, status, logs } = await loggableFetch(
       transferServer + `/transactions?asset_code=XYXCEZZYBD`,
       {
         headers: {
@@ -387,8 +381,7 @@ describe("Transactions", () => {
       },
     );
 
-    const json = await response.json();
-    expect(response.status).not.toEqual(200);
-    expect(json).toMatchSchema(errorSchema);
+    expect(status, logs).not.toEqual(200);
+    expect(json, logs).toMatchSchema(errorSchema);
   });
 });

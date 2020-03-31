@@ -5,6 +5,7 @@ import StellarSDK from "stellar-sdk";
 import { getTransactionBy } from "./util/transactions";
 import { createTransaction } from "./util/interactive";
 import { errorSchema, getTransactionSchema } from "./util/schema";
+import { ensureCORS } from "./util/ensureCORS";
 
 jest.setTimeout(60000);
 
@@ -47,12 +48,11 @@ describe("Transaction", () => {
   }
 
   it("has CORS on the transaction endpoint", async () => {
-    const response = await fetch(transferServer + "/transaction", {
-      headers: {
-        Origin: "https://www.website.com",
-      },
-    });
-    expect(response.headers.get("access-control-allow-origin")).toBe("*");
+    const { optionsCORS, otherVerbCORS, logs } = await ensureCORS(
+      transferServer + "/transaction",
+    );
+    expect(optionsCORS, logs).toBe("*");
+    expect(otherVerbCORS, logs).toBe("*");
   });
 
   it("returns error schema for a request without jwt", async () => {
