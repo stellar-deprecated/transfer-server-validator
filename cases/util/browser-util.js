@@ -43,9 +43,14 @@ export const openObservableWindow = async (url) => {
     },
     close: async () => {
       clearInterval(passPostMessage);
-      await driver.switchTo().window(handles[1]);
-      driver.close();
-      await driver.switchTo().window(handles[0]);
+      // Close the window containing the interactive flow
+      // if it is still open.
+      let handles = await driver.getAllWindowHandles();
+      if (handles.length === 2) {
+        await driver.switchTo().window(handles[1]);
+        driver.close();
+        await driver.switchTo().window(handles[0]);
+      }
     },
   };
 };
