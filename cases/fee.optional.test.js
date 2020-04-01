@@ -44,7 +44,7 @@ describe("Fee", () => {
     needFeeAuth = Boolean(json.fee.authentication_required);
 
     if (needFeeAuth) {
-      jwt = await getSep10Token(url, keyPair);
+      ({ token: jwt } = await getSep10Token(url, keyPair));
     }
   });
 

@@ -109,7 +109,7 @@ beforeAll(async () => {
   enabledCurrency = currencies.find(
     (currency) => infoJSON.withdraw[currency].enabled,
   );
-  jwt = await getSep10Token(url, keyPair);
+  ({ token: jwt } = await getSep10Token(url, keyPair));
 
   // Get info for interactive tests
   currencyInfo = toml.CURRENCIES.find((obj) => obj.code === enabledCurrency);

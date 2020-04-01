@@ -22,7 +22,7 @@ describe("Transaction", () => {
 
   beforeAll(async () => {
     toml = await getTomlFile(domain);
-    jwt = await getSep10Token(domain, keyPair);
+    ({ token: jwt } = await getSep10Token(domain, keyPair));
 
     transferServer = toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER;
     const infoResponse = await fetch(transferServer + "/info", {

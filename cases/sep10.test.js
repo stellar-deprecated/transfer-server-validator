@@ -280,8 +280,10 @@ describe("SEP10", () => {
         .build();
       transaction.sign(account.kp);
       await server.submitTransaction(transaction);
-      const token = await getSep10Token(url, account.kp, [account.kp]);
-      expect(token).toBeFalsy();
+      const { token, logs } = await getSep10Token(url, account.kp, [
+        account.kp,
+      ]);
+      expect(token, logs).toBeFalsy();
     });
 
     it("succeeds for a signer of an account", async () => {
@@ -306,10 +308,10 @@ describe("SEP10", () => {
         .build();
       transaction.sign(userAccount.kp);
       await server.submitTransaction(transaction);
-      const token = await getSep10Token(url, userAccount.kp, [
+      const { token, logs } = await getSep10Token(url, userAccount.kp, [
         signerAccount.kp,
       ]);
-      expect(token).toBeTruthy();
+      expect(token, logs).toBeTruthy();
     });
 
     /**
@@ -340,11 +342,11 @@ describe("SEP10", () => {
         .build();
       transaction.sign(userAccount.kp);
       await server.submitTransaction(transaction);
-      const token = await getSep10Token(url, userAccount.kp, [
+      const { token, logs } = await getSep10Token(url, userAccount.kp, [
         signerAccount.kp,
         signerAccount.kp,
       ]);
-      expect(token).toBeFalsy();
+      expect(token, logs).toBeFalsy();
     });
 
     it("succeeds with multiple signers", async () => {
@@ -378,11 +380,11 @@ describe("SEP10", () => {
         .build();
       transaction.sign(userAccount.kp);
       await server.submitTransaction(transaction);
-      const token = await getSep10Token(url, userAccount.kp, [
+      const { token, logs } = await getSep10Token(url, userAccount.kp, [
         signerAccount1.kp,
         signerAccount2.kp,
       ]);
-      expect(token).toBeTruthy();
+      expect(token, logs).toBeTruthy();
     });
   });
 });
