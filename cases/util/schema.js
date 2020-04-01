@@ -149,9 +149,16 @@ export const currencySchema = {
     code: { type: "string" },
     issuer: { type: "string" },
     desc: { type: "string" },
-    status: { type: "string" }
+    status: { type: "string" },
   },
-  required: ["is_anchored_asset", "anchored_asset_type", "code", "issuer", "desc", "status"],
+  required: [
+    "is_anchored_asset",
+    "anchored_asset_type",
+    "code",
+    "issuer",
+    "desc",
+    "status",
+  ],
 };
 
 export const feeSchema = {

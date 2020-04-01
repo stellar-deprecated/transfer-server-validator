@@ -296,6 +296,10 @@ describe("Transactions", () => {
       const pagingStartedTime = new Date(
         pagingJson.transaction.started_at,
       ).getTime();
+      expect(transactionStartedTime, logs).toBeLessThanOrEqual(
+        pagingStartedTime,
+      );
+      expect(transaction.id, logs).not.toBe(pagingJson.transaction.id);
       expect(transactionStartedTime, logs).toBeLessThan(pagingStartedTime);
     });
   });
