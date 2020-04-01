@@ -27,7 +27,7 @@ const getAccount = (function() {
 })();
 
 beforeAll(async () => {
-  for (let i = 0; i < 9; i++) {
+  for (let i = 0; i < 10; i++) {
     accountPool.push({ kp: StellarSDK.Keypair.random(), data: null });
   }
   await Promise.all(
@@ -244,13 +244,26 @@ describe("SEP10", () => {
       await friendbot.destroyAllFriends();
     });
 
+    it("succeeds for a signer without an account", async () => {
+      const kp = StellarSDK.Keypair.random();
+      const token = await getSep10Token(url, kp, [kp]);
+      expect(token).toBeTruthy();
+    });
+
+    it("fails when a signer with an account signs alongside signer without an account", async () => {
+      const account = getAccount();
+      const kp = StellarSDK.Keypair.random();
+      const token = await getSep10Token(url, kp, [kp, account.kp]);
+      expect(token).toBeFalsy();
+    });
+
     /**
      * Removing the masterWeight for an account means that it can
      * no longer sign for itself.  This should mean that it can't
      * get a token with its own signature.
      */
     it("fails for an account that can't sign for itself", async () => {
-      const account = getAccount({ with_data: true });
+      const account = getAccount();
       const transaction = new StellarSDK.TransactionBuilder(account.data, {
         fee: StellarSDK.BASE_FEE,
         networkPassphrase: StellarSDK.Networks.TESTNET,
@@ -272,7 +285,7 @@ describe("SEP10", () => {
     });
 
     it("succeeds for a signer of an account", async () => {
-      const userAccount = getAccount({ with_data: true });
+      const userAccount = getAccount();
       const signerAccount = getAccount();
       const transaction = new StellarSDK.TransactionBuilder(userAccount.data, {
         fee: StellarSDK.BASE_FEE,
@@ -306,7 +319,7 @@ describe("SEP10", () => {
      * count its weight twice.
      */
     it("fails when trying to reuse the same signer to gain weight", async () => {
-      const userAccount = getAccount({ with_data: true });
+      const userAccount = getAccount();
       const signerAccount = getAccount();
       const transaction = new StellarSDK.TransactionBuilder(userAccount.data, {
         fee: StellarSDK.BASE_FEE,
@@ -335,7 +348,7 @@ describe("SEP10", () => {
     });
 
     it("succeeds with multiple signers", async () => {
-      const userAccount = getAccount({ with_data: true });
+      const userAccount = getAccount();
       const signerAccount1 = getAccount();
       const signerAccount2 = getAccount();
       const transaction = new StellarSDK.TransactionBuilder(userAccount.data, {
