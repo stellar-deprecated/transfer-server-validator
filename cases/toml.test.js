@@ -1,4 +1,4 @@
-import { fetch } from "./util/fetchShim";
+import { loggableFetch } from "./util/loggableFetcher";
 import TOML from "toml";
 import { currencySchema } from "./util/schema";
 import { ensureCORS } from "./util/ensureCORS";
@@ -8,13 +8,21 @@ const url = urlBuilder.toString();
 
 describe("TOML File", () => {
   it("exists", async () => {
-    const response = await fetch(url + ".well-known/stellar.toml");
-    expect(response.status).toBe(200);
+    const { status, logs } = await loggableFetch(
+      url + ".well-known/stellar.toml",
+      {},
+      false,
+    );
+    expect(status, logs).toBe(200);
   });
 
   it("has correct content-type", async () => {
-    const response = await fetch(url + ".well-known/stellar.toml");
-    expect(response.headers.get("content-type")).toEqual(
+    const { response, logs } = await loggableFetch(
+      url + ".well-known/stellar.toml",
+      {},
+      false,
+    );
+    expect(response.headers.get("content-type"), logs).toEqual(
       expect.stringContaining("text/plain"),
     );
   });
@@ -30,10 +38,16 @@ describe("TOML File", () => {
   describe("fields", () => {
     let toml;
     let fileSize;
+    let logs;
     beforeAll(async () => {
-      const response = await fetch(url + ".well-known/stellar.toml");
+      const { response, json: text, logs: outputLogs } = await loggableFetch(
+        url + ".well-known/stellar.toml",
+        {},
+        false,
+      );
+      logs = outputLogs;
+
       fileSize = response.headers.get("content-length");
-      const text = await response.text();
       try {
         toml = TOML.parse(text);
       } catch (e) {
@@ -42,39 +56,41 @@ describe("TOML File", () => {
     });
 
     it("uses TRANSFER_SERVER_SEP0024", async () => {
-      expect(toml.TRANSFER_SERVER_SEP0024).toBeTruthy();
+      expect(toml.TRANSFER_SERVER_SEP0024, logs).toBeTruthy();
     });
 
     it("has a max file size of 100kb", () => {
-      expect(parseInt(fileSize)).not.toBeGreaterThan(100000);
+      expect(parseInt(fileSize), logs).not.toBeGreaterThan(100000);
     });
 
     it("has a network passphrase", () => {
-      expect(toml.NETWORK_PASSPHRASE).toBeTruthy();
+      expect(toml.NETWORK_PASSPHRASE, logs).toBeTruthy();
     });
 
     it("has a valid transfer server URL", () => {
-      expect(() => new URL(toml.TRANSFER_SERVER)).not.toThrow();
+      expect(() => new URL(toml.TRANSFER_SERVER), logs).not.toThrow();
     });
 
     it("all URLs are https", () => {
-      expect(new URL(toml.TRANSFER_SERVER).protocol).toMatch("https:");
-      expect(new URL(toml.TRANSFER_SERVER_SEP0024).protocol).toMatch("https:");
-      expect(urlBuilder.protocol).toMatch("https:");
+      expect(new URL(toml.TRANSFER_SERVER).protocol, logs).toMatch("https:");
+      expect(new URL(toml.TRANSFER_SERVER_SEP0024).protocol, logs).toMatch(
+        "https:",
+      );
+      expect(urlBuilder.protocol, logs).toMatch("https:");
     });
 
     it("has currency section", () => {
-      expect(toml.CURRENCIES).not.toBeNull();
+      expect(toml.CURRENCIES, logs).not.toBeNull();
     });
 
     it("currencies have the correct schema", () => {
       toml.CURRENCIES.forEach((currency) => {
-        expect(currency).toMatchSchema(currencySchema);
+        expect(currency, logs).toMatchSchema(currencySchema);
       });
     });
 
     it("has issuer documentation", () => {
-      expect(toml.DOCUMENTATION).toEqual(
+      expect(toml.DOCUMENTATION, logs).toEqual(
         expect.objectContaining({
           ORG_NAME: expect.any(String),
           ORG_URL: expect.any(String),

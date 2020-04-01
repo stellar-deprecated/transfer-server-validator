@@ -1,8 +1,13 @@
 import { fetch } from "./fetchShim";
 
-export const loggableFetch = async (requestURL, requestDictionary) => {
+export const loggableFetch = async (
+  requestURL,
+  requestDictionary = {},
+  responseIsJSON = true,
+) => {
   const response = await fetch(requestURL, requestDictionary);
-  const json = await response.json();
+
+  const json = responseIsJSON ? await response.json() : await response.text();
 
   const rawHeaders = response.headers.raw();
   const formattedHeaders = Object.keys(rawHeaders)
@@ -38,5 +43,5 @@ export const loggableFetch = async (requestURL, requestDictionary) => {
     \nBODY: \n${JSON.stringify(json, null, 2)}
     \n -----------------------------`;
 
-  return { json, status, logs };
+  return { json, status, logs, response };
 };
