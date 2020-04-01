@@ -5,6 +5,7 @@ import friendbot from "./util/friendbot";
 import getTomlFile from "./util/getTomlFile";
 import getSep10Token from "./util/sep10";
 import { ensureCORS } from "./util/ensureCORS";
+import { loggableFetch } from "./util/loggableFetcher";
 
 jest.setTimeout(100000);
 const urlBuilder = new URL(process.env.DOMAIN);
@@ -67,74 +68,76 @@ describe("SEP10", () => {
   });
 
   it("gives an error with no account provided", async () => {
-    const response = await fetch(toml.WEB_AUTH_ENDPOINT);
-    const json = await response.json();
-    expect(json.error).toBeTruthy();
+    const { json, status, logs } = await loggableFetch(toml.WEB_AUTH_ENDPOINT);
+    expect(json.error, logs).toBeTruthy();
   });
 
   it("gives an error with an invalid account provided", async () => {
-    const response = await fetch(
+    const { json, status, logs } = await loggableFetch(
       toml.WEB_AUTH_ENDPOINT + "?account=GINVALIDACCOUNT",
     );
-    const json = await response.json();
-    expect(json.error).toBeTruthy();
+    expect(json.error, logs).toBeTruthy();
   });
 
   it("works for an unfunded account", async () => {
     const unfundedKeypair = StellarSDK.Keypair.random();
-    const json = await fetch(
+    const { json, logs } = await loggableFetch(
       toml.WEB_AUTH_ENDPOINT + "?account=" + unfundedKeypair.publicKey(),
-    ).then((r) => r.json());
+    );
     expect(
       json.error,
-      "Received an error trying to fetch a SEP10 challenge",
+      "Received an error trying to fetch a SEP10 challenge" + logs,
     ).toBeFalsy();
     const tx = new StellarSDK.Transaction(
       json.transaction,
       toml.NETWORK_PASSPHRASE || StellarSDK.Networks.TESTNET,
     );
     tx.sign(unfundedKeypair);
-    let tokenJson = await fetch(toml.WEB_AUTH_ENDPOINT, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    const { json: tokenJson, logs: tokenLogs } = await loggableFetch(
+      toml.WEB_AUTH_ENDPOINT,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ transaction: tx.toXDR() }),
       },
-      body: JSON.stringify({ transaction: tx.toXDR() }),
-    }).then((r) => r.json());
-    expect(tokenJson.error).toBeFalsy();
-    expect(tokenJson.token).toBeTruthy();
+    );
+    expect(tokenJson.error, tokenLogs).toBeFalsy();
+    expect(tokenJson.token, tokenLogs).toBeTruthy();
   });
 
   describe("GET Challenge", () => {
     let json;
+    let logs;
     let network_passphrase;
     beforeAll(async () => {
       network_passphrase =
         toml.NETWORK_PASSPHRASE || StellarSDK.Networks.TESTNET;
-      const response = await fetch(
+
+      ({ json, logs } = await loggableFetch(
         toml.WEB_AUTH_ENDPOINT + "?account=" + account,
-      );
-      json = await response.json();
+      ));
     });
 
     it("gives a network passphrase", () => {
-      expect(json.network_passphrase).toBeTruthy();
+      expect(json.network_passphrase, logs).toBeTruthy();
     });
 
     it("gives a valid challenge transaction", async () => {
-      expect(json.error).toBeFalsy();
-      expect(json.transaction).toBeTruthy();
+      expect(json.error, logs).toBeFalsy();
+      expect(json.transaction, logs).toBeTruthy();
       const tx = new StellarSDK.Transaction(
         json.transaction,
         network_passphrase,
       );
 
-      expect(tx.sequence).toBe("0");
+      expect(tx.sequence, logs).toBe("0");
       // TODO validate timeBounds
-      expect(tx.operations).toHaveLength(1);
-      expect(tx.operations[0].type).toBe("manageData");
-      expect(tx.operations[0].source).toBe(account);
-      expect(tx.source).toBe(toml.SIGNING_KEY);
+      expect(tx.operations, logs).toHaveLength(1);
+      expect(tx.operations[0].type, logs).toBe("manageData");
+      expect(tx.operations[0].source, logs).toBe(account);
+      expect(tx.source, logs).toBe(toml.SIGNING_KEY);
     });
 
     describe("POST Response", () => {
@@ -144,29 +147,33 @@ describe("SEP10", () => {
           network_passphrase,
         );
         tx.sign(keyPair);
-        let resp = await fetch(toml.WEB_AUTH_ENDPOINT, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
+        let { json: tokenJson, logs } = await loggableFetch(
+          toml.WEB_AUTH_ENDPOINT,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: "transaction=" + encodeURIComponent(tx.toXDR()),
           },
-          body: "transaction=" + encodeURIComponent(tx.toXDR()),
-        });
-        let tokenJson = await resp.json();
-        expect(tokenJson.error).toBeFalsy();
-        expect(tokenJson.token).toBeTruthy();
+        );
+        expect(tokenJson.error, logs).toBeFalsy();
+        expect(tokenJson.token, logs).toBeTruthy();
       });
 
       it("fails if no transaction is posted in the body", async () => {
-        let resp = await fetch(toml.WEB_AUTH_ENDPOINT, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+        let { json, status, logs } = await loggableFetch(
+          toml.WEB_AUTH_ENDPOINT,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
           },
-        });
-        expect(resp.status).not.toBe(200);
-        let json = await resp.json();
-        expect(json.error).toBeTruthy();
-        expect(json.token).toBeFalsy();
+        );
+        expect(status, logs).not.toBe(200);
+        expect(json.error, logs).toBeTruthy();
+        expect(json.token, logs).toBeFalsy();
       });
 
       it("fails if the client doesn't sign the challenge", async () => {
@@ -174,16 +181,18 @@ describe("SEP10", () => {
           json.transaction,
           network_passphrase,
         );
-        let resp = await fetch(toml.WEB_AUTH_ENDPOINT, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+        let { json: tokenJson, status, logs } = await loggableFetch(
+          toml.WEB_AUTH_ENDPOINT,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ transaction: tx.toXDR() }),
           },
-          body: JSON.stringify({ transaction: tx.toXDR() }),
-        });
-        expect(resp.status).not.toBe(200);
-        let tokenJson = await resp.json();
-        expect(tokenJson.error).toBeTruthy();
+        );
+        expect(status, logs).not.toBe(200);
+        expect(tokenJson.error, logs).toBeTruthy();
       });
 
       it("fails if the signed challenge isn't signed by the servers SIGNING_KEY", async () => {
@@ -194,40 +203,44 @@ describe("SEP10", () => {
         // Remove the server signature, only sign by client
         tx.signatures = [];
         tx.sign(keyPair);
-        let resp = await fetch(toml.WEB_AUTH_ENDPOINT, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+        let { json: tokenJson, status, logs } = await loggableFetch(
+          toml.WEB_AUTH_ENDPOINT,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ transaction: tx.toXDR() }),
           },
-          body: JSON.stringify({ transaction: tx.toXDR() }),
-        });
-        expect(resp.status).not.toBe(200);
-        let tokenJson = await resp.json();
-        expect(tokenJson.error).toBeTruthy();
+        );
+        expect(status, logs).not.toBe(200);
+        expect(tokenJson.error, logs).toBeTruthy();
       });
 
-      let token;
+      let tokenJson;
+      let logs;
       beforeAll(async () => {
         const tx = new StellarSDK.Transaction(
           json.transaction,
           network_passphrase,
         );
         tx.sign(keyPair);
-        let resp = await fetch(toml.WEB_AUTH_ENDPOINT, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+        ({ json: tokenJson, logs } = await loggableFetch(
+          toml.WEB_AUTH_ENDPOINT,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ transaction: tx.toXDR() }),
           },
-          body: JSON.stringify({ transaction: tx.toXDR() }),
-        });
-        let tokenJson = await resp.json();
-        token = tokenJson.token;
+        ));
       });
 
       it("Has a valid token", () => {
-        const jwt = JWT.decode(token);
-        expect(jwt).toBeTruthy();
-        expect(jwt).toEqual(
+        const jwt = JWT.decode(tokenJson.token);
+        expect(jwt, logs).toBeTruthy();
+        expect(jwt, logs).toEqual(
           expect.objectContaining({
             iss: expect.any(String),
             sub: account,
