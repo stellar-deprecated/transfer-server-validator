@@ -250,7 +250,7 @@ describe("SEP10", () => {
       expect(token).toBeTruthy();
     });
 
-    it("fails when a signer with an account signs alongside signer without an account", async () => {
+    it("fails if a challenge for a nonexistent account has extra client signatures", async () => {
       const account = getAccount();
       const kp = StellarSDK.Keypair.random();
       const token = await getSep10Token(url, kp, [kp, account.kp]);
