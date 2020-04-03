@@ -144,16 +144,16 @@ export const errorSchema = {
 export const currencySchema = {
   type: "object",
   properties: {
-    is_anchored_asset: { type: "boolean" },
-    anchored_asset_type: { type: "string" },
+    is_asset_anchored: { type: "boolean" },
+    anchor_asset_type: { type: "string" },
     code: { type: "string" },
     issuer: { type: "string" },
     desc: { type: "string" },
     status: { type: "string" },
   },
   required: [
-    "is_anchored_asset",
-    "anchored_asset_type",
+    "is_asset_anchored",
+    "anchor_asset_type",
     "code",
     "issuer",
     "desc",
