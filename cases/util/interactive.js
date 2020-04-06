@@ -67,11 +67,13 @@ export const doInteractiveFlow = async ({
   });
   const completePage = async () => {
     try {
+      let el;
       const elements = await driver.findElements(By.css("[test-value]"));
-      elements.forEach((el) => {
-        const val = el.getAttribute("test-value");
-        el.sendKeys(val);
-      });
+      for (el of elements) {
+        const val = await el.getAttribute("test-value");
+        await el.clear();
+        await el.sendKeys(val);
+      }
       const submitButton = await driver.findElement(
         By.css("[test-action='submit']"),
       );
@@ -81,7 +83,8 @@ export const doInteractiveFlow = async ({
 
       await submitButton.click();
     } catch (e) {
-      // Not an automatable page, could be the receipt page postMessaging
+      // An error was raised due to no such element or stale element
+      // reference error. Try again on the next loop.
     }
   };
   return new Promise(async (resolve, reject) => {
