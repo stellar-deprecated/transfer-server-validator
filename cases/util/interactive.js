@@ -67,9 +67,8 @@ export const doInteractiveFlow = async ({
   });
   const completePage = async () => {
     try {
-      let el;
       const elements = await driver.findElements(By.css("[test-value]"));
-      for (el of elements) {
+      for (let el of elements) {
         const val = await el.getAttribute("test-value");
         await el.clear();
         await el.sendKeys(val);
