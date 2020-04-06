@@ -350,7 +350,7 @@ describe("Transactions", () => {
         pagingJson.transaction.started_at,
       ).getTime();
       expect(transaction.kind, logs).toBe("deposit");
-      expect(transactionStartedTime, logs).toBeLessThan(pagingStartedTime);
+      expect(transactionStartedTime, logs).toBeLessThanOrEqual(pagingStartedTime);
       expect(transactionStartedTime, logs).toBeGreaterThanOrEqual(
         currentDate.getTime(),
       );
