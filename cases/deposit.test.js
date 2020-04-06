@@ -33,7 +33,7 @@ describe("Deposit", () => {
     enabledCurrency = currencies.find(
       (currency) => infoJSON.deposit[currency].enabled,
     );
-    jwt = await getSep10Token(url, keyPair);
+    ({ token: jwt } = await getSep10Token(url, keyPair));
   });
 
   it("has a currency enabled for deposit", () => {

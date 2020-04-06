@@ -25,7 +25,7 @@ describe("Transactions", () => {
 
   beforeAll(async () => {
     toml = await getTomlFile(domain);
-    jwt = await getSep10Token(domain, keyPair);
+    ({ token: jwt } = await getSep10Token(domain, keyPair));
 
     transferServer = toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER;
     const infoResponse = await fetch(transferServer + "/info", {
@@ -104,7 +104,7 @@ describe("Transactions", () => {
     const kp_secret =
       "SAAG4XF7PRKFASDQTENBOQ7QQVVVV4ZH2WFABWVFWU3UL2QJARBUSGTY";
     const kp = StellarSDK.Keypair.fromSecret(kp_secret);
-    const sep10JWT = await getSep10Token(domain, kp);
+    const { token: sep10JWT } = await getSep10Token(domain, kp);
 
     const { json, status, logs } = await loggableFetch(
       transferServer + `/transactions?asset_code=${enabledCurrency}&limit=1`,

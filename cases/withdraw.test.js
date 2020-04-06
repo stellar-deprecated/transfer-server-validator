@@ -34,7 +34,7 @@ describe("Withdraw", () => {
     enabledCurrency = currencies.find(
       (currency) => infoJSON.withdraw[currency].enabled,
     );
-    jwt = await getSep10Token(url, keyPair);
+    ({ token: jwt } = await getSep10Token(url, keyPair));
   });
 
   it("has a currency enabled for withdraw", () => {
