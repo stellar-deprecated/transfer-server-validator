@@ -266,8 +266,8 @@ describe("SEP10", () => {
     it("fails if a challenge for a nonexistent account has extra client signatures", async () => {
       const account = getAccount();
       const kp = StellarSDK.Keypair.random();
-      const token = await getSep10Token(url, kp, [kp, account.kp]);
-      expect(token).toBeFalsy();
+      const { token, logs } = await getSep10Token(url, kp, [kp, account.kp]);
+      expect(token, logs).toBeFalsy();
     });
 
     /**
