@@ -151,6 +151,13 @@ describe("Transactions", () => {
 
   it("return proper transactions with no_older_than param", async () => {
     const currentDate = new Date();
+
+    // Wait a couple seconds to make sure the transactions created by the
+    // anchor don't have an earlier timestamp than currentDate
+    await new Promise((resolve) => {
+      setTimeout(resolve, 2000);
+    });
+
     await createTransaction({
       currency: enabledCurrency,
       account: keyPair.publicKey(),
@@ -306,6 +313,13 @@ describe("Transactions", () => {
 
   it("return proper transactions with all param", async () => {
     const currentDate = new Date();
+
+    // Wait a couple seconds to make sure the transactions created by the
+    // anchor don't have an earlier timestamp than currentDate
+    await new Promise((resolve) => {
+      setTimeout(resolve, 2000);
+    });
+
     await createTransaction({
       currency: enabledCurrency,
       account: keyPair.publicKey(),
@@ -350,7 +364,9 @@ describe("Transactions", () => {
         pagingJson.transaction.started_at,
       ).getTime();
       expect(transaction.kind, logs).toBe("deposit");
-      expect(transactionStartedTime, logs).toBeLessThanOrEqual(pagingStartedTime);
+      expect(transactionStartedTime, logs).toBeLessThanOrEqual(
+        pagingStartedTime,
+      );
       expect(transactionStartedTime, logs).toBeGreaterThanOrEqual(
         currentDate.getTime(),
       );
