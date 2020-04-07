@@ -150,7 +150,6 @@ describe("Transactions", () => {
   });
 
   it("return proper transactions with no_older_than param", async () => {
-    const currentDate = new Date();
     await createTransaction({
       currency: enabledCurrency,
       account: keyPair.publicKey(),
@@ -166,6 +165,7 @@ describe("Transactions", () => {
       isDeposit: false,
     });
 
+    const currentDate = new Date();
     const { json, status, logs } = await loggableFetch(
       transferServer +
         `/transactions?asset_code=${enabledCurrency}&no_older_than=${currentDate.toISOString()}`,
@@ -350,7 +350,9 @@ describe("Transactions", () => {
         pagingJson.transaction.started_at,
       ).getTime();
       expect(transaction.kind, logs).toBe("deposit");
-      expect(transactionStartedTime, logs).toBeLessThanOrEqual(pagingStartedTime);
+      expect(transactionStartedTime, logs).toBeLessThanOrEqual(
+        pagingStartedTime,
+      );
       expect(transactionStartedTime, logs).toBeGreaterThanOrEqual(
         currentDate.getTime(),
       );
