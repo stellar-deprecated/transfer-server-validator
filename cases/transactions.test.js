@@ -10,6 +10,7 @@ import {
   getTransactionSchema,
 } from "./util/schema";
 import { ensureCORS } from "./util/ensureCORS";
+import { getTransactionBy } from "./util/transactions";
 
 jest.setTimeout(60000);
 
@@ -150,8 +151,7 @@ describe("Transactions", () => {
   });
 
   it("return proper transactions with no_older_than param", async () => {
-    const currentDate = new Date();
-    await createTransaction({
+    let { json: transactionJson } = await createTransaction({
       currency: enabledCurrency,
       account: keyPair.publicKey(),
       toml: toml,
@@ -165,6 +165,14 @@ describe("Transactions", () => {
       jwt: jwt,
       isDeposit: false,
     });
+
+    transactionJson = await getTransactionBy({
+      value: transactionJson.id,
+      toml: toml,
+      jwt: jwt,
+    });
+    let currentDate = new Date(transactionJson.transaction.started_at);
+    currentDate.setSeconds(currentDate.getSeconds() - 1);
 
     const { json, status, logs } = await loggableFetch(
       transferServer +
@@ -350,7 +358,9 @@ describe("Transactions", () => {
         pagingJson.transaction.started_at,
       ).getTime();
       expect(transaction.kind, logs).toBe("deposit");
-      expect(transactionStartedTime, logs).toBeLessThanOrEqual(pagingStartedTime);
+      expect(transactionStartedTime, logs).toBeLessThanOrEqual(
+        pagingStartedTime,
+      );
       expect(transactionStartedTime, logs).toBeGreaterThanOrEqual(
         currentDate.getTime(),
       );
