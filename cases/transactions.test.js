@@ -313,8 +313,7 @@ describe("Transactions", () => {
   });
 
   it("return proper transactions with all param", async () => {
-    const currentDate = new Date();
-    await createTransaction({
+    let { json: earliestTransactionJson } = await createTransaction({
       currency: enabledCurrency,
       account: keyPair.publicKey(),
       toml: toml,
@@ -329,6 +328,14 @@ describe("Transactions", () => {
       isDeposit: true,
     });
     const pagingId = json.id;
+
+    earliestTransactionJson = await getTransactionBy({
+      value: earliestTransactionJson.id,
+      toml: toml,
+      jwt: jwt,
+    });
+    let currentDate = new Date(earliestTransactionJson.transaction.started_at);
+    currentDate.setSeconds(currentDate.getSeconds() - 1);
 
     const pagingTransaction = await fetch(
       transferServer + `/transaction?id=${pagingId}`,
