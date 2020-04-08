@@ -162,7 +162,7 @@ describe("Deposit Flow", () => {
     // Poll /transaction endpoint until deposit is marked as complete
     depositTransactionJSON = await waitUntilTransactionComplete(
       transactionId,
-      50000,
+      125000,
       2000,
     );
   });
