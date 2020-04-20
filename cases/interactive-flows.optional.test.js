@@ -8,7 +8,7 @@ import getTomlFile from "./util/getTomlFile";
 import { getTransactionBy } from "./util/transactions";
 import { doInteractiveFlow } from "./util/interactive";
 import { getTransactionSchema } from "./util/schema";
-import { getCorrectCurrency } from "./util/currency";
+import { getActiveCurrency } from "./util/currency";
 const urlBuilder = new URL(process.env.DOMAIN);
 const url = urlBuilder.toString();
 const keyPair = StellarSDK.Keypair.random();
@@ -101,7 +101,7 @@ beforeAll(async () => {
 
   transferServer = toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER;
 
-  ({ enabledCurrency, infoJSON } = await getCorrectCurrency(
+  ({ enabledCurrency, infoJSON } = await getActiveCurrency(
     testCurrency,
     transferServer,
     false,

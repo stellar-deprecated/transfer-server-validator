@@ -1,6 +1,6 @@
 import { fetch } from "./fetchShim";
 
-export const getCorrectCurrency = async (
+export const getActiveCurrency = async (
   testCurrency,
   transferServer,
   isDeposit = true,

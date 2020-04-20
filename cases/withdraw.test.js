@@ -3,7 +3,7 @@ import getSep10Token from "./util/sep10";
 import StellarSDK from "stellar-sdk";
 import getTomlFile from "./util/getTomlFile";
 import { createTransaction } from "./util/interactive";
-import { getCorrectCurrency } from "./util/currency";
+import { getActiveCurrency } from "./util/currency";
 const urlBuilder = new URL(process.env.DOMAIN);
 const testCurrency = process.env.CURRENCY;
 const url = urlBuilder.toString();
@@ -28,7 +28,7 @@ describe("Withdraw", () => {
 
     const transferServer = toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER;
 
-    ({ enabledCurrency, infoJSON, currencies } = await getCorrectCurrency(
+    ({ enabledCurrency, infoJSON, currencies } = await getActiveCurrency(
       testCurrency,
       transferServer,
       false,

@@ -11,7 +11,7 @@ import {
 } from "./util/schema";
 import { ensureCORS } from "./util/ensureCORS";
 import { getTransactionBy } from "./util/transactions";
-import { getCorrectCurrency } from "./util/currency";
+import { getActiveCurrency } from "./util/currency";
 
 jest.setTimeout(60000);
 
@@ -32,7 +32,7 @@ describe("Transactions", () => {
 
     transferServer = toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER;
 
-    ({ enabledCurrency } = await getCorrectCurrency(
+    ({ enabledCurrency } = await getActiveCurrency(
       testCurrency,
       transferServer,
     ));
