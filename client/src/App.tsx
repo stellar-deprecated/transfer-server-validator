@@ -15,6 +15,7 @@ function App() {
   const [testList, setTestList] = useState<TestResultSet[]>([]);
   const [busy, setBusy] = useState<boolean>(false);
   const [domain, setDomain] = useState("testanchor.stellar.org");
+  const [currency, setCurrency] = useState<string>("");
   const [runOptionalTests, setRunOptionalTests] = useState<boolean>(
     Boolean(parseInt(process.env.RUN_OPTIONAL_TESTS || "0")) || false,
   );
@@ -23,8 +24,12 @@ function App() {
     const queryString = window.location.search;
     const urlParams = new URLSearchParams(queryString);
     const domain = urlParams.get("home_domain");
+    const currency = urlParams.get("currency");
     if (domain) {
       setDomain(domain);
+    }
+    if (currency) {
+      setCurrency(currency);
     }
     const fetchList = async () => {
       const res = await fetch(`${process.env.REACT_APP_API_HOST || ""}/list`);
@@ -72,7 +77,15 @@ function App() {
         resetTests();
         setBusy(true);
         const domainForTests = getValidDomain();
-        window.history.replaceState(null, "", `?home_domain=${domain}`);
+        if (currency) {
+          window.history.replaceState(
+            null,
+            "",
+            `?home_domain=${domain}&currency=${currency}`,
+          );
+        } else {
+          window.history.replaceState(null, "", `?home_domain=${domain}`);
+        }
         var nextTest: TestResultSet | undefined;
         while (
           (nextTest = testList.find(
@@ -81,7 +94,11 @@ function App() {
         ) {
           nextTest.status = TestStatus.RUNNING;
           setTestList([...testList]);
-          nextTest.results = await runTest(domainForTests, nextTest.name);
+          nextTest.results = await runTest(
+            domainForTests,
+            currency,
+            nextTest.name,
+          );
           nextTest.status = nextTest.results.every((result) => {
             return [TestStatus.SUCCESS, TestStatus.SKIPPED].includes(
               result.status,
@@ -97,7 +114,7 @@ function App() {
       }
       setBusy(false);
     },
-    [testList, domain, getValidDomain, resetTests],
+    [testList, domain, currency, getValidDomain, resetTests],
   );
 
   return (
@@ -109,6 +126,13 @@ function App() {
           value={domain}
           placeholder="home_domain"
           onChange={(e) => setDomain(e.target.value)}
+        ></input>
+        <input
+          className={s.CurrencyField}
+          type="text"
+          value={currency}
+          placeholder="currency (optional)"
+          onChange={(e) => setCurrency(e.target.value)}
         ></input>
         <button className={s.ValidateButton} onClick={runTests} disabled={busy}>
           {busy ? "Running..." : "Run tests"}
