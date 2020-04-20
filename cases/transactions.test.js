@@ -15,6 +15,7 @@ import { getTransactionBy } from "./util/transactions";
 jest.setTimeout(60000);
 
 const urlBuilder = new URL(process.env.DOMAIN);
+const testCurrency = process.env.CURRENCY;
 const domain = urlBuilder.toString();
 const keyPair = StellarSDK.Keypair.random();
 
@@ -38,9 +39,9 @@ describe("Transactions", () => {
     const infoJSON = await infoResponse.json();
     const currencies = Object.keys(infoJSON.deposit);
 
-    enabledCurrency = currencies.find(
-      (currency) => infoJSON.deposit[currency].enabled,
-    );
+    enabledCurrency = testCurrency
+      ? testCurrency
+      : currencies.find((currency) => infoJSON.deposit[currency].enabled);
 
     expect(enabledCurrency).toBeDefined();
     expect(transferServer).toBeDefined();

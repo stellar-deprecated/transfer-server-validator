@@ -13,6 +13,7 @@ const url = urlBuilder.toString();
 const keyPair = StellarSDK.Keypair.random();
 const horizonURL = "https://horizon-testnet.stellar.org";
 const server = new StellarSDK.Server(horizonURL);
+const testCurrency = process.env.CURRENCY;
 
 jest.setTimeout(180000);
 
@@ -106,9 +107,9 @@ beforeAll(async () => {
   infoJSON = await infoResponse.json();
   const currencies = Object.keys(infoJSON.withdraw);
   // Note that we're only testing the first asset found to be enabled
-  enabledCurrency = currencies.find(
-    (currency) => infoJSON.withdraw[currency].enabled,
-  );
+  enabledCurrency = testCurrency
+    ? testCurrency
+    : currencies.find((currency) => infoJSON.withdraw[currency].enabled);
   ({ token: jwt } = await getSep10Token(url, keyPair));
 
   // Get info for interactive tests

@@ -10,6 +10,7 @@ import { ensureCORS } from "./util/ensureCORS";
 jest.setTimeout(60000);
 
 const urlBuilder = new URL(process.env.DOMAIN);
+const testCurrency = process.env.CURRENCY;
 const domain = urlBuilder.toString();
 const secret = "SAUOSXXF7ZDO5PKHRFR445DRKZ66Q5HIM2HIPQGWBTUKJZQAOP3VGH3L";
 const keyPair = StellarSDK.Keypair.fromSecret(secret);
@@ -33,9 +34,9 @@ describe("Transaction", () => {
     const infoJSON = await infoResponse.json();
     const currencies = Object.keys(infoJSON.deposit);
 
-    enabledCurrency = currencies.find(
-      (currency) => infoJSON.deposit[currency].enabled,
-    );
+    enabledCurrency = testCurrency
+      ? testCurrency
+      : currencies.find((currency) => infoJSON.deposit[currency].enabled);
 
     expect(enabledCurrency).toBeDefined();
     expect(transferServer).toBeDefined();

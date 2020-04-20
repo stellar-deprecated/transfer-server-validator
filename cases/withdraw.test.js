@@ -4,6 +4,7 @@ import StellarSDK from "stellar-sdk";
 import getTomlFile from "./util/getTomlFile";
 import { createTransaction } from "./util/interactive";
 const urlBuilder = new URL(process.env.DOMAIN);
+const testCurrency = process.env.CURRENCY;
 const url = urlBuilder.toString();
 const keyPair = StellarSDK.Keypair.random();
 
@@ -12,6 +13,7 @@ jest.setTimeout(20000); // 20 sec timeout since we're actually stepping through 
 describe("Withdraw", () => {
   let infoJSON;
   let enabledCurrency;
+  let currencies;
   let jwt;
   let toml;
 
@@ -30,15 +32,15 @@ describe("Withdraw", () => {
       },
     });
     infoJSON = await infoResponse.json();
-    const currencies = Object.keys(infoJSON.withdraw);
-    enabledCurrency = currencies.find(
-      (currency) => infoJSON.withdraw[currency].enabled,
-    );
+    currencies = Object.keys(infoJSON.withdraw);
+    enabledCurrency = testCurrency
+      ? testCurrency
+      : currencies.find((currency) => infoJSON.withdraw[currency].enabled);
     ({ token: jwt } = await getSep10Token(url, keyPair));
   });
 
   it("has a currency enabled for withdraw", () => {
-    expect(enabledCurrency).toEqual(expect.any(String));
+    expect(currencies).toEqual(expect.arrayContaining([enabledCurrency]));
   });
 
   it("returns a proper error with no JWT", async () => {
