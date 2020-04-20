@@ -40,6 +40,10 @@ describe("Deposit", () => {
 
   it("has a currency enabled for deposit", () => {
     expect(currencies).toEqual(expect.arrayContaining([enabledCurrency]));
+    expect(
+      infoJSON.deposit[enabledCurrency].enabled,
+      "The selected currency is not enabled for deposit",
+    ).toBeTruthy();
   });
 
   it("returns a proper error with no JWT", async () => {

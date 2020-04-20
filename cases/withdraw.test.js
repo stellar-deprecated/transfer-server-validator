@@ -41,6 +41,10 @@ describe("Withdraw", () => {
 
   it("has a currency enabled for withdraw", () => {
     expect(currencies).toEqual(expect.arrayContaining([enabledCurrency]));
+    expect(
+      infoJSON.withdraw[enabledCurrency].enabled,
+      "The selected currency is not enabled for withdraw",
+    ).toBeTruthy();
   });
 
   it("returns a proper error with no JWT", async () => {
