@@ -3,6 +3,7 @@ import getSep10Token from "./util/sep10";
 import StellarSDK from "stellar-sdk";
 import getTomlFile from "./util/getTomlFile";
 import { createTransaction } from "./util/interactive";
+import { getCorrectCurrency } from "./util/currency";
 const urlBuilder = new URL(process.env.DOMAIN);
 const testCurrency = process.env.CURRENCY;
 const url = urlBuilder.toString();
@@ -26,16 +27,13 @@ describe("Withdraw", () => {
     }
 
     const transferServer = toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER;
-    const infoResponse = await fetch(transferServer + "/info", {
-      headers: {
-        Origin: "https://www.website.com",
-      },
-    });
-    infoJSON = await infoResponse.json();
-    currencies = Object.keys(infoJSON.withdraw);
-    enabledCurrency = testCurrency
-      ? testCurrency
-      : currencies.find((currency) => infoJSON.withdraw[currency].enabled);
+
+    ({ enabledCurrency, infoJSON, currencies } = await getCorrectCurrency(
+      testCurrency,
+      transferServer,
+      false,
+    ));
+
     ({ token: jwt } = await getSep10Token(url, keyPair));
   });
 
