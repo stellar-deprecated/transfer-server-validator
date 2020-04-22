@@ -8,11 +8,13 @@ import getTomlFile from "./util/getTomlFile";
 import { getTransactionBy } from "./util/transactions";
 import { doInteractiveFlow } from "./util/interactive";
 import { getTransactionSchema } from "./util/schema";
+import { getActiveCurrency } from "./util/currency";
 const urlBuilder = new URL(process.env.DOMAIN);
 const url = urlBuilder.toString();
 const keyPair = StellarSDK.Keypair.random();
 const horizonURL = "https://horizon-testnet.stellar.org";
 const server = new StellarSDK.Server(horizonURL);
+const testCurrency = process.env.CURRENCY;
 
 jest.setTimeout(180000);
 
@@ -98,17 +100,13 @@ beforeAll(async () => {
   }
 
   transferServer = toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER;
-  const infoResponse = await fetch(transferServer + "/info", {
-    headers: {
-      Origin: "https://www.website.com",
-    },
-  });
-  infoJSON = await infoResponse.json();
-  const currencies = Object.keys(infoJSON.withdraw);
-  // Note that we're only testing the first asset found to be enabled
-  enabledCurrency = currencies.find(
-    (currency) => infoJSON.withdraw[currency].enabled,
-  );
+
+  ({ enabledCurrency, infoJSON } = await getActiveCurrency(
+    testCurrency,
+    transferServer,
+    false,
+  ));
+
   ({ token: jwt } = await getSep10Token(url, keyPair));
 
   // Get info for interactive tests

@@ -3,7 +3,9 @@ import getSep10Token from "./util/sep10";
 import StellarSDK from "stellar-sdk";
 import getTomlFile from "./util/getTomlFile";
 import { createTransaction } from "./util/interactive";
+import { getActiveCurrency } from "./util/currency";
 const urlBuilder = new URL(process.env.DOMAIN);
+const testCurrency = process.env.CURRENCY;
 const url = urlBuilder.toString();
 const keyPair = StellarSDK.Keypair.random();
 
@@ -12,6 +14,7 @@ jest.setTimeout(200000); // 20 sec timeout since we're actually stepping through
 describe("Deposit", () => {
   let infoJSON;
   let enabledCurrency;
+  let currencies;
   let jwt;
   let toml;
 
@@ -23,21 +26,21 @@ describe("Deposit", () => {
       throw "Invalid TOML formatting";
     }
     const transferServer = toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER;
-    const infoResponse = await fetch(transferServer + "/info", {
-      headers: {
-        Origin: "https://www.website.com",
-      },
-    });
-    infoJSON = await infoResponse.json();
-    const currencies = Object.keys(infoJSON.deposit);
-    enabledCurrency = currencies.find(
-      (currency) => infoJSON.deposit[currency].enabled,
-    );
+
+    ({ enabledCurrency, infoJSON, currencies } = await getActiveCurrency(
+      testCurrency,
+      transferServer,
+    ));
+
     ({ token: jwt } = await getSep10Token(url, keyPair));
   });
 
   it("has a currency enabled for deposit", () => {
-    expect(enabledCurrency).toEqual(expect.any(String));
+    expect(currencies).toEqual(expect.arrayContaining([enabledCurrency]));
+    expect(
+      infoJSON.deposit[enabledCurrency].enabled,
+      "The selected currency is not enabled for deposit",
+    ).toBeTruthy();
   });
 
   it("returns a proper error with no JWT", async () => {

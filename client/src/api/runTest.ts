@@ -21,11 +21,15 @@ function enumFromStatusString(status: string): string {
   return "none";
 }
 
-export default async (domain: string, test: string): Promise<TestResult[]> => {
+export default async (
+  domain: string,
+  currency: string,
+  test: string,
+): Promise<TestResult[]> => {
   const apiResult: any = await new Promise<TestResult[]>((resolve, reject) => {
     const evtSource = new EventSource(
       `${process.env.REACT_APP_API_HOST ||
-        ""}/run?domain=${domain}&test=${test}`,
+        ""}/run?domain=${domain}&currency=${currency}&test=${test}`,
     );
     evtSource.addEventListener("message", (event) => {
       const message = JSON.parse(event.data);
