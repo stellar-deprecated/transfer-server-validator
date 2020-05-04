@@ -11,16 +11,11 @@ $ yarn
 $ DOMAIN=https://testanchor.stellar.org npx jest
 ```
 
-### Testing a specific currency
-
-```
-$ DOMAIN=https://testanchor.stellar.org  CURRENCY=SRT npx jest -I -i cases/deposit.test.js
-```
-
 ### Running a specific test
 
 ```
-$ DOMAIN=https://localhost:8000 npx jest -I -i cases/deposit.test.js
+DOMAIN=https://localhost:8000 npx jest -I -i cases-SEP24/deposit.test.js
+
 ```
 
 ### Showing the browser for interactive tests
@@ -45,13 +40,20 @@ $ docker run  -p 3000:3000  transfer-server-validator
 $ docker run -e DOMAIN=http://<yourdomain.com transfer-server-validator
 ```
 
+## Specify a project via Docker
+
+```
+$ docker build -t transfer-server-validator .
+$ docker run -p 3000:3000 -e PROJECT=DIRECT-PAYMENT transfer-server-validator
+```
+
 ### Running Optional Tests
 
 Normally optional tests do not run. You can include them in your test run in
 docker like so:
 
 ```
-$ docker run -e RUN_OPTIONAL_TESTS=1 -e DOMAIN=http://<yourdomain.com transfer-server-validator
+docker run -e RUN_OPTIONAL_TESTS=1 -e DOMAIN=http://<yourdomain.com transfer-server-validator
 ```
 
 And if you're running `jest` directly, you can use the
@@ -70,6 +72,15 @@ The UI provides an option to run these optional tests as well.
 $ npm install
 $ npm run start:dev
 
+```
+
+### Run a specified project Locally
+
+```
+# Run the server+client
+$ npm install
+$ npm run start:dev
+$ PROJECT=DIRECT-PAYMENT npm run start:dev
 ```
 
 ## Instructions for anchors
