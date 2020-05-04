@@ -20,7 +20,7 @@ $ DOMAIN=https://testanchor.stellar.org  CURRENCY=SRT npx jest -I -i cases/depos
 ### Running a specific test
 
 ```
-DOMAIN=https://localhost:8000 npx jest -I -i cases-SEP24/deposit.test.js
+$ DOMAIN=https://localhost:8000 npx jest -I -i cases-SEP24/deposit.test.js
 
 ```
 
@@ -46,7 +46,7 @@ $ docker run  -p 3000:3000  transfer-server-validator
 $ docker run -e DOMAIN=http://<yourdomain.com transfer-server-validator
 ```
 
-## Specify a project via Docker
+## Run a specified project via Docker
 
 ```
 $ docker build -t transfer-server-validator .
@@ -59,7 +59,7 @@ Normally optional tests do not run. You can include them in your test run in
 docker like so:
 
 ```
-docker run -e RUN_OPTIONAL_TESTS=1 -e DOMAIN=http://<yourdomain.com transfer-server-validator
+$ docker run -e RUN_OPTIONAL_TESTS=1 -e DOMAIN=http://<yourdomain.com transfer-server-validator
 ```
 
 And if you're running `jest` directly, you can use the
