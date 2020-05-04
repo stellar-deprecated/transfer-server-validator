@@ -85,7 +85,6 @@ $ npm run start:dev
 ```
 # Run the server+client
 $ npm install
-$ npm run start:dev
 $ PROJECT=DIRECT-PAYMENT npm run start:dev
 ```
 
