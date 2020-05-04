@@ -11,6 +11,12 @@ $ yarn
 $ DOMAIN=https://testanchor.stellar.org npx jest
 ```
 
+### Testing a specific currency
+
+```
+$ DOMAIN=https://testanchor.stellar.org  CURRENCY=SRT npx jest -I -i cases/deposit.test.js
+```
+
 ### Running a specific test
 
 ```
