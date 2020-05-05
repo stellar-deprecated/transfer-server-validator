@@ -45,8 +45,8 @@ workflows:
             branches:
               only: master
       - deploy-sep24:
-        requires:
-          - publish-build
-        filters:
-          branches:
-            only: master
+          requires:
+            - publish-build
+          filters:
+            branches:
+              only: master
