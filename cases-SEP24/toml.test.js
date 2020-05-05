@@ -4,6 +4,7 @@ import { currencySchema } from "./util/schema";
 import { ensureCORS } from "./util/ensureCORS";
 
 const urlBuilder = new URL(process.env.DOMAIN);
+const testCurrency = process.env.CURRENCY;
 const url = urlBuilder.toString();
 
 describe("TOML File", () => {
@@ -78,6 +79,21 @@ describe("TOML File", () => {
         expect(currency).toMatchSchema(currencySchema);
       });
     });
+
+    if (testCurrency) {
+      it("selected currency is available", () => {
+        expect(
+          toml.CURRENCIES,
+          "The currency you selectd isn't available in the TOML file.",
+        ).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              code: testCurrency,
+            }),
+          ]),
+        );
+      });
+    }
 
     it("has issuer documentation", () => {
       expect(toml.DOCUMENTATION).toEqual(

@@ -11,10 +11,12 @@ import {
 } from "./util/schema";
 import { ensureCORS } from "./util/ensureCORS";
 import { getTransactionBy } from "./util/transactions";
+import { getActiveCurrency } from "./util/currency";
 
 jest.setTimeout(60000);
 
 const urlBuilder = new URL(process.env.DOMAIN);
+const testCurrency = process.env.CURRENCY;
 const domain = urlBuilder.toString();
 const keyPair = StellarSDK.Keypair.random();
 
@@ -29,18 +31,11 @@ describe("Transactions", () => {
     ({ token: jwt } = await getSep10Token(domain, keyPair));
 
     transferServer = toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER;
-    const infoResponse = await fetch(transferServer + "/info", {
-      headers: {
-        Origin: "https://www.website.com",
-      },
-    });
 
-    const infoJSON = await infoResponse.json();
-    const currencies = Object.keys(infoJSON.deposit);
-
-    enabledCurrency = currencies.find(
-      (currency) => infoJSON.deposit[currency].enabled,
-    );
+    ({ enabledCurrency } = await getActiveCurrency(
+      testCurrency,
+      transferServer,
+    ));
 
     expect(enabledCurrency).toBeDefined();
     expect(transferServer).toBeDefined();

@@ -8,6 +8,11 @@
   font-size: 24px;
 }
 
+.CurrencyField {
+  flex-grow: 0;
+  font-size: 20px;
+}
+
 .ValidateButton {
   font-size: 24px;
   flex-grow: 0;

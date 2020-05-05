@@ -1,10 +1,11 @@
 const fs = require("fs");
 const { spawn } = require("child_process");
 
-module.exports = async (domain, test) => {
+module.exports = async (domain, currency, test) => {
   return new Promise((resolve, reject) => {
     const env = { ...process.env };
     env.DOMAIN = domain;
+    env.CURRENCY = currency;
     const jest = spawn(
       "node_modules/.bin/jest",
       ["--json", "--noStackTrace", `${test}.test.js`],

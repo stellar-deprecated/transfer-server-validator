@@ -23,7 +23,11 @@ module.exports = async (req, res) => {
   sendPing();
   const timer = setInterval(sendPing, 15000);
 
-  const results = await runTest(req.query.domain, req.query.test);
+  const results = await runTest(
+    req.query.domain,
+    req.query.currency,
+    req.query.test,
+  );
   clearTimeout(timer);
   res.write(`data: ${JSON.stringify({ results })}\n\n`);
   res.end();

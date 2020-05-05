@@ -18,6 +18,20 @@ jobs:
           command: |
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
             docker push $IMAGE_NAME:latest
+  deploy-sep24:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - run:
+          command: git push https://heroku:$HEROKU_API_KEY@git.heroku.com/$HEROKU_APP_NAME.git $CIRCLE_BRANCH:master
+  deploy-sep6:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - run:
+          command: git push https://heroku:$HEROKU_API_KEY@git.heroku.com/$HEROKU_DIRECT_PAYMENT_APP_NAME.git $CIRCLE_BRANCH:master
 workflows:
   version: 2
   publish-build-deploy:
@@ -26,7 +40,13 @@ workflows:
           filters:
             branches:
               only: master
-      - heroku/deploy-via-git:
+      - deploy-sep6:
+          requires:
+            - publish-build
+          filters:
+            branches:
+              only: master
+      - deploy-sep24:
           requires:
             - publish-build
           filters:

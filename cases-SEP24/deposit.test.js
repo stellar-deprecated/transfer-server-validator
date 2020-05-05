@@ -3,15 +3,18 @@ import getSep10Token from "./util/sep10";
 import StellarSDK from "stellar-sdk";
 import getTomlFile from "./util/getTomlFile";
 import { createTransaction } from "./util/interactive";
+import { getActiveCurrency } from "./util/currency";
 const urlBuilder = new URL(process.env.DOMAIN);
+const testCurrency = process.env.CURRENCY;
 const url = urlBuilder.toString();
 const keyPair = StellarSDK.Keypair.random();
 
-jest.setTimeout(20000); // 20 sec timeout since we're actually stepping through web forms
+jest.setTimeout(200000); // 20 sec timeout since we're actually stepping through web forms
 
-describe("Withdraw", () => {
+describe("Deposit", () => {
   let infoJSON;
   let enabledCurrency;
+  let currencies;
   let jwt;
   let toml;
 
@@ -22,23 +25,22 @@ describe("Withdraw", () => {
     } catch (e) {
       throw "Invalid TOML formatting";
     }
-
     const transferServer = toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER;
-    const infoResponse = await fetch(transferServer + "/info", {
-      headers: {
-        Origin: "https://www.website.com",
-      },
-    });
-    infoJSON = await infoResponse.json();
-    const currencies = Object.keys(infoJSON.withdraw);
-    enabledCurrency = currencies.find(
-      (currency) => infoJSON.withdraw[currency].enabled,
-    );
+
+    ({ enabledCurrency, infoJSON, currencies } = await getActiveCurrency(
+      testCurrency,
+      transferServer,
+    ));
+
     ({ token: jwt } = await getSep10Token(url, keyPair));
   });
 
-  it("has a currency enabled for withdraw", () => {
-    expect(enabledCurrency).toEqual(expect.any(String));
+  it("has a currency enabled for deposit", () => {
+    expect(currencies).toEqual(expect.arrayContaining([enabledCurrency]));
+    expect(
+      infoJSON.deposit[enabledCurrency].enabled,
+      "The selected currency is not enabled for deposit",
+    ).toBeTruthy();
   });
 
   it("returns a proper error with no JWT", async () => {
@@ -47,9 +49,10 @@ describe("Withdraw", () => {
       account: keyPair.publicKey(),
       jwt: null,
       toml: toml,
-      isDeposit: false,
+      isDeposit: true,
     });
-    expect(status).not.toEqual(200);
+    expect(status).toBeGreaterThanOrEqual(400);
+    expect(status).toBeLessThan(500);
     expect(json.error).toBeTruthy();
   });
 
@@ -59,9 +62,10 @@ describe("Withdraw", () => {
       account: null,
       jwt: jwt,
       toml: toml,
-      isDeposit: false,
+      isDeposit: true,
     });
-    expect(status).not.toEqual(200);
+    expect(status).toBeGreaterThanOrEqual(400);
+    expect(status).toBeLessThan(500);
     expect(json.error).toBeTruthy();
   });
 
@@ -71,9 +75,10 @@ describe("Withdraw", () => {
       account: keyPair.publicKey(),
       jwt: jwt,
       toml: toml,
-      isDeposit: false,
+      isDeposit: true,
     });
-    expect(status).not.toEqual(200);
+    expect(status).toBeGreaterThanOrEqual(400);
+    expect(status).toBeLessThan(500);
     expect(json.error).toBeTruthy();
   });
 
@@ -84,7 +89,7 @@ describe("Withdraw", () => {
       account: keyPair.publicKey(),
       jwt: jwt,
       toml: toml,
-      isDeposit: false,
+      isDeposit: true,
     });
     let interactiveURL = json.url;
     expect(json.error).toBeFalsy();
