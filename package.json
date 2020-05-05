@@ -45,14 +45,15 @@
   },
   "jest": {
     "roots": [
-      "cases"
+      "cases-DIRECT_PAYMENT",
+      "cases-SEP24"
     ],
     "reporters": [
       "default",
       "jest-junit"
     ],
     "setupFilesAfterEnv": [
-      "./cases/util/setup.js",
+      "./setup.js",
       "jest-expect-message"
     ]
   },

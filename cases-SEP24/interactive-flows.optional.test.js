@@ -1,5 +1,5 @@
 /**
- * @jest-environment ./cases/environment.js
+ * @jest-environment ./cases-SEP24/environment.js
  */
 import { fetch } from "./util/fetchShim";
 import getSep10Token from "./util/sep10";
