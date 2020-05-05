@@ -45,7 +45,7 @@
   },
   "jest": {
     "roots": [
-      "cases-DIRECT-PAYMENT",
+      "cases-DIRECT_PAYMENT",
       "cases-SEP24"
     ],
     "reporters": [

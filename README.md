@@ -50,7 +50,7 @@ $ docker run -e DOMAIN=http://<yourdomain.com transfer-server-validator
 
 ```
 $ docker build -t transfer-server-validator .
-$ docker run -p 3000:3000 -e PROJECT=DIRECT-PAYMENT transfer-server-validator
+$ docker run -p 3000:3000 -e PROJECT=DIRECT_PAYMENT transfer-server-validator
 ```
 
 ### Running Optional Tests
@@ -85,7 +85,7 @@ $ npm run start:dev
 ```
 # Run the server+client
 $ npm install
-$ PROJECT=DIRECT-PAYMENT npm run start:dev
+$ PROJECT=DIRECT_PAYMENT npm run start:dev
 ```
 
 ## Instructions for anchors
