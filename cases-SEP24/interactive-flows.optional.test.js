@@ -194,6 +194,9 @@ describe("Withdraw Flow", () => {
   it("marks transaction as complete after submission", async () => {
     // Wait for transactionJSON to be defined
     await waitUntilTruthy({ val: transactionJSON }, 25000, 2000);
+    let memo = Buffer.from(transactionJSON.withdraw_memo, "base64").toString(
+      "hex",
+    );
 
     // Submit transaction
     const distributionAccount = transactionJSON.withdraw_anchor_account;
@@ -208,7 +211,7 @@ describe("Withdraw Flow", () => {
           amount: transactionJSON.amount_in,
         }),
       )
-      .addMemo(StellarSDK.Memo.hash(transactionJSON.withdraw_memo))
+      .addMemo(StellarSDK.Memo.hash(memo))
       .setTimeout(30)
       .build();
     transaction.sign(keyPair);
