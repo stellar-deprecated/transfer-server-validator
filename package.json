@@ -9,7 +9,7 @@
   },
   "scripts": {
     "postinstall": "cd client && npm install && cd ..",
-    "test": "jest $PROJECT -i --verbose --runInBand --json --outputFile=results.json --testPathIgnorePatterns='\\b(\\w*optional\\w*)\\b'",
+    "test": "jest $PROJECT -i --verbose --runInBand --json --outputFile=results.json --forceExit --testPathIgnorePatterns='\\b(\\w*optional\\w*)\\b'",
     "test:run-optional": "jest $PROJECT -i --verbose --runInBand --json --outputFile=results.json --detectOpenHandles",
     "server:dev": "PORT=3001 nodemon server/api.js",
     "start:dev": "concurrently \"cd client && REACT_APP_API_HOST=http://localhost:3001 npm start\" \"PORT=3001 npm run server:dev\"",
