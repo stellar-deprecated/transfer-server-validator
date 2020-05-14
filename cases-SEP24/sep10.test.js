@@ -1,10 +1,11 @@
+import { fetch } from "../util/fetchShim";
 import JWT from "jsonwebtoken";
 import StellarSDK from "stellar-sdk";
-import friendbot from "./util/friendbot";
-import getTomlFile from "./util/getTomlFile";
-import getSep10Token from "./util/sep10";
+import friendbot from "../util/friendbot";
+import getTomlFile from "../util/getTomlFile";
+import getSep10Token from "../util/sep10";
 import { ensureCORS } from "../util/ensureCORS";
-import { loggableFetch } from "./util/loggableFetcher";
+import { loggableFetch } from "../util/loggableFetcher";
 
 jest.setTimeout(100000);
 const urlBuilder = new URL(process.env.DOMAIN);

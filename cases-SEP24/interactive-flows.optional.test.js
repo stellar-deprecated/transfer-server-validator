@@ -2,13 +2,13 @@
  * @jest-environment ./cases-SEP24/environment.js
  */
 import { fetch } from "../util/fetchShim";
-import getSep10Token from "./util/sep10";
+import getSep10Token from "../util/sep10";
 import StellarSDK from "stellar-sdk";
-import getTomlFile from "./util/getTomlFile";
-import { getTransactionBy } from "./util/transactions";
+import getTomlFile from "../util/getTomlFile";
+import { getTransactionBy } from "../util/transactions";
 import { doInteractiveFlow } from "./util/interactive";
 import { getTransactionSchema } from "./util/schema";
-import { getActiveCurrency } from "./util/currency";
+import { getActiveCurrency } from "../util/currency";
 const urlBuilder = new URL(process.env.DOMAIN);
 const url = urlBuilder.toString();
 const keyPair = StellarSDK.Keypair.random();
@@ -148,7 +148,7 @@ describe("Deposit Flow", () => {
     let transactionRespJSON = await getTransactionBy({
       iden: "id",
       value: transactionId,
-      toml: toml,
+      transferServer: toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER,
       jwt: jwt,
     });
     transactionJSON = transactionRespJSON.transaction;
@@ -184,7 +184,7 @@ describe("Withdraw Flow", () => {
       iden: "id",
       value: transactionId,
       expectStatus: 200,
-      toml: toml,
+      transferServer: toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER,
       jwt: jwt,
     });
     transactionJSON = transactionRespJSON.transaction;

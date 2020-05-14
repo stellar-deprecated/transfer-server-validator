@@ -1,4 +1,4 @@
-import { fetch } from "../../util/fetchShim";
+import { fetch } from "./fetchShim";
 
 export const loggableFetch = async (requestURL, requestDictionary) => {
   const response = await fetch(requestURL, requestDictionary);

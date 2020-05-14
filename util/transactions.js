@@ -1,14 +1,13 @@
-import { fetch } from "../../util/fetchShim";
+import { fetch } from "./fetchShim";
 
 export async function getTransactionBy({
   value,
-  toml,
+  transferServer,
   jwt,
   iden = "id",
   expectStatus = 200,
   expectStatusBetween = null,
 } = {}) {
-  const transferServer = toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER;
   const response = await fetch(
     transferServer + `/transaction?${iden}=${value}`,
     {

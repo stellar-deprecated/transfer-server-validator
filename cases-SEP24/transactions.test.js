@@ -1,8 +1,8 @@
 import { fetch } from "../util/fetchShim";
-import getSep10Token from "./util/sep10";
-import getTomlFile from "./util/getTomlFile";
+import getSep10Token from "../util/sep10";
+import getTomlFile from "../util/getTomlFile";
 import { createTransaction } from "./util/interactive";
-import { loggableFetch } from "./util/loggableFetcher";
+import { loggableFetch } from "../util/loggableFetcher";
 import StellarSDK from "stellar-sdk";
 import {
   errorSchema,
@@ -10,8 +10,8 @@ import {
   getTransactionSchema,
 } from "./util/schema";
 import { ensureCORS } from "../util/ensureCORS";
-import { getTransactionBy } from "./util/transactions";
-import { getActiveCurrency } from "./util/currency";
+import { getTransactionBy } from "../util/transactions";
+import { getActiveCurrency } from "../util/currency";
 
 jest.setTimeout(60000);
 
@@ -163,7 +163,7 @@ describe("Transactions", () => {
 
     transactionJson = await getTransactionBy({
       value: transactionJson.id,
-      toml: toml,
+      transferServer: toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER,
       jwt: jwt,
     });
     let currentDate = new Date(transactionJson.transaction.started_at);
@@ -326,7 +326,7 @@ describe("Transactions", () => {
 
     earliestTransactionJson = await getTransactionBy({
       value: earliestTransactionJson.id,
-      toml: toml,
+      transferServer: toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER,
       jwt: jwt,
     });
     let currentDate = new Date(earliestTransactionJson.transaction.started_at);

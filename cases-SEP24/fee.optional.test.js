@@ -1,8 +1,8 @@
 import StellarSDK from "stellar-sdk";
 
 import { fetch } from "../util/fetchShim";
-import getTomlFile from "./util/getTomlFile";
-import getSep10Token from "./util/sep10";
+import getTomlFile from "../util/getTomlFile";
+import getSep10Token from "../util/sep10";
 import { errorSchema, feeSchema } from "./util/schema";
 import { ensureCORS } from "../util/ensureCORS";
 

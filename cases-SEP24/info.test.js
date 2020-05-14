@@ -1,5 +1,5 @@
 import { fetch } from "../util/fetchShim";
-import getTomlFile from "./util/getTomlFile";
+import getTomlFile from "../util/getTomlFile";
 import { infoSchema } from "./util/schema";
 import { ensureCORS } from "../util/ensureCORS";
 

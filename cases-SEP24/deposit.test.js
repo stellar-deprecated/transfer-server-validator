@@ -1,9 +1,9 @@
 import { fetch } from "../util/fetchShim";
-import getSep10Token from "./util/sep10";
+import getSep10Token from "../util/sep10";
 import StellarSDK from "stellar-sdk";
-import getTomlFile from "./util/getTomlFile";
+import getTomlFile from "../util/getTomlFile";
 import { createTransaction } from "./util/interactive";
-import { getActiveCurrency } from "./util/currency";
+import { getActiveCurrency } from "../util/currency";
 const urlBuilder = new URL(process.env.DOMAIN);
 const testCurrency = process.env.CURRENCY;
 const url = urlBuilder.toString();
