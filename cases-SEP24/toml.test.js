@@ -1,7 +1,7 @@
-import { fetch } from "./util/fetchShim";
+import { fetch } from "../util/fetchShim";
 import TOML from "toml";
 import { currencySchema } from "./util/schema";
-import { ensureCORS } from "./util/ensureCORS";
+import { ensureCORS } from "../util/ensureCORS";
 
 const urlBuilder = new URL(process.env.DOMAIN);
 const testCurrency = process.env.CURRENCY;

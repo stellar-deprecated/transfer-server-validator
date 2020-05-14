@@ -1,4 +1,4 @@
-import { fetch } from "./fetchShim";
+import { fetch } from "../../util/fetchShim";
 
 export const getActiveCurrency = async (
   testCurrency,

@@ -1,7 +1,7 @@
-import { fetch } from "./util/fetchShim";
+import { fetch } from "../util/fetchShim";
 import getTomlFile from "./util/getTomlFile";
 import { infoSchema } from "./util/schema";
-import { ensureCORS } from "./util/ensureCORS";
+import { ensureCORS } from "../util/ensureCORS";
 
 jest.setTimeout(30000);
 

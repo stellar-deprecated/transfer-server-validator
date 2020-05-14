@@ -1,11 +1,11 @@
-import { fetch } from "./util/fetchShim";
+import { fetch } from "../util/fetchShim";
 import getSep10Token from "./util/sep10";
 import getTomlFile from "./util/getTomlFile";
 import StellarSDK from "stellar-sdk";
 import { getTransactionBy } from "./util/transactions";
 import { createTransaction } from "./util/interactive";
 import { errorSchema, getTransactionSchema } from "./util/schema";
-import { ensureCORS } from "./util/ensureCORS";
+import { ensureCORS } from "../util/ensureCORS";
 import { getActiveCurrency } from "./util/currency";
 
 jest.setTimeout(60000);
