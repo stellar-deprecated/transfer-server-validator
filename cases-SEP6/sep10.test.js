@@ -1,0 +1,403 @@
+import { fetch } from "../util/fetchShim";
+import JWT from "jsonwebtoken";
+import StellarSDK from "stellar-sdk";
+import friendbot from "../util/friendbot";
+import getTomlFile from "../util/getTomlFile";
+import getSep10Token from "../util/sep10";
+import { ensureCORS } from "../util/ensureCORS";
+import { loggableFetch } from "../util/loggableFetcher";
+
+jest.setTimeout(100000);
+const urlBuilder = new URL(process.env.DOMAIN);
+const url = urlBuilder.toString();
+const account = "GCQJX6WGG7SSFU2RBO5QANTFXY7C5GTTFJDCBAAO42JCCFIMZ7PEBURP";
+const secret = "SAUOSXXF7ZDO5PKHRFR445DRKZ66Q5HIM2HIPQGWBTUKJZQAOP3VGH3L";
+const keyPair = StellarSDK.Keypair.fromSecret(secret);
+const server = new StellarSDK.Server("https://horizon-testnet.stellar.org");
+const accountPool = [];
+
+const getAccount = (function() {
+  let accountPoolIdx = 0;
+  return (_) => {
+    try {
+      return accountPool[accountPoolIdx++];
+    } catch {
+      throw "Not enough accounts!";
+    }
+  };
+})();
+
+beforeAll(async () => {
+  for (let i = 0; i < 10; i++) {
+    accountPool.push({ kp: StellarSDK.Keypair.random(), data: null });
+  }
+  await Promise.all(
+    accountPool.map(async (acc) => {
+      await friendbot(acc.kp);
+      acc.data = await server.loadAccount(acc.kp.publicKey());
+    }),
+  );
+});
+
+describe("SEP10", () => {
+  let toml;
+  beforeAll(async () => {
+    try {
+      toml = await getTomlFile(url);
+    } catch (e) {
+      throw "Invalid TOML formatting";
+    }
+  });
+
+  it("has a valid WEB_AUTH_ENDPOINT in the TOML", () => {
+    expect(toml.WEB_AUTH_ENDPOINT).toBeTruthy();
+    const url = new URL(toml.WEB_AUTH_ENDPOINT);
+    expect(url.protocol).toBe("https:");
+  });
+
+  it("has a signing key in the TOML", () => {
+    expect(toml.SIGNING_KEY).toHaveLength(56);
+  });
+
+  it("has CORS on the auth endpoint", async () => {
+    const { optionsCORS, otherVerbCORS, logs } = await ensureCORS(
+      toml.WEB_AUTH_ENDPOINT + "?account=" + account,
+    );
+    expect(optionsCORS, logs).toBe("*");
+    expect(otherVerbCORS, logs).toBe("*");
+  });
+
+  it("gives an error with no account provided", async () => {
+    const { json, status, logs } = await loggableFetch(toml.WEB_AUTH_ENDPOINT);
+    expect(json.error, logs).toBeTruthy();
+  });
+
+  it("gives an error with an invalid account provided", async () => {
+    const { json, status, logs } = await loggableFetch(
+      toml.WEB_AUTH_ENDPOINT + "?account=GINVALIDACCOUNT",
+    );
+    expect(json.error, logs).toBeTruthy();
+  });
+
+  it("works for an unfunded account", async () => {
+    const unfundedKeypair = StellarSDK.Keypair.random();
+    const { json, logs } = await loggableFetch(
+      toml.WEB_AUTH_ENDPOINT + "?account=" + unfundedKeypair.publicKey(),
+    );
+    expect(
+      json.error,
+      "Received an error trying to fetch a SEP10 challenge" + logs,
+    ).toBeFalsy();
+    const tx = new StellarSDK.Transaction(
+      json.transaction,
+      toml.NETWORK_PASSPHRASE || StellarSDK.Networks.TESTNET,
+    );
+    tx.sign(unfundedKeypair);
+    const { json: tokenJson, logs: tokenLogs } = await loggableFetch(
+      toml.WEB_AUTH_ENDPOINT,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ transaction: tx.toXDR() }),
+      },
+    );
+    expect(tokenJson.error, tokenLogs).toBeFalsy();
+    expect(tokenJson.token, tokenLogs).toBeTruthy();
+  });
+
+  describe("GET Challenge", () => {
+    let json;
+    let logs;
+    let network_passphrase;
+    beforeAll(async () => {
+      network_passphrase =
+        toml.NETWORK_PASSPHRASE || StellarSDK.Networks.TESTNET;
+
+      ({ json, logs } = await loggableFetch(
+        toml.WEB_AUTH_ENDPOINT + "?account=" + account,
+      ));
+    });
+
+    it("gives a network passphrase", () => {
+      expect(json.network_passphrase, logs).toBeTruthy();
+    });
+
+    it("gives a valid challenge transaction", async () => {
+      expect(json.error, logs).toBeFalsy();
+      expect(json.transaction, logs).toBeTruthy();
+      const tx = new StellarSDK.Transaction(
+        json.transaction,
+        network_passphrase,
+      );
+
+      expect(tx.sequence, logs).toBe("0");
+      // TODO validate timeBounds
+      expect(tx.operations, logs).toHaveLength(1);
+      expect(tx.operations[0].type, logs).toBe("manageData");
+      expect(tx.operations[0].source, logs).toBe(account);
+      expect(tx.source, logs).toBe(toml.SIGNING_KEY);
+    });
+
+    describe("POST Response", () => {
+      it("Accepts application/x-www-form-urlencoded", async () => {
+        const tx = new StellarSDK.Transaction(
+          json.transaction,
+          network_passphrase,
+        );
+        tx.sign(keyPair);
+        let { json: tokenJson, logs } = await loggableFetch(
+          toml.WEB_AUTH_ENDPOINT,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: "transaction=" + encodeURIComponent(tx.toXDR()),
+          },
+        );
+        expect(tokenJson.error, logs).toBeFalsy();
+        expect(tokenJson.token, logs).toBeTruthy();
+      });
+
+      it("fails if no transaction is posted in the body", async () => {
+        let { json, status, logs } = await loggableFetch(
+          toml.WEB_AUTH_ENDPOINT,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          },
+        );
+        expect(status, logs).not.toBe(200);
+        expect(json.error, logs).toBeTruthy();
+        expect(json.token, logs).toBeFalsy();
+      });
+
+      it("fails if the client doesn't sign the challenge", async () => {
+        const tx = new StellarSDK.Transaction(
+          json.transaction,
+          network_passphrase,
+        );
+        let { json: tokenJson, status, logs } = await loggableFetch(
+          toml.WEB_AUTH_ENDPOINT,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ transaction: tx.toXDR() }),
+          },
+        );
+        expect(status, logs).not.toBe(200);
+        expect(tokenJson.error, logs).toBeTruthy();
+      });
+
+      it("fails if the signed challenge isn't signed by the servers SIGNING_KEY", async () => {
+        const tx = new StellarSDK.Transaction(
+          json.transaction,
+          network_passphrase,
+        );
+        // Remove the server signature, only sign by client
+        tx.signatures = [];
+        tx.sign(keyPair);
+        let { json: tokenJson, status, logs } = await loggableFetch(
+          toml.WEB_AUTH_ENDPOINT,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ transaction: tx.toXDR() }),
+          },
+        );
+        expect(status, logs).not.toBe(200);
+        expect(tokenJson.error, logs).toBeTruthy();
+      });
+
+      let tokenJson;
+      let logs;
+      beforeAll(async () => {
+        const tx = new StellarSDK.Transaction(
+          json.transaction,
+          network_passphrase,
+        );
+        tx.sign(keyPair);
+        ({ json: tokenJson, logs } = await loggableFetch(
+          toml.WEB_AUTH_ENDPOINT,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ transaction: tx.toXDR() }),
+          },
+        ));
+      });
+
+      it("Has a valid token", () => {
+        const jwt = JWT.decode(tokenJson.token);
+        expect(jwt, logs).toBeTruthy();
+        expect(jwt, logs).toEqual(
+          expect.objectContaining({
+            iss: expect.any(String),
+            sub: account,
+            iat: expect.any(Number),
+            exp: expect.any(Number),
+          }),
+        );
+      });
+    });
+  });
+
+  describe("signers support", () => {
+    afterAll(async () => {
+      await friendbot.destroyAllFriends();
+    });
+
+    it("succeeds for a signer without an account", async () => {
+      const kp = StellarSDK.Keypair.random();
+      const token = await getSep10Token(url, kp, [kp]);
+      expect(token).toBeTruthy();
+    });
+
+    it("fails if a challenge for a nonexistent account has extra client signatures", async () => {
+      const account = getAccount();
+      const kp = StellarSDK.Keypair.random();
+      const { token, logs } = await getSep10Token(url, kp, [kp, account.kp]);
+      expect(token, logs).toBeFalsy();
+    });
+
+    /**
+     * Removing the masterWeight for an account means that it can
+     * no longer sign for itself.  This should mean that it can't
+     * get a token with its own signature.
+     */
+    it("fails for an account that can't sign for itself", async () => {
+      const account = getAccount();
+      const transaction = new StellarSDK.TransactionBuilder(account.data, {
+        fee: StellarSDK.BASE_FEE,
+        networkPassphrase: StellarSDK.Networks.TESTNET,
+      })
+        .addOperation(
+          StellarSDK.Operation.setOptions({
+            masterWeight: 0,
+            lowThreshold: 1,
+            medThreshold: 1,
+            highThreshold: 1,
+          }),
+        )
+        .setTimeout(30)
+        .build();
+      transaction.sign(account.kp);
+      await server.submitTransaction(transaction);
+      const { token, logs } = await getSep10Token(url, account.kp, [
+        account.kp,
+      ]);
+      expect(token, logs).toBeFalsy();
+    });
+
+    it("succeeds for a signer of an account", async () => {
+      const userAccount = getAccount();
+      const signerAccount = getAccount();
+      const transaction = new StellarSDK.TransactionBuilder(userAccount.data, {
+        fee: StellarSDK.BASE_FEE,
+        networkPassphrase: StellarSDK.Networks.TESTNET,
+      })
+        .addOperation(
+          StellarSDK.Operation.setOptions({
+            lowThreshold: 1,
+            medThreshold: 1,
+            highThreshold: 1,
+            signer: {
+              ed25519PublicKey: signerAccount.kp.publicKey(),
+              weight: 1,
+            },
+          }),
+        )
+        .setTimeout(30)
+        .build();
+      transaction.sign(userAccount.kp);
+      await server.submitTransaction(transaction);
+      const { token, logs } = await getSep10Token(url, userAccount.kp, [
+        signerAccount.kp,
+      ]);
+      expect(token, logs).toBeTruthy();
+    });
+
+    /**
+     * In this test case, since we have a signer with only half the required
+     * weight of the thresholds, a malicious actor might try to sign twice
+     * with the same key hoping the server doesn't de-duplicate signers, and
+     * count its weight twice.
+     */
+    it("fails when trying to reuse the same signer to gain weight", async () => {
+      const userAccount = getAccount();
+      const signerAccount = getAccount();
+      const transaction = new StellarSDK.TransactionBuilder(userAccount.data, {
+        fee: StellarSDK.BASE_FEE,
+        networkPassphrase: StellarSDK.Networks.TESTNET,
+      })
+        .addOperation(
+          StellarSDK.Operation.setOptions({
+            lowThreshold: 2,
+            medThreshold: 2,
+            highThreshold: 2,
+            signer: {
+              ed25519PublicKey: signerAccount.kp.publicKey(),
+              weight: 1,
+            },
+          }),
+        )
+        .setTimeout(30)
+        .build();
+      transaction.sign(userAccount.kp);
+      await server.submitTransaction(transaction);
+      const { token, logs } = await getSep10Token(url, userAccount.kp, [
+        signerAccount.kp,
+        signerAccount.kp,
+      ]);
+      expect(token, logs).toBeFalsy();
+    });
+
+    it("succeeds with multiple signers", async () => {
+      const userAccount = getAccount();
+      const signerAccount1 = getAccount();
+      const signerAccount2 = getAccount();
+      const transaction = new StellarSDK.TransactionBuilder(userAccount.data, {
+        fee: StellarSDK.BASE_FEE,
+        networkPassphrase: StellarSDK.Networks.TESTNET,
+      })
+        .addOperation(
+          StellarSDK.Operation.setOptions({
+            lowThreshold: 2,
+            medThreshold: 2,
+            highThreshold: 2,
+            signer: {
+              ed25519PublicKey: signerAccount1.kp.publicKey(),
+              weight: 1,
+            },
+          }),
+        )
+        .addOperation(
+          StellarSDK.Operation.setOptions({
+            signer: {
+              ed25519PublicKey: signerAccount2.kp.publicKey(),
+              weight: 1,
+            },
+          }),
+        )
+        .setTimeout(30)
+        .build();
+      transaction.sign(userAccount.kp);
+      await server.submitTransaction(transaction);
+      const { token, logs } = await getSep10Token(url, userAccount.kp, [
+        signerAccount1.kp,
+        signerAccount2.kp,
+      ]);
+      expect(token, logs).toBeTruthy();
+    });
+  });
+});

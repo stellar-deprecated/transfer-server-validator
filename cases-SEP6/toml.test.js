@@ -48,6 +48,10 @@ describe("TOML File", () => {
       }
     });
 
+    it("uses TRANSFER_SERVER_SEP0024", async () => {
+      expect(toml.TRANSFER_SERVER_SEP0024).toBeTruthy();
+    });
+
     it("has a max file size of 100kb", () => {
       expect(parseInt(fileSize)).not.toBeGreaterThan(100000);
     });
@@ -62,6 +66,7 @@ describe("TOML File", () => {
 
     it("all URLs are https", () => {
       expect(new URL(toml.TRANSFER_SERVER).protocol).toMatch("https:");
+      expect(new URL(toml.TRANSFER_SERVER_SEP0024).protocol).toMatch("https:");
       expect(urlBuilder.protocol).toMatch("https:");
     });
 

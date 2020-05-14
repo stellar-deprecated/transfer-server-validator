@@ -46,7 +46,8 @@
   "jest": {
     "roots": [
       "cases-SEP31",
-      "cases-SEP24"
+      "cases-SEP24",
+      "cases-SEP6"
     ],
     "reporters": [
       "default",
