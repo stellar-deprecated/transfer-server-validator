@@ -158,20 +158,4 @@ describe("Transaction", () => {
     });
     expect(json).toMatchSchema(errorSchema);
   });
-
-  it("withdraw_memo is null after transaction creation", async () => {
-    let { json } = await createTransaction({
-      currency: enabledCurrency,
-      account: keyPair.publicKey(),
-      toml: toml,
-      jwt: jwt,
-      isDeposit: false,
-    });
-    json = await getTransactionBy({
-      value: json.id,
-      toml: toml,
-      jwt: jwt,
-    });
-    expect(json.transaction.withdraw_memo).toEqual(null);
-  });
 });
