@@ -159,7 +159,7 @@ describe("Transaction", () => {
     expect(json).toMatchSchema(errorSchema);
   });
 
-  it("memos are base64-encoded", async () => {
+  it("withdraw_memo is null after transaction creation", async () => {
     let { json } = await createTransaction({
       currency: enabledCurrency,
       account: keyPair.publicKey(),
@@ -172,9 +172,6 @@ describe("Transaction", () => {
       toml: toml,
       jwt: jwt,
     });
-    function decode() {
-      Buffer.from(json.transaction.withdraw_memo, "base64");
-    }
-    expect(decode).not.toThrow();
+    expect(json.transaction.withdraw_memo).toEqual(null);
   });
 });
