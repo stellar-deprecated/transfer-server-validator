@@ -3,7 +3,11 @@ const path = require("path");
 
 module.exports = async () => {
   return new Promise((resolve, reject) => {
-    const jest = spawn("node_modules/.bin/jest", ["--list-tests"]);
+    let testProject = process.env.PROJECT ? process.env.PROJECT : "SEP24";
+    const jest = spawn("node_modules/.bin/jest", [
+      "--list-tests",
+      `--roots=cases-${testProject}`,
+    ]);
     let output = "";
     jest.stdout.on("data", (data) => {
       output += data.toString();
@@ -12,7 +16,6 @@ module.exports = async () => {
     jest.stderr.on("data", (data) => {});
 
     jest.on("close", (code) => {
-      
       const orderedTests = {
         SEP24: [
           "toml",
@@ -25,29 +28,23 @@ module.exports = async () => {
           "fee.optional",
           "interactive-flows.optional",
         ],
-        DIRECT_PAYMENT: ["dummy"]
-      }
-
-      let testProject = process.env.PROJECT ? process.env.PROJECT : "SEP24";
+        SEP31: ["toml", "info"],
+      };
 
       const unorderedTests = output
         .trim()
         .split("\n")
         .map((line) => {
-          if (path.dirname(line) == `cases-${testProject}`) {
-            const testName = path.basename(line).split(".test.js")[0];
-            if (orderedTests[testProject].includes(testName)) {
-              return null;
-            }
-            return testName;
-          
-          } else {
+          const testName = path.basename(line).split(".test.js")[0];
+          if (orderedTests[testProject].includes(testName)) {
             return null;
           }
+          return testName;
         })
         .filter((name) => name !== null);
 
       const fullList = [...orderedTests[testProject], ...unorderedTests];
+      console.log(fullList);
       resolve(fullList);
     });
   });
