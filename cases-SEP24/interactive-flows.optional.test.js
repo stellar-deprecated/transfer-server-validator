@@ -273,4 +273,16 @@ describe("Withdraw Flow", () => {
     let json = await response.json();
     expect(json).toMatchSchema(getTransactionSchema(false));
   });
+
+  it("withdraw_memo is base64-encoded", async () => {
+    // Wait for withdrawJSON to be defined
+    waitUntilTruthy({ val: withdrawJSON }, 30000, 2000);
+
+    expect(withdrawJSON.withdraw_fee_percent).not.toEqual(null);
+    expect(withdrawJSON.withdraw_fee_percent).not.toEqual("");
+    function decode() {
+      Buffer.from(withdrawJSON.withdraw_memo, "base64");
+    }
+    expect(decode).not.toThrow();
+  });
 });

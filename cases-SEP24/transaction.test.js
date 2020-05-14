@@ -158,23 +158,4 @@ describe("Transaction", () => {
     });
     expect(json).toMatchSchema(errorSchema);
   });
-
-  it("memos are base64-encoded", async () => {
-    let { json } = await createTransaction({
-      currency: enabledCurrency,
-      account: keyPair.publicKey(),
-      toml: toml,
-      jwt: jwt,
-      isDeposit: false,
-    });
-    json = await getTransactionBy({
-      value: json.id,
-      toml: toml,
-      jwt: jwt,
-    });
-    function decode() {
-      Buffer.from(json.transaction.withdraw_memo, "base64");
-    }
-    expect(decode).not.toThrow();
-  });
 });
