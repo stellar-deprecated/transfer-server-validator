@@ -171,7 +171,18 @@ export const feeSchema = {
 
 const fieldSchema = {
   type: "object",
-  additionalProperties: { type: "string" },
+  additionalProperties: {
+    type: "object",
+    patternProperties: {
+      ".*": {
+        properties: {
+          description: { type: "string" },
+          choices: { type: "array" },
+        },
+        required: ["description"],
+      },
+    },
+  },
 };
 
 export const infoSchema = {
@@ -190,9 +201,9 @@ export const infoSchema = {
             fields: {
               type: "object",
               properties: {
-                sender: { type: fieldSchema },
-                receiver: { type: fieldSchema },
-                transaction: { type: fieldSchema },
+                sender: fieldSchema,
+                receiver: fieldSchema,
+                transaction: fieldSchema,
               },
               required: ["sender", "receiver", "transaction"],
             },
@@ -202,5 +213,5 @@ export const infoSchema = {
       },
     },
   },
-  required: ["deposit", "withdraw", "fee"],
+  required: ["send"],
 };
