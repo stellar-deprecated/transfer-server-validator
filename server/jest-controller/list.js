@@ -44,7 +44,6 @@ module.exports = async () => {
         .filter((name) => name !== null);
 
       const fullList = [...orderedTests[testProject], ...unorderedTests];
-      console.log(fullList);
       resolve(fullList);
     });
   });

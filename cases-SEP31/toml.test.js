@@ -7,7 +7,6 @@ const url = urlBuilder.toString();
 
 describe("TOML File", () => {
   it("exists", async () => {
-    console.log("CHECKING IF EXISTS");
     const response = await fetch(url + ".well-known/stellar.toml");
     expect(response.status).toBe(200);
   });

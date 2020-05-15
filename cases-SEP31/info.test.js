@@ -37,7 +37,6 @@ describe("Info", () => {
     let json;
 
     beforeAll(async () => {
-      console.log("Fetching info", DIRECT_PAYMENT_SERVER + "/info");
       const response = await fetch(DIRECT_PAYMENT_SERVER + "/info", {
         headers: {
           Origin: "https://www.website.com",
@@ -52,7 +51,6 @@ describe("Info", () => {
     });
 
     it("has a proper schema", () => {
-      console.log(json);
       expect(json, json).toMatchSchema(infoSchema);
     });
   });

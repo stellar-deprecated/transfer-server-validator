@@ -30,9 +30,7 @@ module.exports = async (domain, currency, test) => {
         const name = testResult.name.split("/").reduce((prev, cur) => cur);
         testResult.assertionResults.forEach((assertionResult) => {
           assertionResult.failureMessages.forEach((failureMessage) => {
-            console.log("Failure message", failureMessage);
             const [_, file, lineStr] = firstLineRegex.exec(failureMessage);
-            console.log("File", file);
             const errorLine = parseInt(lineStr);
             try {
               const fileContents = fs.readFileSync(file).toString();
