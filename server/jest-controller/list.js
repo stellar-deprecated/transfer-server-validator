@@ -47,13 +47,8 @@ module.exports = async () => {
         .trim()
         .split("\n")
         .map((line) => {
-          if (path.dirname(line) == `cases-${testProject}`) {
-            const testName = path.basename(line).split(".test.js")[0];
-            if (orderedTests[testProject].includes(testName)) {
-              return null;
-            }
-            return testName;
-          } else {
+          const testName = path.basename(line).split(".test.js")[0];
+          if (orderedTests[testProject].includes(testName)) {
             return null;
           }
           return testName;
