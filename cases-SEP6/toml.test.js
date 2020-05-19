@@ -2,10 +2,13 @@ import { fetch } from "../util/fetchShim";
 import TOML from "toml";
 import { currencySchema } from "./util/schema";
 import { ensureCORS } from "../util/ensureCORS";
+import { JsonWebTokenError } from "jsonwebtoken";
 
 const urlBuilder = new URL(process.env.DOMAIN);
 const testCurrency = process.env.CURRENCY;
 const url = urlBuilder.toString();
+
+jest.setTimeout(100000);
 
 describe("TOML File", () => {
   it("exists", async () => {

@@ -29,14 +29,32 @@ module.exports = async () => {
           "interactive-flows.optional",
         ],
         SEP31: ["toml", "info"],
+        SEP6: [
+          "toml",
+          "info",
+          "sep10",
+          "deposit",
+          "withdraw",
+          "transaction",
+          "transactions",
+          "fee.optional",
+          "interactive-flows.optional",
+        ]
       };
+
+      let testProject = process.env.PROJECT ? process.env.PROJECT : "SEP24";
 
       const unorderedTests = output
         .trim()
         .split("\n")
         .map((line) => {
-          const testName = path.basename(line).split(".test.js")[0];
-          if (orderedTests[testProject].includes(testName)) {
+          if (path.dirname(line) == `cases-${testProject}`) {
+            const testName = path.basename(line).split(".test.js")[0];
+            if (orderedTests[testProject].includes(testName)) {
+              return null;
+            }
+            return testName;
+          } else {
             return null;
           }
           return testName;
