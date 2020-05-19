@@ -3,7 +3,7 @@ import getSep10Token from "../util/sep10";
 import getTomlFile from "../util/getTomlFile";
 import StellarSDK from "stellar-sdk";
 import { getTransactionBy } from "../util/transactions";
-import { createTransaction } from "./util/interactive";
+import { createTransaction } from "./util/transactions";
 import { errorSchema, getTransactionSchema } from "./util/schema";
 import { ensureCORS } from "../util/ensureCORS";
 import { getActiveCurrency } from "../util/currency";
@@ -26,7 +26,7 @@ describe("Transaction", () => {
     toml = await getTomlFile(domain);
     ({ token: jwt } = await getSep10Token(domain, keyPair));
 
-    transferServer = toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER;
+    transferServer = toml.TRANSFER_SERVER;
 
     ({ enabledCurrency } = await getActiveCurrency(
       testCurrency,
@@ -37,9 +37,12 @@ describe("Transaction", () => {
     expect(transferServer).toBeDefined();
   });
 
-  async function checkTransactionResponse({ json, isDeposit }) {
+  async function checkTransactionResponse({ json }) {
     expect(json.error).not.toBeDefined();
-    const schema = getTransactionSchema(isDeposit);
+    const schema =
+      json.kind === "deposit"
+        ? getTransactionSchema(true)
+        : getTransactionSchema(false);
     expect(json).toMatchSchema(schema);
   }
 
@@ -60,63 +63,12 @@ describe("Transaction", () => {
       isDeposit: true,
     });
     json = await getTransactionBy({
-      value: json.id,
-      transferServer: toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER,
+      value: null,
+      transferServer: toml.TRANSFER_SERVER,
       jwt: null,
       expectStatusBetween: [400, 500],
     });
-    expect(json.error).toBeDefined();
-  });
-
-  it("has the correct object schema for an existing deposit transaction", async () => {
-    let { json } = await createTransaction({
-      currency: enabledCurrency,
-      account: keyPair.publicKey(),
-      toml: toml,
-      jwt: jwt,
-      isDeposit: true,
-    });
-    json = await getTransactionBy({
-      value: json.id,
-      transferServer: toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER,
-      jwt: jwt,
-    });
-    await checkTransactionResponse({ json: json, isDeposit: true });
-  });
-
-  it("has the correct object schema for an existing withdrawal transaction", async () => {
-    let { json } = await createTransaction({
-      currency: enabledCurrency,
-      account: keyPair.publicKey(),
-      toml: toml,
-      jwt: jwt,
-      isDeposit: false,
-    });
-
-    json = await getTransactionBy({
-      value: json.id,
-      transferServer: toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER,
-      jwt: jwt,
-    });
-    await checkTransactionResponse({ json: json, isDeposit: false });
-  });
-
-  it("return a proper available more_info_url transaction link", async () => {
-    let { json } = await createTransaction({
-      currency: enabledCurrency,
-      account: keyPair.publicKey(),
-      toml: toml,
-      jwt: jwt,
-      isDeposit: true,
-    });
-
-    json = await getTransactionBy({
-      value: json.id,
-      transferServer: toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER,
-      jwt: jwt,
-    });
-    const moreInfo = await fetch(json.transaction.more_info_url);
-    expect(moreInfo.status).toEqual(200);
+    expect(json.type).toEqual("authentication_required");
   });
 
   it("returns a proper error with missing params", async () => {
@@ -135,7 +87,7 @@ describe("Transaction", () => {
     const json = await getTransactionBy({
       value: "1277bd18-a2bd-4acd-9a87-2f541c7b8933",
       expectStatus: 404,
-      transferServer: toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER,
+      transferServer: toml.TRANSFER_SERVER,
       jwt: jwt,
     });
     expect(json).toMatchSchema(errorSchema);
@@ -146,7 +98,7 @@ describe("Transaction", () => {
       iden: "stellar_transaction_id",
       value: "17a670bc424ff5ce3b386dbfaae9990b66a2a37b4fbe51547e8794962a3f9e6a",
       expectStatus: 404,
-      transferServer: toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER,
+      transferServer: toml.TRANSFER_SERVER,
       jwt: jwt,
     });
     expect(json).toMatchSchema(errorSchema);
@@ -158,7 +110,7 @@ describe("Transaction", () => {
       value: "2dd16cb409513026fbe7defc0c6f826c2d2c65c3da993f747d09bf7dafd31093",
       expectStatus: 404,
       jwt: jwt,
-      transferServer: toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER,
+      transferServer: toml.TRANSFER_SERVER,
     });
     expect(json).toMatchSchema(errorSchema);
   });

@@ -1,4 +1,4 @@
-import { fetch } from "../../util/fetchShim";
+import { fetch } from "./fetchShim";
 import StellarSdk from "stellar-sdk";
 
 const friends = [];

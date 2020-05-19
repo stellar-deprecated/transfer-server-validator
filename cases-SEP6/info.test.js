@@ -19,8 +19,8 @@ describe("Info", () => {
     }
   });
 
-  it("has a TRANSFER_SERVER or TRANSFER_SERVER_SEP0024 url in the toml", () => {
-    transferServer = toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER;
+  it("has a TRANSFER_SERVER url in the toml", () => {
+    transferServer = toml.TRANSFER_SERVER;
     expect(transferServer).toEqual(expect.stringContaining("http"));
     expect(() => new URL(transferServer)).not.toThrow();
   });

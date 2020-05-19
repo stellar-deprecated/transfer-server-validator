@@ -29,7 +29,19 @@ module.exports = async () => {
           "interactive-flows.optional",
         ],
         SEP31: ["toml", "info"],
+        SEP6: [
+          "toml",
+          "info",
+          "sep10",
+          "deposit",
+          "withdraw",
+          "transaction",
+          "transactions",
+          "fee.optional",
+        ],
       };
+
+      let testProject = process.env.PROJECT ? process.env.PROJECT : "SEP24";
 
       const unorderedTests = output
         .trim()

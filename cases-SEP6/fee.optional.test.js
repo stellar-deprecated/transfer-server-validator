@@ -26,7 +26,7 @@ describe("Fee", () => {
       throw "Invalid TOML formatting";
     }
 
-    transferServer = toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER;
+    transferServer = toml.TRANSFER_SERVER;
     const response = await fetch(transferServer + "/info", {
       headers: {
         Origin: "https://www.website.com",
@@ -62,7 +62,9 @@ describe("Fee", () => {
       let response = await fetch(transferServer + "/fee");
       expect(response.status).toBeGreaterThanOrEqual(400);
       expect(response.status).toBeLessThan(500);
-      expect(await response.json()).toMatchSchema(errorSchema);
+      expect(await response.json()).toEqual({
+        type: "authentication_required",
+      });
     }
   });
 

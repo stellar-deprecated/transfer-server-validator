@@ -1,9 +1,9 @@
 import { fetch } from "../util/fetchShim";
 import getSep10Token from "../util/sep10";
-import StellarSDK from "stellar-sdk";
 import getTomlFile from "../util/getTomlFile";
-import { createTransaction } from "./util/interactive";
+import { putKYCInfo, createTransaction } from "./util/transactions";
 import { getActiveCurrency } from "../util/currency";
+import StellarSDK from "stellar-sdk";
 const urlBuilder = new URL(process.env.DOMAIN);
 const testCurrency = process.env.CURRENCY;
 const url = urlBuilder.toString();
@@ -26,7 +26,7 @@ describe("Withdraw", () => {
       throw "Invalid TOML formatting";
     }
 
-    const transferServer = toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER;
+    const transferServer = toml.TRANSFER_SERVER;
 
     ({ enabledCurrency, infoJSON, currencies } = await getActiveCurrency(
       testCurrency,
@@ -54,7 +54,7 @@ describe("Withdraw", () => {
       isDeposit: false,
     });
     expect(status).not.toEqual(200);
-    expect(json.error).toBeTruthy();
+    expect(json.type).toEqual("authentication_required");
   });
 
   it("returns a proper error with missing params", async () => {
@@ -81,8 +81,7 @@ describe("Withdraw", () => {
     expect(json.error).toBeTruthy();
   });
 
-  it("returns successfully with an interactive url and a transaction id", async () => {
-    expect.assertions(5);
+  it("returns 403 or 200 Success", async () => {
     const { status, json } = await createTransaction({
       currency: enabledCurrency,
       account: keyPair.publicKey(),
@@ -90,11 +89,31 @@ describe("Withdraw", () => {
       toml: toml,
       isDeposit: false,
     });
-    let interactiveURL = json.url;
     expect(json.error).toBeFalsy();
-    expect(json.type).toEqual("interactive_customer_info_needed");
-    expect(json.id).toEqual(expect.any(String));
-    expect(() => new global.URL(interactiveURL)).not.toThrow();
-    expect(status).toEqual(200);
+    expect([200, 403]).toContain(status);
+    if (json.type) {
+      expect(json.type).toEqual("non_interactive_customer_info_needed");
+      expect(json.fields).toBeTruthy();
+    }
+  });
+
+  it("returns 200 Success or 403 customer_info_status after PUT request to KYC server", async () => {
+    if (toml.KYC_SERVER) {
+      await putKYCInfo({ toml: toml, account: keyPair.publicKey(), jwt: jwt });
+    }
+    const { status, json } = await createTransaction({
+      currency: enabledCurrency,
+      account: keyPair.publicKey(),
+      jwt: jwt,
+      toml: toml,
+      isDeposit: false,
+    });
+    expect([200, 403]).toContain(status);
+    expect(json.error).toBeFalsy();
+    if (status === 200) expect(json.account_id).toBeTruthy();
+    if (status === 403) {
+      expect(json.type).toEqual("customer_info_status");
+      expect(["pending", "denied"]).toContain(json.status);
+    }
   });
 });
