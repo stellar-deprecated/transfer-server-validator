@@ -38,8 +38,7 @@ module.exports = async () => {
           "transaction",
           "transactions",
           "fee.optional",
-          "interactive-flows.optional",
-        ]
+        ],
       };
 
       let testProject = process.env.PROJECT ? process.env.PROJECT : "SEP24";
