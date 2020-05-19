@@ -1,4 +1,4 @@
-import { fetch } from "./fetchShim";
+import { fetch } from "../../util/fetchShim";
 
 export async function getTransactionBy({
   value,

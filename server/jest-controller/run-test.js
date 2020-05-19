@@ -2,13 +2,14 @@ const fs = require("fs");
 const { spawn } = require("child_process");
 
 module.exports = async (domain, currency, test) => {
+  let PROJECT = process.env.PROJECT ? process.env.PROJECT : "SEP24";
   return new Promise((resolve, reject) => {
     const env = { ...process.env };
     env.DOMAIN = domain;
     env.CURRENCY = currency;
     const jest = spawn(
       "node_modules/.bin/jest",
-      ["--json", "--noStackTrace", `${test}.test.js`],
+      ["--json", "--noStackTrace", `cases-${PROJECT}/${test}.test.js`],
       {
         env,
       },
@@ -29,9 +30,7 @@ module.exports = async (domain, currency, test) => {
         const name = testResult.name.split("/").reduce((prev, cur) => cur);
         testResult.assertionResults.forEach((assertionResult) => {
           assertionResult.failureMessages.forEach((failureMessage) => {
-            console.log("Failure message", failureMessage);
             const [_, file, lineStr] = firstLineRegex.exec(failureMessage);
-            console.log("File", file);
             const errorLine = parseInt(lineStr);
             try {
               const fileContents = fs.readFileSync(file).toString();

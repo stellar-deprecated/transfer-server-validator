@@ -1,4 +1,4 @@
-import { fetch } from "./util/fetchShim";
+import { fetch } from "../util/fetchShim";
 import getSep10Token from "./util/sep10";
 import StellarSDK from "stellar-sdk";
 import getTomlFile from "./util/getTomlFile";

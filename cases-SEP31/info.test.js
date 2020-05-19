@@ -10,7 +10,7 @@ const url = urlBuilder.toString();
 
 describe("Info", () => {
   let toml;
-  let transferServer;
+  let DIRECT_PAYMENT_SERVER;
   beforeAll(async () => {
     try {
       toml = await getTomlFile(url);
@@ -19,15 +19,15 @@ describe("Info", () => {
     }
   });
 
-  it("has a TRANSFER_SERVER or TRANSFER_SERVER_SEP0024 url in the toml", () => {
-    transferServer = toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER;
-    expect(transferServer).toEqual(expect.stringContaining("http"));
-    expect(() => new URL(transferServer)).not.toThrow();
+  it("has a DIRECT_PAYMENT_SERVER in the toml", () => {
+    DIRECT_PAYMENT_SERVER = toml.DIRECT_PAYMENT_SERVER;
+    expect(DIRECT_PAYMENT_SERVER).toEqual(expect.stringContaining("http"));
+    expect(() => new URL(DIRECT_PAYMENT_SERVER)).not.toThrow();
   });
 
   it("has CORS on the info endpoint", async () => {
     const { optionsCORS, otherVerbCORS, logs } = await ensureCORS(
-      transferServer + "/info",
+      DIRECT_PAYMENT_SERVER + "/info",
     );
     expect(optionsCORS, logs).toBe("*");
     expect(otherVerbCORS, logs).toBe("*");
@@ -37,7 +37,7 @@ describe("Info", () => {
     let json;
 
     beforeAll(async () => {
-      const response = await fetch(transferServer + "/info", {
+      const response = await fetch(DIRECT_PAYMENT_SERVER + "/info", {
         headers: {
           Origin: "https://www.website.com",
         },
@@ -51,7 +51,7 @@ describe("Info", () => {
     });
 
     it("has a proper schema", () => {
-      expect(json).toMatchSchema(infoSchema);
+      expect(json, json).toMatchSchema(infoSchema);
     });
   });
 });

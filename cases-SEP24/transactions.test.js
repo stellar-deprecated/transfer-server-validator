@@ -1,4 +1,4 @@
-import { fetch } from "./util/fetchShim";
+import { fetch } from "../util/fetchShim";
 import getSep10Token from "./util/sep10";
 import getTomlFile from "./util/getTomlFile";
 import { createTransaction } from "./util/interactive";
@@ -9,7 +9,7 @@ import {
   transactionsSchema,
   getTransactionSchema,
 } from "./util/schema";
-import { ensureCORS } from "./util/ensureCORS";
+import { ensureCORS } from "../util/ensureCORS";
 import { getTransactionBy } from "./util/transactions";
 import { getActiveCurrency } from "./util/currency";
 

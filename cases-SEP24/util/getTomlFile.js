@@ -1,4 +1,4 @@
-import { fetch } from "./fetchShim";
+import { fetch } from "../../util/fetchShim";
 import TOML from "toml";
 
 export default async function(domain) {
