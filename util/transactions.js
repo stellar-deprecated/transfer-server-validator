@@ -26,3 +26,23 @@ export async function getTransactionBy({
   }
   return json;
 }
+
+export async function getLatestTransaction({
+  transferServer,
+  jwt,
+  account,
+  asset_code,
+} = {}) {
+  const response = await fetch(
+    transferServer +
+      `/transactions?asset_code=${asset_code}&account=${account}`,
+    {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    },
+  );
+  let json = await response.json();
+  console.log(json);
+  return json.transactions[0];
+}
