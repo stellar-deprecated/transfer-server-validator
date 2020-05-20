@@ -8,7 +8,7 @@ module.exports = async (domain, currency, mainnet, test, project) => {
     env.DOMAIN = domain;
     env.CURRENCY = currency;
     env.PROJECT = project;
-    env.MAINNET = mainnet === "true";
+    env.MAINNET = mainnet;
     const jest = spawn(
       "node_modules/.bin/jest",
       ["--json", "--noStackTrace", `cases-${PROJECT}/${test}.test.js`],

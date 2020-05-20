@@ -13,7 +13,18 @@ const url = urlBuilder.toString();
 const account = "GCQJX6WGG7SSFU2RBO5QANTFXY7C5GTTFJDCBAAO42JCCFIMZ7PEBURP";
 const secret = "SAUOSXXF7ZDO5PKHRFR445DRKZ66Q5HIM2HIPQGWBTUKJZQAOP3VGH3L";
 const keyPair = StellarSDK.Keypair.fromSecret(secret);
-const server = new StellarSDK.Server("https://horizon-testnet.stellar.org");
+let masterKp;
+let masterAccount;
+let horizonURL;
+if (process.env.MAINNET === "true") {
+  masterKp = StellarSDK.Keypair.fromSecret(
+    process.env.MAINNET_MASTER_SECRET_KEY,
+  );
+  horizonURL = "https://horizon.stellar.org";
+} else {
+  horizonURL = "https://horizon-testnet.stellar.org";
+}
+const server = new StellarSDK.Server(horizonURL);
 const accountPool = [];
 
 const getAccount = (function() {
@@ -27,16 +38,104 @@ const getAccount = (function() {
   };
 })();
 
-beforeAll(async () => {
-  for (let i = 0; i < 10; i++) {
-    accountPool.push({ kp: StellarSDK.Keypair.random(), data: null });
+async function createMainnetAccounts() {
+  masterAccount = await server.loadAccount(masterKp.publicKey());
+  const builder = new StellarSDK.TransactionBuilder(masterAccount, {
+    fee: StellarSDK.BASE_FEE * 10,
+    networkPassphrase: StellarSDK.Networks.PUBLIC,
+  });
+  try {
+    for (let i = 0; i < 10; i++) {
+      let kp = StellarSDK.Keypair.random();
+      let createAccountOp = StellarSDK.Operation.createAccount({
+        destination: kp.publicKey(),
+        startingBalance: "4",
+      });
+      builder.addOperation(createAccountOp);
+      accountPool.push({ kp: kp, data: null });
+    }
+    let tx = builder.setTimeout(30).build();
+    tx.sign(masterKp);
+    let response;
+    try {
+      response = await server.submitTransaction(tx);
+    } catch (e) {
+      throw e;
+    }
+    if (!repsonse.successful) {
+      throw `Something went wrong when creating accounts on mainnet: ${json.result_xdr}`;
+    }
+    await Promise.all(
+      accountPool.map(async (acc) => {
+        acc.data = await server.loadAccount(acc.kp.publicKey());
+      }),
+    );
+  } catch (e) {
+    try {
+      await mergeAccountPool();
+    } catch {
+      let accountPublicKeys = accountPool.map((acc) => acc.kp.publicKey());
+      throw `An exception was raised when attempting to create accounts, but merging accounts also failed. Accounts: ${accountPublicKeys}, Exception: ${e}`;
+    }
+    throw e;
   }
-  await Promise.all(
-    accountPool.map(async (acc) => {
-      await friendbot(acc.kp);
-      acc.data = await server.loadAccount(acc.kp.publicKey());
-    }),
-  );
+}
+
+async function mergeAccountPool() {
+  const builder = new StellarSDK.TransactionBuilder(masterAccount, {
+    fee: StellarSDK.BASE_FEE * accountPool.length,
+    networkPassphrase: StellarSDK.Networks.PUBLIC,
+  });
+  for (let accountObj of accountPool) {
+    if (!accountObj.data) continue;
+    builder.addOperation(
+      StellarSDK.Operation.accountMerge({
+        destination: masterKp.publicKey(),
+        source: accountObj.kp.publicKey(),
+      }),
+    );
+  }
+  if (!builder.operations.length) return;
+  let tx = builder.setTimeout(30).build();
+  tx.sign(masterKp);
+  let response;
+  try {
+    response = await server.submitTransaction(tx);
+  } catch (e) {
+    throw e;
+  }
+  let json = await response.json();
+  let accountPublicKeys = accountPool.map((acc) => acc.kp.publicKey());
+  if (!json.successful) {
+    throw `Unable to merge accounts back to master account, accounts: ${accountPublicKeys}`;
+  }
+}
+
+beforeAll(async () => {
+  if (process.env.MAINNET === "true") {
+    await createMainnetAccounts();
+  } else {
+    for (let i = 0; i < 10; i++) {
+      accountPool.push({ kp: StellarSDK.Keypair.random(), data: null });
+    }
+    await Promise.all(
+      accountPool.map(async (acc) => {
+        await friendbot(acc.kp);
+        acc.data = await server.loadAccount(acc.kp.publicKey());
+      }),
+    );
+  }
+});
+
+afterAll(async () => {
+  if (process.env.MAINNET === "true") {
+    try {
+      await mergeAccountPool();
+    } catch (e) {
+      let accountPublicKeys = accountPool.map((acc) => acc.kp.publicKey());
+      throw `Unabled to merge accounts back to master account. Accounts: ${accountPublicKeys}, Exception ${e}`;
+    }
+  }
 });
 
 describe("SEP10", () => {
