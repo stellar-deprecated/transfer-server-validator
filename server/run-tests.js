@@ -26,6 +26,7 @@ module.exports = async (req, res) => {
   const results = await runTest(
     req.query.domain,
     req.query.currency,
+    req.query.mainnet,
     req.query.test,
     req.query.project,
   );

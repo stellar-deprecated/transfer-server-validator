@@ -26,6 +26,9 @@ function App() {
   const [runOptionalTests, setRunOptionalTests] = useState<boolean>(
     Boolean(parseInt(process.env.RUN_OPTIONAL_TESTS || "0")) || false,
   );
+  const [runOnMainnet, setRunOnMainnet] = useState<boolean>(
+    Boolean(parseInt(process.env.MAINNET || "0")) || false,
+  );
 
   const fetchList = async (project: string) => {
     const res = await fetch(
@@ -39,8 +42,12 @@ function App() {
     const queryString = window.location.search;
     const urlParams = new URLSearchParams(queryString);
     const currency = urlParams.get("currency");
+    const mainnet = urlParams.get("mainnet");
     if (currency) {
       setCurrency(currency);
+    }
+    if (mainnet) {
+      setRunOnMainnet(mainnet === "true");
     }
     if (!["SEP24", "SEP6", "SEP31"].includes(sepSelect)) {
       setSepSelect("SEP24");
@@ -67,6 +74,26 @@ function App() {
     changeProject();
   }, [sepSelect]);
 
+  useEffect(() => {
+    const removeNonMainnetTestSuites = () => {
+      setTestList((previousTestList) => {
+        // the only test file not able to run on mainnet
+        // is the SEP-24 interactive tests
+        let opStatus =
+          !runOnMainnet && runOptionalTests
+            ? TestStatus.PENDING
+            : TestStatus.SKIPPED;
+        return previousTestList.map((test) => {
+          if (test.name.includes("interactive")) {
+            test.status = opStatus;
+          }
+          return test;
+        });
+      });
+    };
+    removeNonMainnetTestSuites();
+  }, [runOnMainnet, runOptionalTests]);
+
   const getValidDomain = useCallback(() => {
     let newDomain = domain;
     if (newDomain.indexOf("http") !== 0) {
@@ -87,10 +114,14 @@ function App() {
           window.history.replaceState(
             null,
             "",
-            `?home_domain=${domain}&currency=${currency}`,
+            `?home_domain=${domain}&currency=${currency}&mainnet=${runOnMainnet}`,
           );
         } else {
-          window.history.replaceState(null, "", `?home_domain=${domain}`);
+          window.history.replaceState(
+            null,
+            "",
+            `?home_domain=${domain}&mainnet=${runOnMainnet}`,
+          );
         }
         var nextTest: TestResultSet | undefined;
         while (
@@ -103,6 +134,7 @@ function App() {
           nextTest.results = await runTest(
             domainForTests,
             currency,
+            runOnMainnet,
             nextTest.name,
             sepSelect,
           );
@@ -121,7 +153,7 @@ function App() {
       }
       setBusy(false);
     },
-    [testList, domain, sepSelect, currency, getValidDomain, resetTests],
+    [testList, domain, sepSelect, currency, runOnMainnet, getValidDomain, resetTests],
   );
 
   return (
@@ -166,6 +198,15 @@ function App() {
           type="checkbox"
           checked={runOptionalTests}
           onChange={(e) => setRunOptionalTests(e.target.checked)}
+        ></input>
+      </div>
+      <div className={s.FieldRow}>
+        <span className={s.FieldLabel}>Run on mainnet: </span>
+        <input
+          className={s.CheckboxField}
+          type="checkbox"
+          checked={runOnMainnet}
+          onChange={(e) => setRunOnMainnet(e.target.checked)}
         ></input>
       </div>
       <ErrorMessage message={errorMessage} />
