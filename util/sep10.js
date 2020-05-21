@@ -27,7 +27,7 @@ export async function getSep10Token(domain, keyPair, signers) {
   return { token: json.token, logs };
 }
 
-export async function createMainnetAccounts(
+export async function createAccountsFrom(
   masterAccount,
   keypairs,
   server,

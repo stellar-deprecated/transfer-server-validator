@@ -5,7 +5,7 @@ import friendbot from "../util/friendbot";
 import getTomlFile from "../util/getTomlFile";
 import {
   getSep10Token,
-  createMainnetAccounts,
+  createAccountsFrom,
   mergeAccountsTo,
 } from "../util/sep10";
 import { ensureCORS } from "../util/ensureCORS";
@@ -49,7 +49,7 @@ beforeAll(async () => {
     let kps = [];
     for (let i = 0; i < 10; i++) kps.push(StellarSDK.Keypair.random());
     masterAccount.data = await server.loadAccount(masterAccount.kp.publicKey());
-    accountPool = await createMainnetAccounts(
+    accountPool = await createAccountsFrom(
       masterAccount,
       kps,
       server,
@@ -69,6 +69,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+  if (!masterAccount.data) return;
   if (process.env.MAINNET === "true") {
     try {
       await mergeAccountsTo(
@@ -156,10 +157,7 @@ describe("SEP10", () => {
   describe("GET Challenge", () => {
     let json;
     let logs;
-    let network_passphrase;
     beforeAll(async () => {
-      network_passphrase = toml.NETWORK_PASSPHRASE || networkPassphrase;
-
       ({ json, logs } = await loggableFetch(
         toml.WEB_AUTH_ENDPOINT + "?account=" + account,
       ));
@@ -170,7 +168,7 @@ describe("SEP10", () => {
       expect(json.transaction, logs).toBeTruthy();
       const tx = new StellarSDK.Transaction(
         json.transaction,
-        network_passphrase,
+        networkPassphrase,
       );
 
       expect(tx.sequence, logs).toBe("0");
@@ -185,7 +183,7 @@ describe("SEP10", () => {
       it("Accepts application/x-www-form-urlencoded", async () => {
         const tx = new StellarSDK.Transaction(
           json.transaction,
-          network_passphrase,
+          networkPassphrase,
         );
         tx.sign(keyPair);
         let { json: tokenJson, logs } = await loggableFetch(
@@ -220,7 +218,7 @@ describe("SEP10", () => {
       it("fails if the client doesn't sign the challenge", async () => {
         const tx = new StellarSDK.Transaction(
           json.transaction,
-          network_passphrase,
+          networkPassphrase,
         );
         let { json: tokenJson, status, logs } = await loggableFetch(
           toml.WEB_AUTH_ENDPOINT,
@@ -239,7 +237,7 @@ describe("SEP10", () => {
       it("fails if the signed challenge isn't signed by the servers SIGNING_KEY", async () => {
         const tx = new StellarSDK.Transaction(
           json.transaction,
-          network_passphrase,
+          networkPassphrase,
         );
         // Remove the server signature, only sign by client
         tx.signatures = [];
@@ -263,7 +261,7 @@ describe("SEP10", () => {
       beforeAll(async () => {
         const tx = new StellarSDK.Transaction(
           json.transaction,
-          network_passphrase,
+          networkPassphrase,
         );
         tx.sign(keyPair);
         ({ json: tokenJson, logs } = await loggableFetch(
