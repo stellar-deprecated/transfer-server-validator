@@ -40,12 +40,6 @@ describe("TOML File", () => {
       } catch (e) {
         throw "Invalid TOML formatting";
       }
-      if (
-        toml.NETWORK_PASSPHRASE ==
-        "Public Global Stellar Network ; September 2015"
-      ) {
-        throw "The validator doesn't support mainnet testing";
-      }
     });
 
     it("uses TRANSFER_SERVER_SEP0024", async () => {

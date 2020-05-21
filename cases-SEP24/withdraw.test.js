@@ -1,5 +1,5 @@
 import { fetch } from "../util/fetchShim";
-import getSep10Token from "../util/sep10";
+import { getSep10Token } from "../util/sep10";
 import StellarSDK from "stellar-sdk";
 import getTomlFile from "../util/getTomlFile";
 import { createTransaction } from "./util/interactive";
@@ -19,7 +19,7 @@ describe("Withdraw", () => {
   let toml;
 
   beforeAll(async () => {
-    await fetch(`https://friendbot.stellar.org?addr=${keyPair.publicKey()}`);
+    //await fetch(`https://friendbot.stellar.org?addr=${keyPair.publicKey()}`);
     try {
       toml = await getTomlFile(url);
     } catch (e) {

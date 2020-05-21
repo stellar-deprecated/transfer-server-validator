@@ -1,4 +1,4 @@
-import getSep10Token from "../util/sep10";
+import { getSep10Token } from "../util/sep10";
 import getTomlFile from "../util/getTomlFile";
 import { createTransaction } from "./util/transactions";
 import { loggableFetch } from "../util/loggableFetcher";
