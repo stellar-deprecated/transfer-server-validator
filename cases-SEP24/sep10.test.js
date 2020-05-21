@@ -3,7 +3,11 @@ import JWT from "jsonwebtoken";
 import StellarSDK from "stellar-sdk";
 import friendbot from "../util/friendbot";
 import getTomlFile from "../util/getTomlFile";
-import getSep10Token from "../util/sep10";
+import {
+  getSep10Token,
+  createMainnetAccounts,
+  mergeAccountsTo,
+} from "../util/sep10";
 import { ensureCORS } from "../util/ensureCORS";
 import { loggableFetch } from "../util/loggableFetcher";
 
@@ -13,12 +17,11 @@ const url = urlBuilder.toString();
 const account = "GCQJX6WGG7SSFU2RBO5QANTFXY7C5GTTFJDCBAAO42JCCFIMZ7PEBURP";
 const secret = "SAUOSXXF7ZDO5PKHRFR445DRKZ66Q5HIM2HIPQGWBTUKJZQAOP3VGH3L";
 const keyPair = StellarSDK.Keypair.fromSecret(secret);
-let masterKp;
-let masterAccount;
 let horizonURL;
+let masterAccount = {};
 let networkPassphrase;
 if (process.env.MAINNET === "true") {
-  masterKp = StellarSDK.Keypair.fromSecret(
+  masterAccount.kp = StellarSDK.Keypair.fromSecret(
     process.env.MAINNET_MASTER_SECRET_KEY,
   );
   horizonURL = "https://horizon.stellar.org";
@@ -28,7 +31,7 @@ if (process.env.MAINNET === "true") {
   networkPassphrase = StellarSDK.Networks.TESTNET;
 }
 const server = new StellarSDK.Server(horizonURL);
-const accountPool = [];
+let accountPool = [];
 
 const getAccount = (function() {
   let accountPoolIdx = 0;
@@ -41,80 +44,17 @@ const getAccount = (function() {
   };
 })();
 
-async function createMainnetAccounts() {
-  masterAccount = await server.loadAccount(masterKp.publicKey());
-  const builder = new StellarSDK.TransactionBuilder(masterAccount, {
-    fee: StellarSDK.BASE_FEE * 10,
-    networkPassphrase: networkPassphrase,
-  });
-  try {
-    for (let i = 0; i < 10; i++) {
-      let kp = StellarSDK.Keypair.random();
-      let createAccountOp = StellarSDK.Operation.createAccount({
-        destination: kp.publicKey(),
-        startingBalance: "4",
-      });
-      builder.addOperation(createAccountOp);
-      accountPool.push({ kp: kp, data: null });
-    }
-    let tx = builder.setTimeout(30).build();
-    tx.sign(masterKp);
-    let response;
-    try {
-      response = await server.submitTransaction(tx);
-    } catch (e) {
-      console.log(e);
-      throw e;
-    }
-    if (!response.successful) {
-      throw `Something went wrong when creating accounts on mainnet: ${json.result_xdr}`;
-    }
-    await Promise.all(
-      accountPool.map(async (acc) => {
-        acc.data = await server.loadAccount(acc.kp.publicKey());
-      }),
-    );
-  } catch (e) {
-    try {
-      await mergeAccountPool();
-    } catch (e) {
-      console.log(e);
-      let accountPublicKeys = accountPool.map((acc) => acc.kp.publicKey());
-      throw `An exception was raised when attempting to create accounts, but merging accounts also failed. Accounts: ${accountPublicKeys}`;
-    }
-    console.log(e);
-    throw e;
-  }
-}
-
-async function mergeAccountPool() {
-  const builder = new StellarSDK.TransactionBuilder(masterAccount, {
-    fee: StellarSDK.BASE_FEE * accountPool.length,
-    networkPassphrase: networkPassphrase,
-  });
-  for (let accountObj of accountPool) {
-    if (!accountObj.data) continue;
-    builder.addOperation(
-      StellarSDK.Operation.accountMerge({
-        destination: masterKp.publicKey(),
-        source: accountObj.kp.publicKey(),
-      }),
-    );
-  }
-  if (!builder.operations.length) return;
-  let tx = builder.setTimeout(30).build();
-  tx.sign(masterKp, ...accountPool.map((acc) => acc.kp));
-  let response;
-  response = await server.submitTransaction(tx);
-  let accountPublicKeys = accountPool.map((acc) => acc.kp.publicKey());
-  if (!response.successful) {
-    throw `Unable to merge accounts back to master account, accounts: ${accountPublicKeys}`;
-  }
-}
-
 beforeAll(async () => {
   if (process.env.MAINNET === "true") {
-    await createMainnetAccounts();
+    let kps = [];
+    for (let i = 0; i < 10; i++) kps.push(StellarSDK.Keypair.random());
+    masterAccount.data = await server.loadAccount(masterAccount.kp.publicKey());
+    accountPool = await createMainnetAccounts(
+      masterAccount,
+      kps,
+      server,
+      networkPassphrase,
+    );
   } else {
     for (let i = 0; i < 10; i++) {
       accountPool.push({ kp: StellarSDK.Keypair.random(), data: null });
@@ -131,7 +71,12 @@ beforeAll(async () => {
 afterAll(async () => {
   if (process.env.MAINNET === "true") {
     try {
-      await mergeAccountPool();
+      await mergeAccountsTo(
+        masterAccount,
+        accountPool,
+        server,
+        networkPassphrase,
+      );
     } catch (e) {
       let accountPublicKeys = accountPool.map((acc) => acc.kp.publicKey());
       console.log(e);

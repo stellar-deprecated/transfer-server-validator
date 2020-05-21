@@ -2,7 +2,7 @@ import StellarSDK from "stellar-sdk";
 import { loggableFetch } from "./loggableFetcher";
 import getTomlFile from "./getTomlFile";
 
-export default async function getSep10Token(domain, keyPair, signers) {
+export async function getSep10Token(domain, keyPair, signers) {
   if (!signers) signers = [keyPair];
   const toml = await getTomlFile(domain);
   let { json, logs } = await loggableFetch(
@@ -25,4 +25,84 @@ export default async function getSep10Token(domain, keyPair, signers) {
     body: JSON.stringify({ transaction: tx.toXDR() }),
   }));
   return { token: json.token, logs };
+}
+
+export async function createMainnetAccounts(
+  masterAccount,
+  keypairs,
+  server,
+  networkPassphrase,
+) {
+  const builder = new StellarSDK.TransactionBuilder(masterAccount.data, {
+    fee: StellarSDK.BASE_FEE * keypairs.length,
+    networkPassphrase: networkPassphrase,
+  });
+  let accounts = [];
+  try {
+    for (let kp of keypairs) {
+      let createAccountOp = StellarSDK.Operation.createAccount({
+        destination: kp.publicKey(),
+        startingBalance: "4",
+      });
+      builder.addOperation(createAccountOp);
+      accounts.push({ kp: kp, data: null });
+    }
+    let tx = builder.setTimeout(30).build();
+    tx.sign(masterAccount.kp);
+    let response;
+    try {
+      response = await server.submitTransaction(tx);
+    } catch (e) {
+      console.log(e);
+      throw e;
+    }
+    if (!response.successful) {
+      throw `Something went wrong when creating accounts on mainnet: ${json.result_xdr}`;
+    }
+    await Promise.all(
+      accounts.map(async (acc) => {
+        acc.data = await server.loadAccount(acc.kp.publicKey());
+      }),
+    );
+  } catch (e) {
+    try {
+      await mergeAccountsTo(masterAccount, accounts, server, networkPassphrase);
+    } catch (e) {
+      console.log(e);
+      let accountPublicKeys = accounts.map((acc) => acc.kp.publicKey());
+      throw `An exception was raised when attempting to create accounts, but merging accounts also failed. Accounts: ${accountPublicKeys}`;
+    }
+    console.log(e);
+    throw e;
+  }
+  return accounts;
+}
+
+export async function mergeAccountsTo(
+  masterAccount,
+  accounts,
+  server,
+  networkPassphrase,
+) {
+  const builder = new StellarSDK.TransactionBuilder(masterAccount.data, {
+    fee: StellarSDK.BASE_FEE * accounts.length,
+    networkPassphrase: networkPassphrase,
+  });
+  for (let accountObj of accounts) {
+    if (!accountObj.data) continue;
+    builder.addOperation(
+      StellarSDK.Operation.accountMerge({
+        destination: masterAccount.kp.publicKey(),
+        source: accountObj.kp.publicKey(),
+      }),
+    );
+  }
+  if (!builder.operations.length) return;
+  let tx = builder.setTimeout(30).build();
+  tx.sign(masterAccount.kp, ...accounts.map((acc) => acc.kp));
+  let response = await server.submitTransaction(tx);
+  let accountPublicKeys = accounts.map((acc) => acc.kp.publicKey());
+  if (!response.successful) {
+    throw `Unable to merge accounts back to master account, accounts: ${accountPublicKeys}`;
+  }
 }
