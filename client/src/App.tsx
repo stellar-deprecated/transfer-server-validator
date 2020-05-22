@@ -6,6 +6,7 @@ import TestList from "./TestList";
 import { TestResultSet, TestStatus, makeTestResultSet } from "./TestResults";
 import runTest from "./api/runTest";
 import s from "./App.module.css";
+import TOML from "toml";
 
 function App() {
   const queryString = window.location.search;
@@ -21,6 +22,9 @@ function App() {
   );
   const [sepSelect, setSepSelect] = useState<string>(
     urlParams.get("project") || "SEP24",
+  );
+  const [wrongNetworkError, setWrongNetworkError] = useState<String | null>(
+    null,
   );
   const [currency, setCurrency] = useState<string>("");
   const [runOptionalTests, setRunOptionalTests] = useState<boolean>(
@@ -63,6 +67,22 @@ function App() {
   }, [availableTests, runOptionalTests]);
   useEffect(resetTests, [availableTests]);
 
+  const setDomainArgs = useCallback(() => {
+    if (currency) {
+      window.history.replaceState(
+        null,
+        "",
+        `?home_domain=${domain}&currency=${currency}&mainnet=${runOnMainnet}`,
+      );
+    } else {
+      window.history.replaceState(
+        null,
+        "",
+        `?home_domain=${domain}&mainnet=${runOnMainnet}`,
+      );
+    }
+  }, [currency, domain, runOnMainnet]);
+
   useEffect(() => {
     resetTests();
   }, [resetTests, runOptionalTests]);
@@ -74,8 +94,42 @@ function App() {
     changeProject();
   }, [sepSelect]);
 
+  /*
+   * Checks the anchor's TOML for NETWORK_PASSPHRASE and validates that
+   * its the correct string depending on runOnMainnet
+   */
+  const checkAnchorNetwork = useCallback(async () => {
+    let url = domain.includes("http") ? domain : "https://" + domain;
+    url = url.substr(-1) === "/" ? url.substr(0, url.length - 1) : url;
+    const response = await fetch(url + "/.well-known/stellar.toml");
+    const text = await response.text();
+    const toml = TOML.parse(text);
+    // Doesn't have NETWORK_PASSPHRASE, don't stop them from running tests
+    // even if they'll fail due to running on the wrong network
+    if (!toml.NETWORK_PASSPHRASE) return;
+    if (
+      runOnMainnet &&
+      toml.NETWORK_PASSPHRASE !==
+        "Public Global Stellar Network ; September 2015"
+    ) {
+      throw Error(
+        "This anchor doesn't run on mainnet! Unselect the 'Run on mainnet' checkbox.",
+      );
+    }
+    if (
+      !runOnMainnet &&
+      toml.NETWORK_PASSPHRASE !== "Test SDF Network ; September 2015"
+    ) {
+      throw Error(
+        "This anchor doesn't run on testnet! Try running on mainnet.",
+      );
+    }
+  }, [domain, runOnMainnet]);
+
   useEffect(() => {
-    const removeNonMainnetTestSuites = () => {
+    const onRunOnMainnetChange = () => {
+      setDomainArgs();
+      setWrongNetworkError(null);
       setTestList((previousTestList) => {
         // the only test file not able to run on mainnet
         // is the SEP-24 interactive tests
@@ -91,8 +145,8 @@ function App() {
         });
       });
     };
-    removeNonMainnetTestSuites();
-  }, [runOnMainnet, runOptionalTests]);
+    onRunOnMainnetChange();
+  }, [runOnMainnet, runOptionalTests, setDomainArgs]);
 
   const getValidDomain = useCallback(() => {
     let newDomain = domain;
@@ -108,20 +162,16 @@ function App() {
     async (_) => {
       try {
         resetTests();
+        setWrongNetworkError(null);
         setBusy(true);
         const domainForTests = getValidDomain();
-        if (currency) {
-          window.history.replaceState(
-            null,
-            "",
-            `?home_domain=${domain}&currency=${currency}&mainnet=${runOnMainnet}`,
-          );
-        } else {
-          window.history.replaceState(
-            null,
-            "",
-            `?home_domain=${domain}&mainnet=${runOnMainnet}`,
-          );
+        setDomainArgs();
+        try {
+          await checkAnchorNetwork();
+        } catch (e) {
+          setWrongNetworkError(e.message);
+          setBusy(false);
+          return;
         }
         var nextTest: TestResultSet | undefined;
         while (
@@ -153,7 +203,17 @@ function App() {
       }
       setBusy(false);
     },
-    [testList, domain, sepSelect, currency, runOnMainnet, getValidDomain, resetTests],
+    [
+      testList, 
+      domain, 
+      sepSelect, 
+      currency, 
+      runOnMainnet, 
+      setDomainArgs,
+      checkAnchorNetwork,
+      getValidDomain, 
+      resetTests
+    ],
   );
 
   return (
@@ -209,6 +269,9 @@ function App() {
           onChange={(e) => setRunOnMainnet(e.target.checked)}
         ></input>
       </div>
+      <p hidden={!wrongNetworkError} className={s.ErrorMessage}>
+        {wrongNetworkError}
+      </p>
       <ErrorMessage message={errorMessage} />
       <TestList testList={testList} />
     </div>

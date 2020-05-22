@@ -45,7 +45,11 @@ function TestListItem({ result }: { result: TestResult }) {
                 }`}
               >
                 <span className={s.SourceLineNumber}>
-                  <a href={sourceLine.directLink} target="_blank">
+                  <a
+                    href={sourceLine.directLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     {sourceLine.lineNumber}
                   </a>
                 </span>
