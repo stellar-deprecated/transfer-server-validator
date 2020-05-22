@@ -19,7 +19,6 @@ describe("Withdraw", () => {
   let toml;
 
   beforeAll(async () => {
-    //await fetch(`https://friendbot.stellar.org?addr=${keyPair.publicKey()}`);
     try {
       toml = await getTomlFile(url);
     } catch (e) {

@@ -38,9 +38,9 @@ describe("Info", () => {
 
     beforeAll(async () => {
       const response = await fetch(transferServer + "/info", {
-        //headers: {
-        //  Origin: "https://www.website.com",
-        //},
+        headers: {
+          Origin: "https://www.website.com",
+        },
       });
       expect(response.status).toEqual(200);
       expect(response.headers.get("content-type")).toEqual(
