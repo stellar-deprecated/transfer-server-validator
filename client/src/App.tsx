@@ -15,6 +15,7 @@ function App() {
   const [testList, setTestList] = useState<TestResultSet[]>([]);
   const [busy, setBusy] = useState<boolean>(false);
   const [domain, setDomain] = useState("testanchor.stellar.org");
+  const [project, setProject] = useState<string | null>("SEP24");
   const [currency, setCurrency] = useState<string>("");
   const [runOptionalTests, setRunOptionalTests] = useState<boolean>(
     Boolean(parseInt(process.env.RUN_OPTIONAL_TESTS || "0")) || false,
@@ -25,11 +26,15 @@ function App() {
     const urlParams = new URLSearchParams(queryString);
     const domain = urlParams.get("home_domain");
     const currency = urlParams.get("currency");
+    const project = urlParams.get("project");
     if (domain) {
       setDomain(domain);
     }
     if (currency) {
       setCurrency(currency);
+    }
+    if (project) {
+      setProject(project);
     }
     const fetchList = async () => {
       const res = await fetch(`${process.env.REACT_APP_API_HOST || ""}/list`);
@@ -98,6 +103,7 @@ function App() {
             domainForTests,
             currency,
             nextTest.name,
+            project,
           );
           nextTest.status = nextTest.results.every((result) => {
             return [TestStatus.SUCCESS, TestStatus.SKIPPED].includes(
@@ -114,7 +120,7 @@ function App() {
       }
       setBusy(false);
     },
-    [testList, domain, currency, getValidDomain, resetTests],
+    [testList, domain, project, currency, getValidDomain, resetTests],
   );
 
   return (
