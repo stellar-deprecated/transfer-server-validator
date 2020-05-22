@@ -111,13 +111,13 @@ Running from the command line should look like this (testanchor.stellar.org does
 not run on mainnet)
 
 ```
-DOMAIN=https://testanchor.stellar.org MAINNET=1 MAINNET_MASTER_SECRET_KEY=S... npx jest --roots=cases-SEP24
+$ DOMAIN=https://testanchor.stellar.org MAINNET=1 MAINNET_MASTER_SECRET_KEY=S... npx jest --roots=cases-SEP24
 ```
 
 Running the client+server
 
 ```
-MAINNET_MASTER_SECRET_KEY=S... npm run start:dev
+$ MAINNET_MASTER_SECRET_KEY=S... npm run start:dev
 ```
 
 ## Instructions for anchors
