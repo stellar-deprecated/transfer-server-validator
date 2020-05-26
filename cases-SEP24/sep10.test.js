@@ -120,10 +120,6 @@ describe("SEP10", () => {
       ));
     });
 
-    it("gives a network passphrase", () => {
-      expect(json.network_passphrase, logs).toBeTruthy();
-    });
-
     it("gives a valid challenge transaction", async () => {
       expect(json.error, logs).toBeFalsy();
       expect(json.transaction, logs).toBeTruthy();
