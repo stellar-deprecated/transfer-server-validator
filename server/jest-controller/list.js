@@ -1,9 +1,9 @@
 const { spawn } = require("child_process");
 const path = require("path");
 
-module.exports = async () => {
+module.exports = async (project) => {
   return new Promise((resolve, reject) => {
-    let testProject = process.env.PROJECT ? process.env.PROJECT : "SEP24";
+    let testProject = project || process.env.PROJECT || "SEP24";
     const jest = spawn("node_modules/.bin/jest", [
       "--list-tests",
       `--roots=cases-${testProject}`,
@@ -40,8 +40,6 @@ module.exports = async () => {
           "fee.optional",
         ],
       };
-
-      let testProject = process.env.PROJECT ? process.env.PROJECT : "SEP24";
 
       const unorderedTests = output
         .trim()

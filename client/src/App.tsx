@@ -15,56 +15,58 @@ function App() {
   const [testList, setTestList] = useState<TestResultSet[]>([]);
   const [busy, setBusy] = useState<boolean>(false);
   const [domain, setDomain] = useState("testanchor.stellar.org");
-  const [project, setProject] = useState<string | null>("SEP24");
+  const [sepSelect, setSepSelect] = useState<string>("SEP24");
+  const [project, setProject] = useState<string>("SEP24");
   const [currency, setCurrency] = useState<string>("");
   const [runOptionalTests, setRunOptionalTests] = useState<boolean>(
     Boolean(parseInt(process.env.RUN_OPTIONAL_TESTS || "0")) || false,
   );
+
+  const fetchList = async (project: string) => {
+    const res = await fetch(
+      `${process.env.REACT_APP_API_HOST || ""}/list?project=${project}`,
+    );
+    const testNames: string[] = await res.json();
+    setAvailableTests(testNames);
+  };
 
   useEffect(() => {
     const queryString = window.location.search;
     const urlParams = new URLSearchParams(queryString);
     const domain = urlParams.get("home_domain");
     const currency = urlParams.get("currency");
-    const project = urlParams.get("project");
+    const project = urlParams.get("project") || "SEP24";
     if (domain) {
       setDomain(domain);
     }
     if (currency) {
       setCurrency(currency);
     }
-    if (project) {
-      setProject(project);
-    }
-    const fetchList = async () => {
-      const res = await fetch(`${process.env.REACT_APP_API_HOST || ""}/list`);
-      const testNames: string[] = await res.json();
-      setAvailableTests(testNames);
-    };
-    fetchList();
+    setSepSelect(project);
+    setProject(project);
+    fetchList(project);
   }, []);
 
   const resetTests = useCallback(() => {
-    setTestList(availableTests.map(makeTestResultSet));
-  }, [availableTests]);
+    setTestList(
+      availableTests.map((test) => {
+        return makeTestResultSet(test, runOptionalTests);
+      }),
+    );
+  }, [availableTests, runOptionalTests]);
   useEffect(resetTests, [availableTests]);
 
   useEffect(() => {
-    const changeOptionalTestStatuses = () => {
-      setTestList((previousTestList) => {
-        return previousTestList.map((test) => {
-          let opStatus = runOptionalTests
-            ? TestStatus.PENDING
-            : TestStatus.SKIPPED;
-          if (test.name.includes("optional")) {
-            test.status = opStatus;
-          }
-          return test;
-        });
-      });
+    resetTests();
+  }, [resetTests, runOptionalTests]);
+
+  useEffect(() => {
+    const changeProject = async () => {
+      setProject(sepSelect);
+      await fetchList(sepSelect);
     };
-    changeOptionalTestStatuses();
-  }, [runOptionalTests]);
+    changeProject();
+  }, [sepSelect]);
 
   const getValidDomain = useCallback(() => {
     let newDomain = domain;
@@ -143,6 +145,20 @@ function App() {
         <button className={s.ValidateButton} onClick={runTests} disabled={busy}>
           {busy ? "Running..." : "Run tests"}
         </button>
+      </div>
+      <div className={s.FieldRow}>
+        <span className={s.FieldLabel}>Select SEP: </span>
+        <select
+          className={s.DropdownField}
+          value={sepSelect}
+          onChange={(e) => setSepSelect(e.target.value)}
+        >
+          <option selected value="SEP24">
+            SEP-24
+          </option>
+          <option value="SEP6">SEP-6</option>
+          <option value="SEP31">SEP-31</option>
+        </select>
       </div>
       <div className={s.FieldRow}>
         <span className={s.FieldLabel}>Run optional tests: </span>
