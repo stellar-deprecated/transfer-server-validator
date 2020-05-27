@@ -8,14 +8,20 @@ import runTest from "./api/runTest";
 import s from "./App.module.css";
 
 function App() {
+  const queryString = window.location.search;
+  const urlParams = new URLSearchParams(queryString);
   const [errorMessage, setErrorMessage] = useState<String | null>(null);
   // All tests available from the server
   const [availableTests, setAvailableTests] = useState<string[]>([]);
   // Current (pending) test runs
   const [testList, setTestList] = useState<TestResultSet[]>([]);
   const [busy, setBusy] = useState<boolean>(false);
-  const [domain, setDomain] = useState("testanchor.stellar.org");
-  const [sepSelect, setSepSelect] = useState<string>("SEP24");
+  const [domain, setDomain] = useState(
+    urlParams.get("domain") || "testanchor.stellar.org",
+  );
+  const [sepSelect, setSepSelect] = useState<string>(
+    urlParams.get("project") || "SEP24",
+  );
   const [currency, setCurrency] = useState<string>("");
   const [runOptionalTests, setRunOptionalTests] = useState<boolean>(
     Boolean(parseInt(process.env.RUN_OPTIONAL_TESTS || "0")) || false,
@@ -32,19 +38,13 @@ function App() {
   useEffect(() => {
     const queryString = window.location.search;
     const urlParams = new URLSearchParams(queryString);
-    const domain = urlParams.get("home_domain");
     const currency = urlParams.get("currency");
-    let project = urlParams.get("project") || "SEP24";
-    if (domain) {
-      setDomain(domain);
-    }
     if (currency) {
       setCurrency(currency);
     }
-    if (!["SEP24", "SEP6", "SEP31"].includes(project)) {
-      project = "SEP24";
+    if (!["SEP24", "SEP6", "SEP31"].includes(sepSelect)) {
+      setSepSelect("SEP24");
     }
-    setSepSelect(project);
   }, []);
 
   const resetTests = useCallback(() => {
