@@ -94,13 +94,22 @@ function App() {
     changeProject();
   }, [sepSelect]);
 
+  const getValidDomain = useCallback(() => {
+    let newDomain = domain;
+    if (newDomain.indexOf("http") !== 0) {
+      newDomain = `https://${newDomain}`;
+    }
+    newDomain =
+      newDomain.substr(-1) === "/" ? newDomain.slice(0, -1) : newDomain;
+    return newDomain;
+  }, [domain]);
+
   /*
    * Checks the anchor's TOML for NETWORK_PASSPHRASE and validates that
    * its the correct string depending on runOnMainnet
    */
   const checkAnchorNetwork = useCallback(async () => {
-    let url = domain.includes("http") ? domain : "https://" + domain;
-    url = url.substr(-1) === "/" ? url.substr(0, url.length - 1) : url;
+    const url = getValidDomain();
     const response = await fetch(url + "/.well-known/stellar.toml");
     const text = await response.text();
     const toml = TOML.parse(text);
@@ -124,7 +133,7 @@ function App() {
         "This anchor doesn't run on testnet! Try running on mainnet.",
       );
     }
-  }, [domain, runOnMainnet]);
+  }, [runOnMainnet, getValidDomain]);
 
   useEffect(() => {
     const onRunOnMainnetChange = () => {
@@ -147,16 +156,6 @@ function App() {
     };
     onRunOnMainnetChange();
   }, [runOnMainnet, runOptionalTests, setDomainArgs]);
-
-  const getValidDomain = useCallback(() => {
-    let newDomain = domain;
-    if (newDomain.indexOf("http") !== 0) {
-      newDomain = `https://${newDomain}`;
-    }
-    newDomain =
-      newDomain.substr(-1) === "/" ? newDomain.slice(0, -1) : newDomain;
-    return newDomain;
-  }, [domain]);
 
   const runTests = useCallback(
     async (_) => {
