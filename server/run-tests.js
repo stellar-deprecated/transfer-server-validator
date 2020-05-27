@@ -27,6 +27,7 @@ module.exports = async (req, res) => {
     req.query.domain,
     req.query.currency,
     req.query.test,
+    req.query.project,
   );
   clearTimeout(timer);
   res.write(`data: ${JSON.stringify({ results })}\n\n`);

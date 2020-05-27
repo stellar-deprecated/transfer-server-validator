@@ -25,11 +25,12 @@ export default async (
   domain: string,
   currency: string,
   test: string,
+  project: string | null,
 ): Promise<TestResult[]> => {
   const apiResult: any = await new Promise<TestResult[]>((resolve, reject) => {
     const evtSource = new EventSource(
       `${process.env.REACT_APP_API_HOST ||
-        ""}/run?domain=${domain}&currency=${currency}&test=${test}`,
+        ""}/run?domain=${domain}&currency=${currency}&test=${test}&project=${project}`,
     );
     evtSource.addEventListener("message", (event) => {
       const message = JSON.parse(event.data);

@@ -27,9 +27,12 @@ export interface TestResultSet {
   numPassedTests: number;
 }
 
-export function makeTestResultSet(name: string): TestResultSet {
+export function makeTestResultSet(
+  name: string,
+  runOptional: boolean,
+): TestResultSet {
   let status = TestStatus.PENDING;
-  if (name.includes(".optional")) {
+  if (name.includes(".optional") && !runOptional) {
     status = TestStatus.SKIPPED;
   }
   return {
