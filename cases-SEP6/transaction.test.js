@@ -1,5 +1,5 @@
 import { fetch } from "../util/fetchShim";
-import getSep10Token from "../util/sep10";
+import { getSep10Token } from "../util/sep10";
 import getTomlFile from "../util/getTomlFile";
 import StellarSDK from "stellar-sdk";
 import { getTransactionBy } from "../util/transactions";

@@ -66,7 +66,7 @@ And if you're running `jest` directly, you can use the
 `--testPathIgnorePatterns` flag:
 
 ```
-DOMAIN=https://stellar-anchor-server.herokuapp.com npx jest --testPathIgnorePatterns='\b(\w*optional\w*)\b'
+DOMAIN=https://testanchor.stellar.org npx jest --testPathIgnorePatterns='\b(\w*optional\w*)\b'
 ```
 
 The UI provides an option to run these optional tests as well.
@@ -86,6 +86,38 @@ $ npm run start:dev
 # Run the server+client
 $ npm install
 $ PROJECT=SEP24 npm run start:dev
+
+# Or run from the command line
+$ DOMAIN=https://testanchor.stellar.org npx jest --roots=cases-SEP6
+```
+
+## Running test suite for mainnet anchors
+
+When using https://anchor-validator.stellar.org, running the validation suite on
+mainnet is as easy as selecting the 'Run on mainnet' checkbox.
+
+When running your own instance of this project, you have to specify the
+following environment variables
+
+`MAINNET=1` This lets the project know it should expect the anchor to use
+mainnet
+
+`MAINNET_MASTER_SECRET_KEY` This is a stellar account secret key that is used to
+create temporary accounts for tests. This 'master' account must have at least 50
+XLM in order to fund these accounts. When tests finish, the temporary accounts
+will be merged back to the master account.
+
+Running from the command line should look like this (testanchor.stellar.org does
+not run on mainnet)
+
+```
+$ DOMAIN=https://testanchor.stellar.org MAINNET=1 MAINNET_MASTER_SECRET_KEY=S... npx jest --roots=cases-SEP24
+```
+
+Running the client+server
+
+```
+$ MAINNET_MASTER_SECRET_KEY=S... npm run start:dev
 ```
 
 ## Instructions for anchors

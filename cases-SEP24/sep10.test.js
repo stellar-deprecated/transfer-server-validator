@@ -3,7 +3,11 @@ import JWT from "jsonwebtoken";
 import StellarSDK from "stellar-sdk";
 import friendbot from "../util/friendbot";
 import getTomlFile from "../util/getTomlFile";
-import getSep10Token from "../util/sep10";
+import {
+  getSep10Token,
+  createAccountsFrom,
+  mergeAccountsTo,
+} from "../util/sep10";
 import { ensureCORS } from "../util/ensureCORS";
 import { loggableFetch } from "../util/loggableFetcher";
 
@@ -13,8 +17,21 @@ const url = urlBuilder.toString();
 const account = "GCQJX6WGG7SSFU2RBO5QANTFXY7C5GTTFJDCBAAO42JCCFIMZ7PEBURP";
 const secret = "SAUOSXXF7ZDO5PKHRFR445DRKZ66Q5HIM2HIPQGWBTUKJZQAOP3VGH3L";
 const keyPair = StellarSDK.Keypair.fromSecret(secret);
-const server = new StellarSDK.Server("https://horizon-testnet.stellar.org");
-const accountPool = [];
+let horizonURL;
+let masterAccount = {};
+let networkPassphrase;
+if (process.env.MAINNET === "true") {
+  masterAccount.kp = StellarSDK.Keypair.fromSecret(
+    process.env.MAINNET_MASTER_SECRET_KEY,
+  );
+  horizonURL = "https://horizon.stellar.org";
+  networkPassphrase = StellarSDK.Networks.PUBLIC;
+} else {
+  horizonURL = "https://horizon-testnet.stellar.org";
+  networkPassphrase = StellarSDK.Networks.TESTNET;
+}
+const server = new StellarSDK.Server(horizonURL);
+let accountPool = [];
 
 const getAccount = (function() {
   let accountPoolIdx = 0;
@@ -28,15 +45,45 @@ const getAccount = (function() {
 })();
 
 beforeAll(async () => {
-  for (let i = 0; i < 10; i++) {
-    accountPool.push({ kp: StellarSDK.Keypair.random(), data: null });
+  if (process.env.MAINNET === "true") {
+    let kps = [];
+    for (let i = 0; i < 10; i++) kps.push(StellarSDK.Keypair.random());
+    masterAccount.data = await server.loadAccount(masterAccount.kp.publicKey());
+    accountPool = await createAccountsFrom(
+      masterAccount,
+      kps,
+      server,
+      networkPassphrase,
+    );
+  } else {
+    for (let i = 0; i < 10; i++) {
+      accountPool.push({ kp: StellarSDK.Keypair.random(), data: null });
+    }
+    await Promise.all(
+      accountPool.map(async (acc) => {
+        await friendbot(acc.kp);
+        acc.data = await server.loadAccount(acc.kp.publicKey());
+      }),
+    );
   }
-  await Promise.all(
-    accountPool.map(async (acc) => {
-      await friendbot(acc.kp);
-      acc.data = await server.loadAccount(acc.kp.publicKey());
-    }),
-  );
+});
+
+afterAll(async () => {
+  if (!masterAccount.data) return;
+  if (process.env.MAINNET === "true") {
+    try {
+      await mergeAccountsTo(
+        masterAccount,
+        accountPool,
+        server,
+        networkPassphrase,
+      );
+    } catch (e) {
+      let accountPublicKeys = accountPool.map((acc) => acc.kp.publicKey());
+      console.log(e);
+      throw `Unabled to merge accounts back to master account. Accounts: ${accountPublicKeys}, Exception ${e}`;
+    }
+  }
 });
 
 describe("SEP10", () => {
@@ -90,7 +137,7 @@ describe("SEP10", () => {
     ).toBeFalsy();
     const tx = new StellarSDK.Transaction(
       json.transaction,
-      toml.NETWORK_PASSPHRASE || StellarSDK.Networks.TESTNET,
+      toml.NETWORK_PASSPHRASE || networkPassphrase,
     );
     tx.sign(unfundedKeypair);
     const { json: tokenJson, logs: tokenLogs } = await loggableFetch(
@@ -110,11 +157,7 @@ describe("SEP10", () => {
   describe("GET Challenge", () => {
     let json;
     let logs;
-    let network_passphrase;
     beforeAll(async () => {
-      network_passphrase =
-        toml.NETWORK_PASSPHRASE || StellarSDK.Networks.TESTNET;
-
       ({ json, logs } = await loggableFetch(
         toml.WEB_AUTH_ENDPOINT + "?account=" + account,
       ));
@@ -125,7 +168,7 @@ describe("SEP10", () => {
       expect(json.transaction, logs).toBeTruthy();
       const tx = new StellarSDK.Transaction(
         json.transaction,
-        network_passphrase,
+        networkPassphrase,
       );
 
       expect(tx.sequence, logs).toBe("0");
@@ -140,7 +183,7 @@ describe("SEP10", () => {
       it("Accepts application/x-www-form-urlencoded", async () => {
         const tx = new StellarSDK.Transaction(
           json.transaction,
-          network_passphrase,
+          networkPassphrase,
         );
         tx.sign(keyPair);
         let { json: tokenJson, logs } = await loggableFetch(
@@ -175,7 +218,7 @@ describe("SEP10", () => {
       it("fails if the client doesn't sign the challenge", async () => {
         const tx = new StellarSDK.Transaction(
           json.transaction,
-          network_passphrase,
+          networkPassphrase,
         );
         let { json: tokenJson, status, logs } = await loggableFetch(
           toml.WEB_AUTH_ENDPOINT,
@@ -194,7 +237,7 @@ describe("SEP10", () => {
       it("fails if the signed challenge isn't signed by the servers SIGNING_KEY", async () => {
         const tx = new StellarSDK.Transaction(
           json.transaction,
-          network_passphrase,
+          networkPassphrase,
         );
         // Remove the server signature, only sign by client
         tx.signatures = [];
@@ -218,7 +261,7 @@ describe("SEP10", () => {
       beforeAll(async () => {
         const tx = new StellarSDK.Transaction(
           json.transaction,
-          network_passphrase,
+          networkPassphrase,
         );
         tx.sign(keyPair);
         ({ json: tokenJson, logs } = await loggableFetch(
@@ -273,12 +316,19 @@ describe("SEP10", () => {
      */
     it("fails for an account that can't sign for itself", async () => {
       const account = getAccount();
+      const tmpSigner = StellarSDK.Keypair.random();
       const transaction = new StellarSDK.TransactionBuilder(account.data, {
         fee: StellarSDK.BASE_FEE,
-        networkPassphrase: StellarSDK.Networks.TESTNET,
+        networkPassphrase: networkPassphrase,
       })
         .addOperation(
           StellarSDK.Operation.setOptions({
+            // Add a new signer so we can create a transaction to add the
+            // original signer back after test.
+            signer: {
+              ed25519PublicKey: tmpSigner.publicKey(),
+              weight: 1,
+            },
             masterWeight: 0,
             lowThreshold: 1,
             medThreshold: 1,
@@ -292,6 +342,30 @@ describe("SEP10", () => {
       const { token, logs } = await getSep10Token(url, account.kp, [
         account.kp,
       ]);
+      // Add original signer back so the account can be merged, if using mainnet
+      if (process.env.MAINNET === "true") {
+        const addBackSignerTx = new StellarSDK.TransactionBuilder(
+          account.data,
+          {
+            fee: StellarSDK.BASE_FEE,
+            networkPassphrase: networkPassphrase,
+          },
+        )
+          .addOperation(
+            StellarSDK.Operation.setOptions({
+              masterWeight: 1,
+            }),
+          )
+          .setTimeout(30)
+          .build();
+        addBackSignerTx.sign(tmpSigner);
+        try {
+          await server.submitTransaction(addBackSignerTx);
+        } catch (e) {
+          console.log(e);
+          throw e;
+        }
+      }
       expect(token, logs).toBeFalsy();
     });
 
@@ -300,7 +374,7 @@ describe("SEP10", () => {
       const signerAccount = getAccount();
       const transaction = new StellarSDK.TransactionBuilder(userAccount.data, {
         fee: StellarSDK.BASE_FEE,
-        networkPassphrase: StellarSDK.Networks.TESTNET,
+        networkPassphrase: networkPassphrase,
       })
         .addOperation(
           StellarSDK.Operation.setOptions({
@@ -334,7 +408,7 @@ describe("SEP10", () => {
       const signerAccount = getAccount();
       const transaction = new StellarSDK.TransactionBuilder(userAccount.data, {
         fee: StellarSDK.BASE_FEE,
-        networkPassphrase: StellarSDK.Networks.TESTNET,
+        networkPassphrase: networkPassphrase,
       })
         .addOperation(
           StellarSDK.Operation.setOptions({
@@ -355,6 +429,28 @@ describe("SEP10", () => {
         signerAccount.kp,
         signerAccount.kp,
       ]);
+      // Reduce thresholds back to 1 so master signer can sign alone again
+      if (process.env.MAINNET === "true") {
+        const lowerThresholdsTx = new StellarSDK.TransactionBuilder(
+          userAccount.data,
+          {
+            fee: StellarSDK.BASE_FEE,
+            networkPassphrase: networkPassphrase,
+          },
+        )
+          .addOperation(
+            StellarSDK.Operation.setOptions({
+              lowThreshold: 1,
+              medThreshold: 1,
+              highThreshold: 1,
+            }),
+          )
+          .setTimeout(30)
+          .build();
+        // Need both signatures to reach current threshold
+        lowerThresholdsTx.sign(signerAccount.kp, userAccount.kp);
+        await server.submitTransaction(lowerThresholdsTx);
+      }
       expect(token, logs).toBeFalsy();
     });
 
@@ -364,7 +460,7 @@ describe("SEP10", () => {
       const signerAccount2 = getAccount();
       const transaction = new StellarSDK.TransactionBuilder(userAccount.data, {
         fee: StellarSDK.BASE_FEE,
-        networkPassphrase: StellarSDK.Networks.TESTNET,
+        networkPassphrase: networkPassphrase,
       })
         .addOperation(
           StellarSDK.Operation.setOptions({
@@ -393,6 +489,28 @@ describe("SEP10", () => {
         signerAccount1.kp,
         signerAccount2.kp,
       ]);
+      // Reduce thresholds back to 1 so master signer can sign alone again
+      if (process.env.MAINNET === "true") {
+        const lowerThresholdsTx = new StellarSDK.TransactionBuilder(
+          userAccount.data,
+          {
+            fee: StellarSDK.BASE_FEE,
+            networkPassphrase: networkPassphrase,
+          },
+        )
+          .addOperation(
+            StellarSDK.Operation.setOptions({
+              lowThreshold: 1,
+              medThreshold: 1,
+              highThreshold: 1,
+            }),
+          )
+          .setTimeout(30)
+          .build();
+        // Need two signatures to reach current threshold
+        lowerThresholdsTx.sign(signerAccount1.kp, userAccount.kp);
+        await server.submitTransaction(lowerThresholdsTx);
+      }
       expect(token, logs).toBeTruthy();
     });
   });
