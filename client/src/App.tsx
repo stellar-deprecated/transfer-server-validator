@@ -16,7 +16,6 @@ function App() {
   const [busy, setBusy] = useState<boolean>(false);
   const [domain, setDomain] = useState("testanchor.stellar.org");
   const [sepSelect, setSepSelect] = useState<string>("SEP24");
-  const [project, setProject] = useState<string>("SEP24");
   const [currency, setCurrency] = useState<string>("");
   const [runOptionalTests, setRunOptionalTests] = useState<boolean>(
     Boolean(parseInt(process.env.RUN_OPTIONAL_TESTS || "0")) || false,
@@ -35,16 +34,17 @@ function App() {
     const urlParams = new URLSearchParams(queryString);
     const domain = urlParams.get("home_domain");
     const currency = urlParams.get("currency");
-    const project = urlParams.get("project") || "SEP24";
+    let project = urlParams.get("project") || "SEP24";
     if (domain) {
       setDomain(domain);
     }
     if (currency) {
       setCurrency(currency);
     }
+    if (!["SEP24", "SEP6", "SEP31"].includes(project)) {
+      project = "SEP24";
+    }
     setSepSelect(project);
-    setProject(project);
-    fetchList(project);
   }, []);
 
   const resetTests = useCallback(() => {
@@ -62,7 +62,6 @@ function App() {
 
   useEffect(() => {
     const changeProject = async () => {
-      setProject(sepSelect);
       await fetchList(sepSelect);
     };
     changeProject();
@@ -105,7 +104,7 @@ function App() {
             domainForTests,
             currency,
             nextTest.name,
-            project,
+            sepSelect,
           );
           nextTest.status = nextTest.results.every((result) => {
             return [TestStatus.SUCCESS, TestStatus.SKIPPED].includes(
@@ -122,7 +121,7 @@ function App() {
       }
       setBusy(false);
     },
-    [testList, domain, project, currency, getValidDomain, resetTests],
+    [testList, domain, sepSelect, currency, getValidDomain, resetTests],
   );
 
   return (
