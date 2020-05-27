@@ -20,18 +20,21 @@ function App() {
   const [domain, setDomain] = useState(
     urlParams.get("domain") || "testanchor.stellar.org",
   );
+  const projectFromURL = urlParams.get("project") || "";
   const [sepSelect, setSepSelect] = useState<string>(
-    urlParams.get("project") || "SEP24",
+    ["SEP6", "SEP24", "SEP31"].includes(projectFromURL)
+      ? projectFromURL
+      : "SEP24",
   );
   const [wrongNetworkError, setWrongNetworkError] = useState<String | null>(
     null,
   );
   const [currency, setCurrency] = useState<string>("");
   const [runOptionalTests, setRunOptionalTests] = useState<boolean>(
-    Boolean(parseInt(process.env.RUN_OPTIONAL_TESTS || "0")) || false,
+    Boolean(parseInt(process.env.RUN_OPTIONAL_TESTS || "0")),
   );
   const [runOnMainnet, setRunOnMainnet] = useState<boolean>(
-    Boolean(parseInt(process.env.MAINNET || "0")) || false,
+    Boolean(parseInt(process.env.MAINNET || "0")),
   );
 
   const fetchList = async (project: string) => {
@@ -53,9 +56,6 @@ function App() {
     if (mainnet) {
       setRunOnMainnet(mainnet === "true");
     }
-    if (!["SEP24", "SEP6", "SEP31"].includes(sepSelect)) {
-      setSepSelect("SEP24");
-    }
   }, []);
 
   const resetTests = useCallback(() => {
@@ -72,16 +72,16 @@ function App() {
       window.history.replaceState(
         null,
         "",
-        `?home_domain=${domain}&currency=${currency}&mainnet=${runOnMainnet}`,
+        `?home_domain=${domain}&currency=${currency}&mainnet=${runOnMainnet}&project=${sepSelect}`,
       );
     } else {
       window.history.replaceState(
         null,
         "",
-        `?home_domain=${domain}&mainnet=${runOnMainnet}`,
+        `?home_domain=${domain}&mainnet=${runOnMainnet}&project=${sepSelect}`,
       );
     }
-  }, [currency, domain, runOnMainnet]);
+  }, [currency, domain, sepSelect, runOnMainnet]);
 
   useEffect(() => {
     resetTests();
@@ -204,15 +204,14 @@ function App() {
       setBusy(false);
     },
     [
-      testList, 
-      domain, 
-      sepSelect, 
-      currency, 
-      runOnMainnet, 
+      testList,
+      sepSelect,
+      currency,
+      runOnMainnet,
       setDomainArgs,
       checkAnchorNetwork,
-      getValidDomain, 
-      resetTests
+      getValidDomain,
+      resetTests,
     ],
   );
 
