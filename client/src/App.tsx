@@ -18,7 +18,7 @@ function App() {
   const [testList, setTestList] = useState<TestResultSet[]>([]);
   const [busy, setBusy] = useState<boolean>(false);
   const [domain, setDomain] = useState(
-    urlParams.get("domain") || "testanchor.stellar.org",
+    urlParams.get("home_domain") || "testanchor.stellar.org",
   );
   const projectFromURL = urlParams.get("project") || "";
   const [sepSelect, setSepSelect] = useState<string>(
