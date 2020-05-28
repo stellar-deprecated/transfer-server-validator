@@ -101,8 +101,22 @@ export async function mergeAccountsTo(
   let tx = builder.setTimeout(30).build();
   tx.sign(masterAccount.kp, ...accounts.map((acc) => acc.kp));
   let response = await server.submitTransaction(tx);
-  let accountPublicKeys = accounts.map((acc) => acc.kp.publicKey());
+  while (
+    !response.successful &&
+    response.extras.result_codes.transaction === "tx_bad_seq"
+  ) {
+    // Update sequence number
+    // This could happen when running multiple sep10 test processes concurrently
+    builder.source = await server.loadAccount(masterAccount);
+    // setTimeout will raise an error if we try to set it without clearing the
+    // original timeout
+    builder.timeBounds = null;
+    tx = builder.setTimeout(30).build();
+    tx.sign(masterAccount.kp, ...accounts.map((acc) => acc.kp));
+    response = await server.submitTransaction(tx);
+  }
+  let accountSecretKeys = accounts.map((acc) => acc.kp.secret());
   if (!response.successful) {
-    throw `Unable to merge accounts back to master account, accounts: ${accountPublicKeys}`;
+    throw `Unable to merge accounts back to master account, account SK's: ${accountSecretKeys}`;
   }
 }
