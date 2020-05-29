@@ -107,7 +107,7 @@ export async function mergeAccountsTo(
   ) {
     // Update sequence number
     // This could happen when running multiple sep10 test processes concurrently
-    builder.source = await server.loadAccount(masterAccount);
+    builder.source = await server.loadAccount(masterAccount.kp.publicKey());
     // setTimeout will raise an error if we try to set it without clearing the
     // original timeout
     builder.timeBounds = null;
