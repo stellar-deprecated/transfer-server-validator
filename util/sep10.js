@@ -27,6 +27,35 @@ export async function getSep10Token(domain, keyPair, signers) {
   return { token: json.token, logs };
 }
 
+async function resubmitOnBadSeqNum(
+  response,
+  tx,
+  builder,
+  server,
+  masterAccount,
+  accounts,
+) {
+  while (
+    !response.successful &&
+    response.extras.result_codes.transaction === "tx_bad_seq"
+  ) {
+    // Update sequence number
+    // This could happen when running multiple sep10 test processes concurrently
+    builder.source = await server.loadAccount(masterAccount.kp.publicKey());
+    // setTimeout will raise an error if we try to set it without clearing the
+    // original timeout
+    builder.timeBounds = null;
+    tx = builder.setTimeout(30).build();
+    tx.sign(masterAccount.kp, ...accounts.map((acc) => acc.kp));
+    try {
+      response = await server.submitTransaction(tx);
+    } catch (e) {
+      response = e.response.data;
+    }
+  }
+  return response;
+}
+
 export async function createAccountsFrom(
   masterAccount,
   keypairs,
@@ -53,11 +82,20 @@ export async function createAccountsFrom(
     try {
       response = await server.submitTransaction(tx);
     } catch (e) {
-      console.log(e);
-      throw e;
+      response = await resubmitOnBadSeqNum(
+        e.response.data,
+        tx,
+        builder,
+        server,
+        masterAccount,
+        accounts,
+      );
     }
     if (!response.successful) {
-      throw `Something went wrong when creating accounts on mainnet: ${json.result_xdr}`;
+      throw {
+        error: "Something went wrong when creating accounts on mainnet",
+        data: response,
+      };
     }
     await Promise.all(
       accounts.map(async (acc) => {
@@ -68,11 +106,12 @@ export async function createAccountsFrom(
     try {
       await mergeAccountsTo(masterAccount, accounts, server, networkPassphrase);
     } catch (e) {
-      console.log(e);
-      let accountPublicKeys = accounts.map((acc) => acc.kp.publicKey());
-      throw `An exception was raised when attempting to create accounts, but merging accounts also failed. Accounts: ${accountPublicKeys}`;
+      throw {
+        error:
+          "An exception was raised when attempting to create accounts, but merging accounts also failed",
+        data: e.data,
+      };
     }
-    console.log(e);
     throw e;
   }
   return accounts;
@@ -100,23 +139,23 @@ export async function mergeAccountsTo(
   if (!builder.operations.length) return;
   let tx = builder.setTimeout(30).build();
   tx.sign(masterAccount.kp, ...accounts.map((acc) => acc.kp));
-  let response = await server.submitTransaction(tx);
-  while (
-    !response.successful &&
-    response.extras.result_codes.transaction === "tx_bad_seq"
-  ) {
-    // Update sequence number
-    // This could happen when running multiple sep10 test processes concurrently
-    builder.source = await server.loadAccount(masterAccount.kp.publicKey());
-    // setTimeout will raise an error if we try to set it without clearing the
-    // original timeout
-    builder.timeBounds = null;
-    tx = builder.setTimeout(30).build();
-    tx.sign(masterAccount.kp, ...accounts.map((acc) => acc.kp));
+  let response;
+  try {
     response = await server.submitTransaction(tx);
+  } catch (e) {
+    response = await resubmitOnBadSeqNum(
+      e.response.data,
+      tx,
+      builder,
+      server,
+      masterAccount,
+      accounts,
+    );
   }
-  let accountSecretKeys = accounts.map((acc) => acc.kp.secret());
   if (!response.successful) {
-    throw `Unable to merge accounts back to master account, account SK's: ${accountSecretKeys}`;
+    throw {
+      message: "Unable to merge accounts back to master account",
+      data: accounts.map((acc) => acc.kp.secret()),
+    };
   }
 }
