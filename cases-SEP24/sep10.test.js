@@ -79,9 +79,11 @@ afterAll(async () => {
         networkPassphrase,
       );
     } catch (e) {
-      let accountPublicKeys = accountPool.map((acc) => acc.kp.publicKey());
-      console.log(e);
-      throw `Unabled to merge accounts back to master account. Accounts: ${accountPublicKeys}, Exception ${e}`;
+      let accountSecretKeys = console.log(e);
+      throw {
+        error: "Unabled to merge accounts back to master account.",
+        data: accountPool.map((acc) => acc.kp.secret()),
+      };
     }
   }
 });
