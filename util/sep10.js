@@ -36,8 +36,9 @@ async function resubmitOnBadSeqNum(
   accounts,
 ) {
   while (
-    !response.successful &&
-    response.extras.result_codes.transaction === "tx_bad_seq"
+    (!response.successful &&
+      response.extras.result_codes.transaction === "tx_bad_seq") ||
+    response.status === 504
   ) {
     // Update sequence number
     // This could happen when running multiple sep10 test processes concurrently
