@@ -8,6 +8,7 @@ import {
   createAccountsFrom,
   mergeAccountsTo,
 } from "../util/sep10";
+import { resubmitOnRecoverableFailure } from "../util/transactions";
 import { ensureCORS } from "../util/ensureCORS";
 import { loggableFetch } from "../util/loggableFetcher";
 
@@ -79,7 +80,6 @@ afterAll(async () => {
         networkPassphrase,
       );
     } catch (e) {
-      let accountSecretKeys = console.log(e);
       throw {
         error: "Unabled to merge accounts back to master account.",
         data: accountPool.map((acc) => acc.kp.secret()),
@@ -319,8 +319,8 @@ describe("SEP10", () => {
     it("fails for an account that can't sign for itself", async () => {
       const account = getAccount();
       const tmpSigner = StellarSDK.Keypair.random();
-      const transaction = new StellarSDK.TransactionBuilder(account.data, {
-        fee: StellarSDK.BASE_FEE,
+      let builder = new StellarSDK.TransactionBuilder(account.data, {
+        fee: StellarSDK.BASE_FEE * 5,
         networkPassphrase: networkPassphrase,
       })
         .addOperation(
@@ -337,35 +337,47 @@ describe("SEP10", () => {
             highThreshold: 1,
           }),
         )
-        .setTimeout(30)
-        .build();
+        .setTimeout(30);
+      let transaction = builder.build();
       transaction.sign(account.kp);
-      await server.submitTransaction(transaction);
+      try {
+        await server.submitTransaction(transaction);
+      } catch (e) {
+        await resubmitOnRecoverableFailure(
+          e.response.data,
+          account.kp,
+          [],
+          builder,
+          server,
+        );
+      }
       const { token, logs } = await getSep10Token(url, account.kp, [
         account.kp,
       ]);
       // Add original signer back so the account can be merged, if using mainnet
       if (process.env.MAINNET === "true") {
-        const addBackSignerTx = new StellarSDK.TransactionBuilder(
-          account.data,
-          {
-            fee: StellarSDK.BASE_FEE,
-            networkPassphrase: networkPassphrase,
-          },
-        )
+        builder = new StellarSDK.TransactionBuilder(account.data, {
+          fee: StellarSDK.BASE_FEE * 5,
+          networkPassphrase: networkPassphrase,
+        })
           .addOperation(
             StellarSDK.Operation.setOptions({
               masterWeight: 1,
             }),
           )
-          .setTimeout(30)
-          .build();
+          .setTimeout(30);
+        addBackSignerTx = builder.build();
         addBackSignerTx.sign(tmpSigner);
         try {
           await server.submitTransaction(addBackSignerTx);
         } catch (e) {
-          console.log(e);
-          throw e;
+          await resubmitOnRecoverableFailure(
+            e.response.data,
+            account.kp,
+            [tmpSigner],
+            builder,
+            server,
+          );
         }
       }
       expect(token, logs).toBeFalsy();
@@ -374,8 +386,8 @@ describe("SEP10", () => {
     it("succeeds for a signer of an account", async () => {
       const userAccount = getAccount();
       const signerAccount = getAccount();
-      const transaction = new StellarSDK.TransactionBuilder(userAccount.data, {
-        fee: StellarSDK.BASE_FEE,
+      let builder = new StellarSDK.TransactionBuilder(userAccount.data, {
+        fee: StellarSDK.BASE_FEE * 5,
         networkPassphrase: networkPassphrase,
       })
         .addOperation(
@@ -389,10 +401,20 @@ describe("SEP10", () => {
             },
           }),
         )
-        .setTimeout(30)
-        .build();
+        .setTimeout(30);
+      let transaction = builder.build();
       transaction.sign(userAccount.kp);
-      await server.submitTransaction(transaction);
+      try {
+        await server.submitTransaction(transaction);
+      } catch (e) {
+        await resubmitOnRecoverableFailure(
+          e.response.data,
+          userAccount.kp,
+          [],
+          builder,
+          server,
+        );
+      }
       const { token, logs } = await getSep10Token(url, userAccount.kp, [
         signerAccount.kp,
       ]);
@@ -408,8 +430,8 @@ describe("SEP10", () => {
     it("fails when trying to reuse the same signer to gain weight", async () => {
       const userAccount = getAccount();
       const signerAccount = getAccount();
-      const transaction = new StellarSDK.TransactionBuilder(userAccount.data, {
-        fee: StellarSDK.BASE_FEE,
+      let builder = new StellarSDK.TransactionBuilder(userAccount.data, {
+        fee: StellarSDK.BASE_FEE * 5,
         networkPassphrase: networkPassphrase,
       })
         .addOperation(
@@ -423,23 +445,30 @@ describe("SEP10", () => {
             },
           }),
         )
-        .setTimeout(30)
-        .build();
+        .setTimeout(30);
+      let transaction = builder.build();
       transaction.sign(userAccount.kp);
-      await server.submitTransaction(transaction);
+      try {
+        await server.submitTransaction(transaction);
+      } catch (e) {
+        await resubmitOnRecoverableFailure(
+          e.response.data,
+          userAccount.kp,
+          [],
+          builder,
+          server,
+        );
+      }
       const { token, logs } = await getSep10Token(url, userAccount.kp, [
         signerAccount.kp,
         signerAccount.kp,
       ]);
       // Reduce thresholds back to 1 so master signer can sign alone again
       if (process.env.MAINNET === "true") {
-        const lowerThresholdsTx = new StellarSDK.TransactionBuilder(
-          userAccount.data,
-          {
-            fee: StellarSDK.BASE_FEE,
-            networkPassphrase: networkPassphrase,
-          },
-        )
+        builder = new StellarSDK.TransactionBuilder(userAccount.data, {
+          fee: StellarSDK.BASE_FEE * 5,
+          networkPassphrase: networkPassphrase,
+        })
           .addOperation(
             StellarSDK.Operation.setOptions({
               lowThreshold: 1,
@@ -447,11 +476,21 @@ describe("SEP10", () => {
               highThreshold: 1,
             }),
           )
-          .setTimeout(30)
-          .build();
+          .setTimeout(30);
+        let lowerThresholdsTx = builder.build();
         // Need both signatures to reach current threshold
         lowerThresholdsTx.sign(signerAccount.kp, userAccount.kp);
-        await server.submitTransaction(lowerThresholdsTx);
+        try {
+          await server.submitTransaction(lowerThresholdsTx);
+        } catch (e) {
+          await resubmitOnRecoverableFailure(
+            e.response.data,
+            userAccount.kp,
+            [signerAccount.kp],
+            builder,
+            server,
+          );
+        }
       }
       expect(token, logs).toBeFalsy();
     });
@@ -460,8 +499,8 @@ describe("SEP10", () => {
       const userAccount = getAccount();
       const signerAccount1 = getAccount();
       const signerAccount2 = getAccount();
-      const transaction = new StellarSDK.TransactionBuilder(userAccount.data, {
-        fee: StellarSDK.BASE_FEE,
+      let builder = new StellarSDK.TransactionBuilder(userAccount.data, {
+        fee: StellarSDK.BASE_FEE * 5,
         networkPassphrase: networkPassphrase,
       })
         .addOperation(
@@ -483,23 +522,30 @@ describe("SEP10", () => {
             },
           }),
         )
-        .setTimeout(30)
-        .build();
+        .setTimeout(30);
+      let transaction = builder.build();
       transaction.sign(userAccount.kp);
-      await server.submitTransaction(transaction);
+      try {
+        await server.submitTransaction(transaction);
+      } catch (e) {
+        await resubmitOnRecoverableFailure(
+          e.response.data,
+          userAccount.kp,
+          [],
+          builder,
+          server,
+        );
+      }
       const { token, logs } = await getSep10Token(url, userAccount.kp, [
         signerAccount1.kp,
         signerAccount2.kp,
       ]);
       // Reduce thresholds back to 1 so master signer can sign alone again
       if (process.env.MAINNET === "true") {
-        const lowerThresholdsTx = new StellarSDK.TransactionBuilder(
-          userAccount.data,
-          {
-            fee: StellarSDK.BASE_FEE,
-            networkPassphrase: networkPassphrase,
-          },
-        )
+        let builder = new StellarSDK.TransactionBuilder(userAccount.data, {
+          fee: StellarSDK.BASE_FEE * 5,
+          networkPassphrase: networkPassphrase,
+        })
           .addOperation(
             StellarSDK.Operation.setOptions({
               lowThreshold: 1,
@@ -507,11 +553,21 @@ describe("SEP10", () => {
               highThreshold: 1,
             }),
           )
-          .setTimeout(30)
-          .build();
+          .setTimeout(30);
+        let lowerThresholdsTx = builder.build();
         // Need two signatures to reach current threshold
         lowerThresholdsTx.sign(signerAccount1.kp, userAccount.kp);
-        await server.submitTransaction(lowerThresholdsTx);
+        try {
+          await server.submitTransaction(lowerThresholdsTx);
+        } catch (e) {
+          await resubmitOnRecoverableFailure(
+            e.response.data,
+            userAccount.kp,
+            [signerAccount1.kp],
+            builder,
+            server,
+          );
+        }
       }
       expect(token, logs).toBeTruthy();
     });

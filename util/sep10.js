@@ -1,6 +1,7 @@
 import StellarSDK from "stellar-sdk";
 import { loggableFetch } from "./loggableFetcher";
 import getTomlFile from "./getTomlFile";
+import { resubmitOnRecoverableFailure } from "./transactions";
 
 export async function getSep10Token(domain, keyPair, signers) {
   if (!signers) signers = [keyPair];
@@ -27,36 +28,6 @@ export async function getSep10Token(domain, keyPair, signers) {
   return { token: json.token, logs };
 }
 
-async function resubmitOnBadSeqNum(
-  response,
-  tx,
-  builder,
-  server,
-  masterAccount,
-  accounts,
-) {
-  while (
-    (!response.successful &&
-      response.extras.result_codes.transaction === "tx_bad_seq") ||
-    response.status === 504
-  ) {
-    // Update sequence number
-    // This could happen when running multiple sep10 test processes concurrently
-    builder.source = await server.loadAccount(masterAccount.kp.publicKey());
-    // setTimeout will raise an error if we try to set it without clearing the
-    // original timeout
-    builder.timeBounds = null;
-    tx = builder.setTimeout(30).build();
-    tx.sign(masterAccount.kp, ...accounts.map((acc) => acc.kp));
-    try {
-      response = await server.submitTransaction(tx);
-    } catch (e) {
-      response = e.response.data;
-    }
-  }
-  return response;
-}
-
 export async function createAccountsFrom(
   masterAccount,
   keypairs,
@@ -64,7 +35,7 @@ export async function createAccountsFrom(
   networkPassphrase,
 ) {
   const builder = new StellarSDK.TransactionBuilder(masterAccount.data, {
-    fee: StellarSDK.BASE_FEE * keypairs.length,
+    fee: StellarSDK.BASE_FEE * keypairs.length * 5, // 5X base fee
     networkPassphrase: networkPassphrase,
   });
   let accounts = [];
@@ -83,13 +54,12 @@ export async function createAccountsFrom(
     try {
       response = await server.submitTransaction(tx);
     } catch (e) {
-      response = await resubmitOnBadSeqNum(
+      response = await resubmitOnRecoverableFailure(
         e.response.data,
-        tx,
+        masterAccount.kp,
+        keypairs,
         builder,
         server,
-        masterAccount,
-        accounts,
       );
     }
     if (!response.successful) {
@@ -125,7 +95,7 @@ export async function mergeAccountsTo(
   networkPassphrase,
 ) {
   const builder = new StellarSDK.TransactionBuilder(masterAccount.data, {
-    fee: StellarSDK.BASE_FEE * accounts.length,
+    fee: StellarSDK.BASE_FEE * accounts.length * 5, // 5X base fee
     networkPassphrase: networkPassphrase,
   });
   for (let accountObj of accounts) {
@@ -144,13 +114,12 @@ export async function mergeAccountsTo(
   try {
     response = await server.submitTransaction(tx);
   } catch (e) {
-    response = await resubmitOnBadSeqNum(
+    response = await resubmitOnRecoverableFailure(
       e.response.data,
-      tx,
+      masterAccount.kp,
+      accounts.map((acc) => acc.kp),
       builder,
       server,
-      masterAccount,
-      accounts,
     );
   }
   if (!response.successful) {
