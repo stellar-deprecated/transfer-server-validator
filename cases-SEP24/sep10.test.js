@@ -366,7 +366,7 @@ describe("SEP10", () => {
             }),
           )
           .setTimeout(30);
-        addBackSignerTx = builder.build();
+        let addBackSignerTx = builder.build();
         addBackSignerTx.sign(tmpSigner);
         try {
           await server.submitTransaction(addBackSignerTx);
