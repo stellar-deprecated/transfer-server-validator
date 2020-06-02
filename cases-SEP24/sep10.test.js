@@ -72,19 +72,12 @@ beforeAll(async () => {
 afterAll(async () => {
   if (!masterAccount.data) return;
   if (process.env.MAINNET === "true") {
-    try {
-      await mergeAccountsTo(
-        masterAccount,
-        accountPool,
-        server,
-        networkPassphrase,
-      );
-    } catch (e) {
-      throw {
-        error: "Unabled to merge accounts back to master account.",
-        data: accountPool.map((acc) => acc.kp.secret()),
-      };
-    }
+    await mergeAccountsTo(
+      masterAccount,
+      accountPool,
+      server,
+      networkPassphrase,
+    );
   }
 });
 
