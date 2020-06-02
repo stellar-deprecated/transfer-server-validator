@@ -78,8 +78,7 @@ export async function createAccountsFrom(
       await mergeAccountsTo(masterAccount, accounts, server, networkPassphrase);
     } catch (e) {
       throw {
-        error:
-          "An exception was raised when attempting to create accounts, but merging accounts also failed",
+        message: `An exception was raised when attempting to create accounts, but merging accounts also failed: ${e.message}`,
         data: e.data,
       };
     }
@@ -124,7 +123,9 @@ export async function mergeAccountsTo(
   }
   if (!response.successful) {
     throw {
-      message: `Unable to merge accounts back to master account: ${response.status}, ${response.result_xdr}`,
+      message: `Unable to merge accounts back to master account: ${JSON.stringify(
+        response,
+      )}`,
       data: accounts.map((acc) => acc.kp.secret()),
     };
   }
