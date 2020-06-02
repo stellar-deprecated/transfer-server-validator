@@ -47,7 +47,7 @@ export async function getLatestTransaction({
   return json.transactions[0];
 }
 
-async function resubmitOnRecoverableFailure(
+export async function resubmitOnRecoverableFailure(
   response,
   sourceAccount,
   signers,
