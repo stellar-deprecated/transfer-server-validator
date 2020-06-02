@@ -21,7 +21,7 @@ const keyPair = StellarSDK.Keypair.fromSecret(secret);
 let horizonURL;
 let masterAccount = {};
 let networkPassphrase;
-if (process.env.MAINNET === "true") {
+if (process.env.MAINNET === "true" || process.env.MAINNET === "1") {
   masterAccount.kp = StellarSDK.Keypair.fromSecret(
     process.env.MAINNET_MASTER_SECRET_KEY,
   );
@@ -46,7 +46,7 @@ const getAccount = (function() {
 })();
 
 beforeAll(async () => {
-  if (process.env.MAINNET === "true") {
+  if (process.env.MAINNET === "true" || process.env.MAINNET === "1") {
     let kps = [];
     for (let i = 0; i < 10; i++) kps.push(StellarSDK.Keypair.random());
     masterAccount.data = await server.loadAccount(masterAccount.kp.publicKey());
@@ -71,7 +71,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   if (!masterAccount.data) return;
-  if (process.env.MAINNET === "true") {
+  if (process.env.MAINNET === "true" || process.env.MAINNET === "1") {
     await mergeAccountsTo(
       masterAccount,
       accountPool,
@@ -348,7 +348,7 @@ describe("SEP10", () => {
         account.kp,
       ]);
       // Add original signer back so the account can be merged, if using mainnet
-      if (process.env.MAINNET === "true") {
+      if (process.env.MAINNET === "true" || process.env.MAINNET === "1") {
         builder = new StellarSDK.TransactionBuilder(account.data, {
           fee: StellarSDK.BASE_FEE * 5,
           networkPassphrase: networkPassphrase,
@@ -457,7 +457,7 @@ describe("SEP10", () => {
         signerAccount.kp,
       ]);
       // Reduce thresholds back to 1 so master signer can sign alone again
-      if (process.env.MAINNET === "true") {
+      if (process.env.MAINNET === "true" || process.env.MAINNET === "1") {
         builder = new StellarSDK.TransactionBuilder(userAccount.data, {
           fee: StellarSDK.BASE_FEE * 5,
           networkPassphrase: networkPassphrase,
@@ -534,7 +534,7 @@ describe("SEP10", () => {
         signerAccount2.kp,
       ]);
       // Reduce thresholds back to 1 so master signer can sign alone again
-      if (process.env.MAINNET === "true") {
+      if (process.env.MAINNET === "true" || process.env.MAINNET === "1") {
         let builder = new StellarSDK.TransactionBuilder(userAccount.data, {
           fee: StellarSDK.BASE_FEE * 5,
           networkPassphrase: networkPassphrase,
