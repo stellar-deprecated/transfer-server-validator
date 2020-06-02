@@ -124,7 +124,7 @@ export async function mergeAccountsTo(
   }
   if (!response.successful) {
     throw {
-      message: "Unable to merge accounts back to master account",
+      message: `Unable to merge accounts back to master account: ${response.result_xdr}`,
       data: accounts.map((acc) => acc.kp.secret()),
     };
   }
