@@ -46,7 +46,7 @@ describe("POST /send", () => {
     expect(resp.status).toBe(403);
   });
 
-  it.only("succeeds", async () => {
+  it("succeeds", async () => {
     console.log("info", infoJSON.send.SRT.fields);
     const values = convertSEP31Fields(infoJSON.send[enabledCurrency].fields);
     const headers = { Authorization: `Bearer ${jwt}` };
