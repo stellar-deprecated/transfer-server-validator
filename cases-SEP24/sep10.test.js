@@ -293,7 +293,7 @@ describe("SEP10", () => {
 
     it("succeeds for a signer without an account", async () => {
       const kp = StellarSDK.Keypair.random();
-      const token = await getSep10Token(url, kp, [kp]);
+      const { token, logs } = await getSep10Token(url, kp, [kp]);
       expect(token).toBeTruthy();
     });
 
@@ -344,9 +344,15 @@ describe("SEP10", () => {
           server,
         );
       }
-      const { token, logs } = await getSep10Token(url, account.kp, [
-        account.kp,
-      ]);
+      let token, logs;
+      try {
+        ({ token, logs } = await getSep10Token(url, account.kp, [account.kp]));
+      } catch (e) {
+        // We need to do cleanup so we can't let the test fail here.
+        // The test expects 'token' to be falsy, so make it non-falsy
+        token = logs =
+          "an error occurred when attempting to retrieve SEP10 token";
+      }
       // Add original signer back so the account can be merged, if using mainnet
       if (process.env.MAINNET === "true" || process.env.MAINNET === "1") {
         builder = new StellarSDK.TransactionBuilder(account.data, {
@@ -452,10 +458,18 @@ describe("SEP10", () => {
           server,
         );
       }
-      const { token, logs } = await getSep10Token(url, userAccount.kp, [
-        signerAccount.kp,
-        signerAccount.kp,
-      ]);
+      let token, logs;
+      try {
+        ({ token, logs } = await getSep10Token(url, userAccount.kp, [
+          signerAccount.kp,
+          signerAccount.kp,
+        ]));
+      } catch (e) {
+        // we need to do cleanup, but token and logs must be truthy to make
+        // sure test fails when an exception is raised here.
+        token = logs =
+          "an error occurred when attempting to retrieve SEP10 token";
+      }
       // Reduce thresholds back to 1 so master signer can sign alone again
       if (process.env.MAINNET === "true" || process.env.MAINNET === "1") {
         builder = new StellarSDK.TransactionBuilder(userAccount.data, {
@@ -529,10 +543,16 @@ describe("SEP10", () => {
           server,
         );
       }
-      const { token, logs } = await getSep10Token(url, userAccount.kp, [
-        signerAccount1.kp,
-        signerAccount2.kp,
-      ]);
+      let token, logs;
+      try {
+        ({ token, logs } = await getSep10Token(url, userAccount.kp, [
+          signerAccount1.kp,
+          signerAccount2.kp,
+        ]));
+      } catch (e) {
+        // Let execution continue to do cleanup. If an exception is raised here
+        // token and logs will be falsy, ensuring the test fails.
+      }
       // Reduce thresholds back to 1 so master signer can sign alone again
       if (process.env.MAINNET === "true" || process.env.MAINNET === "1") {
         let builder = new StellarSDK.TransactionBuilder(userAccount.data, {
