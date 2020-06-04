@@ -1,8 +1,9 @@
 import { fetch } from "../util/fetchShim";
 import getTomlFile from "./util/getTomlFile";
 import { getActiveCurrency } from "./util/currency";
-import getSep10Token from "./util/sep10";
+import getSep10Token from "../util/sep10";
 import { convertSEP31Fields } from "./util/sep9-fields";
+import { keyPair } from "./util/registeredKeypair";
 
 const urlBuilder = new URL(process.env.DOMAIN);
 const url = urlBuilder.toString();
@@ -21,7 +22,7 @@ describe("POST /send", () => {
       testCurrency,
       server,
     ));
-    ({ token: jwt } = await getSep10Token(url));
+    ({ token: jwt } = await getSep10Token(url, keyPair));
   });
 
   it("fails with no authentication", async () => {
