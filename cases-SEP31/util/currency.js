@@ -7,7 +7,6 @@ export const getActiveCurrency = async (testCurrency, server) => {
     },
   });
   const infoJSON = await infoResponse.json();
-  console.log("INTERNAL JSON", infoJSON);
 
   const currenciesDictionary = infoJSON.send;
   const currencies = Object.keys(infoJSON.send);

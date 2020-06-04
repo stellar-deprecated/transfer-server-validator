@@ -21,7 +21,7 @@ describe("POST /send", () => {
       testCurrency,
       server,
     ));
-    ({ token: jwt } = await getSep10Token(url, keyPair));
+    ({ token: jwt } = await getSep10Token(url));
   });
 
   it("fails with no authentication", async () => {

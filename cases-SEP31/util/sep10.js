@@ -1,7 +1,7 @@
 import StellarSDK from "stellar-sdk";
 import { loggableFetch } from "../../util/loggableFetcher";
 import getTomlFile from "./getTomlFile";
-import { registeredKeypair as keyPair } from "./registeredKeypair";
+import { keyPair } from "./registeredKeypair";
 
 export default async function getSep10Token(domain) {
   const toml = await getTomlFile(domain);
