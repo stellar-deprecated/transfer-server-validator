@@ -1,4 +1,3 @@
-import registeredKeypair from "./util/registeredKeypair";
 import { fetch } from "../util/fetchShim";
 import getTomlFile from "./util/getTomlFile";
 import { getActiveCurrency } from "./util/currency";
@@ -12,14 +11,13 @@ const testCurrency = process.env.CURRENCY;
 describe("POST /send", () => {
   let infoJSON;
   let enabledCurrency;
-  let currencies;
   let jwt;
   let toml;
 
   beforeAll(async () => {
     toml = await getTomlFile(url);
     const server = toml.DIRECT_PAYMENT_SERVER;
-    ({ enabledCurrency, infoJSON, currencies } = await getActiveCurrency(
+    ({ enabledCurrency, infoJSON } = await getActiveCurrency(
       testCurrency,
       server,
     ));
@@ -47,7 +45,6 @@ describe("POST /send", () => {
   });
 
   it("succeeds", async () => {
-    console.log("info", infoJSON.send.SRT.fields);
     const values = convertSEP31Fields(infoJSON.send[enabledCurrency].fields);
     const headers = { Authorization: `Bearer ${jwt}` };
     const resp = await fetch(toml.DIRECT_PAYMENT_SERVER + "/send", {
