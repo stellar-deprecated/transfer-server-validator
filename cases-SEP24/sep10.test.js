@@ -72,12 +72,16 @@ beforeAll(async () => {
 afterAll(async () => {
   if (!masterAccount.data) return;
   if (process.env.MAINNET === "true" || process.env.MAINNET === "1") {
-    await mergeAccountsTo(
-      masterAccount,
-      accountPool,
-      server,
-      networkPassphrase,
-    );
+    try {
+      await mergeAccountsTo(
+        masterAccount,
+        accountPool,
+        server,
+        networkPassphrase,
+      );
+    } catch (e) {
+      console.log(e);
+    }
   }
 });
 
