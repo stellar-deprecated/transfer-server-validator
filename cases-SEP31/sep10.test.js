@@ -1,8 +1,6 @@
 import JWT from "jsonwebtoken";
 import StellarSDK from "stellar-sdk";
-import friendbot from "../util/friendbot";
 import getTomlFile from "../util/getTomlFile";
-import { createAccountsFrom, mergeAccountsTo } from "../util/sep10";
 import { ensureCORS } from "../util/ensureCORS";
 import { loggableFetch } from "../util/loggableFetcher";
 
@@ -120,6 +118,26 @@ describe("SEP10", () => {
     });
 
     describe("POST Response", () => {
+      let tokenJson;
+      let logs;
+      beforeAll(async () => {
+        const tx = new StellarSDK.Transaction(
+          json.transaction,
+          networkPassphrase,
+        );
+        tx.sign(keyPair);
+        ({ json: tokenJson, logs } = await loggableFetch(
+          toml.WEB_AUTH_ENDPOINT,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ transaction: tx.toXDR() }),
+          },
+        ));
+      });
+
       it("Accepts application/x-www-form-urlencoded", async () => {
         const tx = new StellarSDK.Transaction(
           json.transaction,
@@ -194,26 +212,6 @@ describe("SEP10", () => {
         );
         expect(status, logs).not.toBe(200);
         expect(tokenJson.error, logs).toBeTruthy();
-      });
-
-      let tokenJson;
-      let logs;
-      beforeAll(async () => {
-        const tx = new StellarSDK.Transaction(
-          json.transaction,
-          networkPassphrase,
-        );
-        tx.sign(keyPair);
-        ({ json: tokenJson, logs } = await loggableFetch(
-          toml.WEB_AUTH_ENDPOINT,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ transaction: tx.toXDR() }),
-          },
-        ));
       });
 
       it("Has a valid token", () => {
