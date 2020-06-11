@@ -100,40 +100,63 @@ export async function mergeAccountsTo(
   server,
   networkPassphrase,
 ) {
-  const builder = new StellarSDK.TransactionBuilder(masterAccount.data, {
-    fee: StellarSDK.BASE_FEE * accounts.length * 5, // 5X base fee
-    networkPassphrase: networkPassphrase,
-  });
-  for (let accountObj of accounts) {
-    if (!accountObj.data) continue;
-    builder.addOperation(
-      StellarSDK.Operation.accountMerge({
-        destination: masterAccount.kp.publicKey(),
-        source: accountObj.kp.publicKey(),
-      }),
-    );
-  }
-  if (!builder.operations.length) return;
-  let tx = builder.setTimeout(30).build();
-  tx.sign(masterAccount.kp, ...accounts.map((acc) => acc.kp));
+  let unsuccessfulSecrets = [];
+  await Promise.all(
+    accounts.map(async (accountObj) => {
+      if (!accountObj.data) continue;
+      try {
+        await mergeAccountToMaster(
+          masterAccount.kp,
+          accountObj.kp,
+          server,
+          networkPassphrase,
+        );
+      } catch (e) {
+        unsuccessfulSecrets.push(accountObj.kp.secret());
+        console.log(e.error);
+      }
+    }),
+  );
+  if (unsuccessfulSecrets) console.log(unsuccessfulSecrets);
+}
+
+export async function mergeAccountToMaster(
+  masterKeypair,
+  keypair,
+  server,
+  networkPassphrase,
+) {
+  const tb = new StellarSDK.TransactionBuilder(
+    await server.loadAccount(keypair),
+    {
+      fee: StellarSDK.BASE_FEE * 5,
+      networkPassphrase: networkPassphrase,
+    },
+  );
+  tb.addOperation(
+    StellarSDK.Operation.accountMerge({
+      destination: masterKeypair.publicKey(),
+      source: keypair.publicKey(),
+    }),
+  );
+  const tx = tb.setTimeout(60).build();
+  tx.sign(keypair);
   let response;
   try {
-    response = await server.submitTransaction(tx);
+    response = server.submitTransaction(tx);
   } catch (e) {
-    response = await resubmitOnRecoverableFailure(
+    response = resubmitOnRecoverableFailure(
       e.response.data,
-      masterAccount.kp,
-      accounts.map((acc) => acc.kp),
-      builder,
+      keypair,
+      [],
+      tb,
       server,
     );
   }
   if (!response.successful) {
     throw {
-      message: `Unable to merge accounts back to master account: ${JSON.stringify(
-        response,
-      )}`,
-      data: accounts.map((acc) => acc.kp.secret()),
+      error: `Unabled to merge account ${keypair.secret()}`,
+      data: response,
     };
   }
 }
