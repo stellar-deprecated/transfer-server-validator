@@ -1,4 +1,3 @@
-import { fetch } from "../util/fetchShim";
 import JWT from "jsonwebtoken";
 import StellarSDK from "stellar-sdk";
 import friendbot from "../util/friendbot";
@@ -47,12 +46,10 @@ const getAccount = (function() {
 
 beforeAll(async () => {
   if (process.env.MAINNET === "true" || process.env.MAINNET === "1") {
-    let kps = [];
-    for (let i = 0; i < 10; i++) kps.push(StellarSDK.Keypair.random());
     masterAccount.data = await server.loadAccount(masterAccount.kp.publicKey());
     accountPool = await createAccountsFrom(
       masterAccount,
-      kps,
+      10,
       server,
       networkPassphrase,
     );

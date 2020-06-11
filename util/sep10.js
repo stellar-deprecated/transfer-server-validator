@@ -1,4 +1,5 @@
 import StellarSDK from "stellar-sdk";
+import StellarHDWallet from "stellar-hd-wallet";
 import { loggableFetch } from "./loggableFetcher";
 import getTomlFile from "./getTomlFile";
 import { resubmitOnRecoverableFailure } from "./transactions";
@@ -30,10 +31,16 @@ export async function getSep10Token(domain, keyPair, signers) {
 
 export async function createAccountsFrom(
   masterAccount,
-  keypairs,
+  numAccounts,
   server,
   networkPassphrase,
 ) {
+  const wallet = StellarHDWallet.fromSeed(
+    new Buffer.from(masterAccount.kp.secret()).toString("hex"),
+  );
+  const keypairs = [...Array(numAccounts).keys()].map((x) =>
+    wallet.getKeypair(x),
+  );
   const builder = new StellarSDK.TransactionBuilder(masterAccount.data, {
     fee: StellarSDK.BASE_FEE * keypairs.length * 5, // 5X base fee
     networkPassphrase: networkPassphrase,

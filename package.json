@@ -14,7 +14,8 @@
     "server:dev": "PORT=3001 nodemon server/api.js",
     "start:dev": "concurrently \"cd client && REACT_APP_API_HOST=http://localhost:3001 npm start\" \"PORT=3001 npm run server:dev\"",
     "start": "node run.js",
-    "heroku-postbuild": "cd client && yarn && yarn run build"
+    "heroku-postbuild": "cd client && yarn && yarn run build",
+    "recover-xlm": "node recoverXLM.js"
   },
   "engines": {
     "node": ">=10.16.3"
@@ -38,6 +39,7 @@
     "node-fetch": "^2.6.0",
     "nodemon": "^2.0.4",
     "selenium-webdriver": "^4.0.0-alpha.7",
+    "stellar-hd-wallet": "0.0.10",
     "stellar-sdk": "^3.3.0",
     "stmux": "^1.8.0",
     "toml": "^3.0.0",
