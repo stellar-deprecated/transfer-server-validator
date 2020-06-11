@@ -143,9 +143,9 @@ export async function mergeAccountToMaster(
   tx.sign(keypair);
   let response;
   try {
-    response = server.submitTransaction(tx);
+    response = await server.submitTransaction(tx);
   } catch (e) {
-    response = resubmitOnRecoverableFailure(
+    response = await resubmitOnRecoverableFailure(
       e.response.data,
       keypair,
       [],
