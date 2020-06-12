@@ -1,5 +1,4 @@
 import StellarSDK from "stellar-sdk";
-import StellarHDWallet from "stellar-hd-wallet";
 import { loggableFetch } from "./loggableFetcher";
 import getTomlFile from "./getTomlFile";
 import { resubmitOnRecoverableFailure } from "./transactions";
@@ -31,16 +30,10 @@ export async function getSep10Token(domain, keyPair, signers) {
 
 export async function createAccountsFrom(
   masterAccount,
-  numAccounts,
+  keypairs,
   server,
   networkPassphrase,
 ) {
-  const wallet = StellarHDWallet.fromSeed(
-    new Buffer.from(masterAccount.kp.secret()).toString("hex"),
-  );
-  const keypairs = [...Array(numAccounts).keys()].map((x) =>
-    wallet.getKeypair(x),
-  );
   const builder = new StellarSDK.TransactionBuilder(masterAccount.data, {
     fee: StellarSDK.BASE_FEE * keypairs.length * 5, // 5X base fee
     networkPassphrase: networkPassphrase,
@@ -103,7 +96,7 @@ export async function mergeAccountsTo(
   let unsuccessfulSecrets = [];
   await Promise.all(
     accounts.map(async (accountObj) => {
-      if (!accountObj.data) continue;
+      if (!accountObj.data) return;
       try {
         await mergeAccountToMaster(
           masterAccount.kp,
@@ -113,11 +106,11 @@ export async function mergeAccountsTo(
         );
       } catch (e) {
         unsuccessfulSecrets.push(accountObj.kp.secret());
-        console.log(e.error);
+        console.log(e);
       }
     }),
   );
-  if (unsuccessfulSecrets) console.log(unsuccessfulSecrets);
+  if (unsuccessfulSecrets.length) console.log(unsuccessfulSecrets);
 }
 
 export async function mergeAccountToMaster(
@@ -127,7 +120,7 @@ export async function mergeAccountToMaster(
   networkPassphrase,
 ) {
   const tb = new StellarSDK.TransactionBuilder(
-    await server.loadAccount(keypair),
+    await server.loadAccount(keypair.publicKey()),
     {
       fee: StellarSDK.BASE_FEE * 5,
       networkPassphrase: networkPassphrase,
