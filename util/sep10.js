@@ -64,7 +64,7 @@ export async function createAccountsFrom(
       response = await resubmitOnRecoverableFailure(
         e.response.data,
         masterAccount.kp,
-        keypairs,
+        [masterAccount.kp],
         builder,
         server,
       );
@@ -148,7 +148,7 @@ export async function mergeAccountToMaster(
     response = await resubmitOnRecoverableFailure(
       e.response.data,
       keypair,
-      [],
+      [keypair],
       tb,
       server,
     );

@@ -68,7 +68,7 @@ export async function resubmitOnRecoverableFailure(
     // reset timebounds
     builder.timeBounds = null;
     tx = builder.setTimeout(30).build();
-    tx.sign(sourceAccount, ...signers);
+    tx.sign(...signers);
     try {
       response = await server.submitTransaction(tx);
     } catch (e) {

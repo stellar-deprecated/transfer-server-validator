@@ -340,7 +340,7 @@ describe("SEP10", () => {
         await resubmitOnRecoverableFailure(
           e.response.data,
           account.kp,
-          [],
+          [account.kp],
           builder,
           server,
         );
@@ -410,7 +410,7 @@ describe("SEP10", () => {
         await resubmitOnRecoverableFailure(
           e.response.data,
           userAccount.kp,
-          [],
+          [userAccount.kp],
           builder,
           server,
         );
@@ -454,7 +454,7 @@ describe("SEP10", () => {
         await resubmitOnRecoverableFailure(
           e.response.data,
           userAccount.kp,
-          [],
+          [userAccount.kp],
           builder,
           server,
         );
@@ -494,7 +494,7 @@ describe("SEP10", () => {
           await resubmitOnRecoverableFailure(
             e.response.data,
             userAccount.kp,
-            [signerAccount.kp],
+            [userAccount.kp, signerAccount.kp],
             builder,
             server,
           );
@@ -539,7 +539,7 @@ describe("SEP10", () => {
         await resubmitOnRecoverableFailure(
           e.response.data,
           userAccount.kp,
-          [],
+          [userAccount.kp],
           builder,
           server,
         );
@@ -577,7 +577,7 @@ describe("SEP10", () => {
           await resubmitOnRecoverableFailure(
             e.response.data,
             userAccount.kp,
-            [signerAccount1.kp],
+            [userAccount.kp, signerAccount1.kp],
             builder,
             server,
           );
