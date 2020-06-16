@@ -1,7 +1,7 @@
 import { fetch } from "../util/fetchShim";
 import getTomlFile from "./util/getTomlFile";
 import { getActiveCurrency } from "./util/currency";
-import getSep10Token from "../util/sep10";
+import { getSep10Token } from "../util/sep10";
 import { convertSEP31Fields } from "./util/sep9-fields";
 import { keyPair } from "./util/registeredKeypair";
 
@@ -21,8 +21,10 @@ describe("POST /send", () => {
     ({ enabledCurrency, infoJSON } = await getActiveCurrency(
       testCurrency,
       server,
+      url,
     ));
-    ({ token: jwt } = await getSep10Token(url, keyPair));
+    const tokenResponse = await getSep10Token(url, keyPair);
+    jwt = tokenResponse.token;
   });
 
   it("fails with no authentication", async () => {
@@ -46,7 +48,7 @@ describe("POST /send", () => {
   });
 
   it("succeeds", async () => {
-    const values = convertSEP31Fields(infoJSON.send[enabledCurrency].fields);
+    const values = convertSEP31Fields(infoJSON.receive[enabledCurrency].fields);
     const headers = { Authorization: `Bearer ${jwt}` };
     const resp = await fetch(toml.DIRECT_PAYMENT_SERVER + "/send", {
       method: "POST",

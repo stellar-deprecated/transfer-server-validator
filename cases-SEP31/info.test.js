@@ -2,6 +2,8 @@ import { fetch } from "../util/fetchShim";
 import getTomlFile from "./util/getTomlFile";
 import { infoSchema } from "./util/schema";
 import { ensureCORS } from "../util/ensureCORS";
+import { getSep10Token } from "../util/sep10";
+import { keyPair } from "./util/registeredKeypair";
 
 jest.setTimeout(30000);
 
@@ -10,17 +12,16 @@ const url = urlBuilder.toString();
 
 describe("Info", () => {
   let toml;
+  let jwt;
   let DIRECT_PAYMENT_SERVER;
+
   beforeAll(async () => {
-    try {
-      toml = await getTomlFile(url);
-    } catch (e) {
-      throw "Invalid TOML formatting";
-    }
+    toml = await getTomlFile(url);
+    DIRECT_PAYMENT_SERVER = toml.DIRECT_PAYMENT_SERVER;
+    ({ token: jwt } = await getSep10Token(url, keyPair));
   });
 
   it("has a DIRECT_PAYMENT_SERVER in the toml", () => {
-    DIRECT_PAYMENT_SERVER = toml.DIRECT_PAYMENT_SERVER;
     expect(DIRECT_PAYMENT_SERVER).toEqual(expect.stringContaining("http"));
     expect(() => new URL(DIRECT_PAYMENT_SERVER)).not.toThrow();
   });
@@ -40,6 +41,7 @@ describe("Info", () => {
       const response = await fetch(DIRECT_PAYMENT_SERVER + "/info", {
         headers: {
           Origin: "https://www.website.com",
+          Authorization: `Bearer ${jwt}`,
         },
       });
       expect(response.status).toEqual(200);
