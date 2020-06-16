@@ -188,7 +188,7 @@ const fieldSchema = {
 export const infoSchema = {
   type: "object",
   properties: {
-    send: {
+    receive: {
       type: "object",
       patternProperties: {
         ".*": {
@@ -213,5 +213,5 @@ export const infoSchema = {
       },
     },
   },
-  required: ["send"],
+  required: ["receive"],
 };
