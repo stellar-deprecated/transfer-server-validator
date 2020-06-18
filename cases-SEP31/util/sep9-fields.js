@@ -33,6 +33,9 @@ const values = {
   notary_approval_of_photo_id: "TODO: NEEDS BINARY",
   ip_address: "58.15.221.204",
   photo_proof_residence: "TODO: NEEDS BINARY",
+
+  customerFinClusiveID: "140609202",
+  clientFinClusiveID: "140609203",
 };
 
 function convertSection(section) {
