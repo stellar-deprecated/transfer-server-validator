@@ -20,13 +20,13 @@
     "node": ">=10.16.3"
   },
   "dependencies": {
-    "@babel/core": "^7.9.6",
-    "@babel/preset-env": "^7.9.6",
+    "@babel/core": "^7.10.2",
+    "@babel/preset-env": "^7.10.2",
     "@stellar/prettier-config": "^1.0.1",
     "babel-jest": "^25.5.1",
     "bufferutil": "^4.0.1",
     "canvas": "^2.5.0",
-    "chromedriver": "^80.0.2",
+    "chromedriver": "83.0.0",
     "concurrently": "^5.2.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
