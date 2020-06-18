@@ -232,7 +232,7 @@ describe("SEP10", () => {
         expect(tokenJson.error, logs).toBeTruthy();
       });
 
-      it("fails if the signed challenge isn't signed by the servers SIGNING_KEY", async () => {
+      xit("fails if the signed challenge isn't signed by the servers SIGNING_KEY", async () => {
         const tx = new StellarSDK.Transaction(
           json.transaction,
           networkPassphrase,
