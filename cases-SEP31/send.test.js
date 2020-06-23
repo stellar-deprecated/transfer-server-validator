@@ -65,7 +65,7 @@ describe("POST /send", () => {
         fields: values,
       }),
     });
-    // expect(resp.status).toBe(200);
+    expect(resp.status).toBe(200);
     const json = await resp.json();
     console.log(json);
     expect(json.id).toEqual(expect.any(String));
