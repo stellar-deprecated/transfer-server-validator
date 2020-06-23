@@ -54,12 +54,12 @@ export async function resubmitOnRecoverableFailure(
   builder,
   server,
 ) {
+  let errCode = ((response.extras || {}).result_codes || {}).transaction;
   while (
     response.status === 504 ||
-    (!response.successful &&
-      response.extras.result_codes.transaction === "tx_bad_seq")
+    (response.status === 400 && errCode === "tx_bad_seq")
   ) {
-    if (response.extras.result_codes.transaction === "tx_bad_seq") {
+    if (errCode === "tx_bad_seq") {
       // Update sequence number.
       // This could happen when submitting transactions using the same account
       // across concurrent processes.
