@@ -55,9 +55,9 @@ export async function resubmitOnRecoverableFailure(
   server,
 ) {
   while (
+    response.status === 504 ||
     (!response.successful &&
-      response.extras.result_codes.transaction === "tx_bad_seq") ||
-    response.status === 504
+      response.extras.result_codes.transaction === "tx_bad_seq")
   ) {
     if (response.extras.result_codes.transaction === "tx_bad_seq") {
       // Update sequence number.
