@@ -1,3 +1,4 @@
+import { Keyapir, Keypair } from "stellar-sdk";
 import { fetch } from "../util/fetchShim";
 import getTomlFile from "./util/getTomlFile";
 import { getActiveCurrency } from "./util/currency";
@@ -69,6 +70,7 @@ describe("POST /send", () => {
     const json = await resp.json();
     expect(json.id).toEqual(expect.any(String));
     expect(json.stellar_account_id).toEqual(expect.any(String));
+    expect(() => Keypair.fromPublicKey(json.stellar_account_id)).not.toThrow();
     expect(json.stellar_memo_type).toEqual(
       expect.stringMatching(/text|hash|id/),
     );
