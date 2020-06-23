@@ -1,4 +1,4 @@
-import { Keyapir, Keypair } from "stellar-sdk";
+import { Keypair } from "stellar-sdk";
 import { fetch } from "../util/fetchShim";
 import getTomlFile from "./util/getTomlFile";
 import { getActiveCurrency } from "./util/currency";
