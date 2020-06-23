@@ -67,7 +67,6 @@ describe("POST /send", () => {
     });
     expect(resp.status).toBe(200);
     const json = await resp.json();
-    console.log(json);
     expect(json.id).toEqual(expect.any(String));
     expect(json.stellar_account_id).toEqual(expect.any(String));
     expect(json.stellar_memo_type).toEqual(
