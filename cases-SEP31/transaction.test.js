@@ -1,4 +1,5 @@
 import { fetch } from "../util/fetchShim";
+import { loggableFetch } from "../util/loggableFetcher";
 import getTomlFile from "./util/getTomlFile";
 import { getActiveCurrency } from "./util/currency";
 import { getSep10Token } from "../util/sep10";
@@ -47,11 +48,15 @@ describe("GET /transaction", () => {
   });
 
   it("should 404 for a non-valid transaction", async () => {
-    const resp = await fetch(
+    const {
+      json,
+      status,
+      logs,
+    } = await loggableFetch(
       toml.DIRECT_PAYMENT_SERVER + "/transaction?id=23456789",
       { headers: authorizedHeaders },
     );
-    expect(resp.status).toBe(404);
+    expect(status, logs).toBe(404);
   });
 
   it("should 401 for an unauthenticated request", async () => {
@@ -62,12 +67,15 @@ describe("GET /transaction", () => {
   });
 
   it("should return a valid schema for a proper request", async () => {
-    const resp = await fetch(
+    const {
+      json,
+      logs,
+      status,
+    } = await loggableFetch(
       `${toml.DIRECT_PAYMENT_SERVER}/transaction?id=${transaction.id}`,
       { headers: authorizedHeaders },
     );
-    expect(resp.status).toBe(200);
-    const json = await resp.json();
-    expect(json, json).toMatchSchema(transactionSchema);
+    expect(status).toBe(200);
+    expect(json, logs).toMatchSchema(transactionSchema);
   });
 });

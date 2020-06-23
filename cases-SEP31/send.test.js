@@ -1,5 +1,6 @@
 import { Keypair } from "stellar-sdk";
 import { fetch } from "../util/fetchShim";
+import { loggableFetch } from "../util/loggableFetcher";
 import getTomlFile from "./util/getTomlFile";
 import { getActiveCurrency } from "./util/currency";
 import { getSep10Token } from "../util/sep10";
@@ -57,21 +58,23 @@ describe("POST /send", () => {
       Authorization: `Bearer ${jwt}`,
       "Content-Type": "application/json",
     };
-    const resp = await fetch(toml.DIRECT_PAYMENT_SERVER + "/send", {
-      method: "POST",
-      headers,
-      body: JSON.stringify({
-        amount: 100,
-        asset_code: enabledCurrency,
-        fields: values,
-      }),
-    });
-    expect(resp.status).toBe(200);
-    const json = await resp.json();
-    expect(json.id).toEqual(expect.any(String));
-    expect(json.stellar_account_id).toEqual(expect.any(String));
+    const { json, status, logs } = await loggableFetch(
+      toml.DIRECT_PAYMENT_SERVER + "/send",
+      {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          amount: 100,
+          asset_code: enabledCurrency,
+          fields: values,
+        }),
+      },
+    );
+    expect(status, logs).toBe(200);
+    expect(json.id, logs).toEqual(expect.any(String));
+    expect(json.stellar_account_id, logs).toEqual(expect.any(String));
     expect(() => Keypair.fromPublicKey(json.stellar_account_id)).not.toThrow();
-    expect(json.stellar_memo_type).toEqual(
+    expect(json.stellar_memo_type, logs).toEqual(
       expect.stringMatching(/text|hash|id/),
     );
   });
