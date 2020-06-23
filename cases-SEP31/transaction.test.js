@@ -29,13 +29,13 @@ describe("GET /transaction", () => {
     const tokenResponse = await getSep10Token(url, keyPair);
     jwt = tokenResponse.token;
     const values = convertSEP31Fields(infoJSON.receive[enabledCurrency].fields);
-    const headers = {
+    authorizedHeaders = {
       Authorization: `Bearer ${jwt}`,
       "Content-Type": "application/json",
     };
     const resp = await fetch(toml.DIRECT_PAYMENT_SERVER + "/send", {
       method: "POST",
-      headers,
+      headers: authorizedHeaders,
       body: JSON.stringify({
         amount: 100,
         asset_code: enabledCurrency,
@@ -44,11 +44,6 @@ describe("GET /transaction", () => {
     });
     expect(resp.status).toBe(200);
     transaction = await resp.json();
-    console.log(transaction);
-    authorizedHeaders = {
-      Authorization: `Bearer ${jwt}`,
-      "Content-Type": "application/json",
-    };
   });
 
   it("should 404 for a non-valid transaction", async () => {
