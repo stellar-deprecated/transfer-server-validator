@@ -1,3 +1,4 @@
+import { Keyapir, Keypair } from "stellar-sdk";
 import { fetch } from "../util/fetchShim";
 import getTomlFile from "./util/getTomlFile";
 import { getActiveCurrency } from "./util/currency";
@@ -38,7 +39,10 @@ describe("POST /send", () => {
   });
 
   it("fails with no amount", async () => {
-    const headers = { Authorization: `Bearer ${jwt}` };
+    const headers = {
+      Authorization: `Bearer ${jwt}`,
+      "Content-Type": "application/json",
+    };
     const resp = await fetch(toml.DIRECT_PAYMENT_SERVER + "/send", {
       method: "POST",
       headers,
@@ -49,19 +53,26 @@ describe("POST /send", () => {
 
   it("succeeds", async () => {
     const values = convertSEP31Fields(infoJSON.receive[enabledCurrency].fields);
-    const headers = { Authorization: `Bearer ${jwt}` };
+    const headers = {
+      Authorization: `Bearer ${jwt}`,
+      "Content-Type": "application/json",
+    };
     const resp = await fetch(toml.DIRECT_PAYMENT_SERVER + "/send", {
       method: "POST",
       headers,
       body: JSON.stringify({
         amount: 100,
+        asset_code: enabledCurrency,
         fields: values,
       }),
     });
     expect(resp.status).toBe(200);
     const json = await resp.json();
-    expect(json.id).toBe(expect.any(String));
-    expect(json.stellar_account_id).toBe(expect.any(String));
-    expect(json.stellar_memo_type).toBe(expect.stringMatching(/text|hash|id/));
+    expect(json.id).toEqual(expect.any(String));
+    expect(json.stellar_account_id).toEqual(expect.any(String));
+    expect(() => Keypair.fromPublicKey(json.stellar_account_id)).not.toThrow();
+    expect(json.stellar_memo_type).toEqual(
+      expect.stringMatching(/text|hash|id/),
+    );
   });
 });

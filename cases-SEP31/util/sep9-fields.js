@@ -36,6 +36,9 @@ const values = {
 
   customerFinClusiveID: "140609202",
   clientFinClusiveID: "140609203",
+
+  routing_number: "1234567890",
+  account_number: "9876543210",
 };
 
 function convertSection(section) {
@@ -46,8 +49,8 @@ function convertSection(section) {
 
 export function convertSEP31Fields(fieldDef) {
   return {
-    sender: convertSection(fieldDef.receiver),
-    receiver: convertSection(fieldDef.sender),
+    sender: convertSection(fieldDef.sender),
+    receiver: convertSection(fieldDef.receiver),
     transaction: convertSection(fieldDef.transaction),
   };
 }
