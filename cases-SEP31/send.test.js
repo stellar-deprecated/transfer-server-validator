@@ -30,13 +30,19 @@ describe("POST /send", () => {
   });
 
   it("fails with no authentication", async () => {
-    const resp = await fetch(toml.DIRECT_PAYMENT_SERVER + "/send", {
-      method: "POST",
-      body: JSON.stringify({
-        amount: 100,
-      }),
-    });
-    expect(resp.status).toBe(401);
+    const { json, status, logs } = await loggableFetch(
+      toml.DIRECT_PAYMENT_SERVER + "/send",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          amount: 100,
+        }),
+      },
+    );
+    expect(status, logs).toBe(401);
   });
 
   it("fails with no amount", async () => {
@@ -44,12 +50,15 @@ describe("POST /send", () => {
       Authorization: `Bearer ${jwt}`,
       "Content-Type": "application/json",
     };
-    const resp = await fetch(toml.DIRECT_PAYMENT_SERVER + "/send", {
-      method: "POST",
-      headers,
-      body: JSON.stringify({}),
-    });
-    expect(resp.status).toBe(403);
+    const { json, status, logs } = await loggableFetch(
+      toml.DIRECT_PAYMENT_SERVER + "/send",
+      {
+        method: "POST",
+        headers,
+        body: JSON.stringify({}),
+      },
+    );
+    expect(status, logs).toBe(403);
   });
 
   it("succeeds", async () => {
