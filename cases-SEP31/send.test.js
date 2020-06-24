@@ -34,10 +34,10 @@ describe("POST /send", () => {
       toml.DIRECT_PAYMENT_SERVER + "/send",
       {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
-          headers: {
-            "Content-Type": "application/json",
-          },
           amount: 100,
         }),
       },
