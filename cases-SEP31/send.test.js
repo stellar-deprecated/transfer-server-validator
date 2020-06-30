@@ -46,6 +46,7 @@ describe("POST /send", () => {
   });
 
   it("fails with no amount", async () => {
+    const values = convertSEP31Fields(infoJSON.receive[enabledCurrency].fields);
     const headers = {
       Authorization: `Bearer ${jwt}`,
       "Content-Type": "application/json",
@@ -55,10 +56,13 @@ describe("POST /send", () => {
       {
         method: "POST",
         headers,
-        body: JSON.stringify({}),
+        body: JSON.stringify({
+          asset_code: enabledCurrency,
+          fields: values,
+        }),
       },
     );
-    expect(status, logs).toBe(403);
+    expect(status, logs).toBe(400);
   });
 
   it("succeeds", async () => {
