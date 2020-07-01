@@ -59,7 +59,7 @@ export const transactionSchema = {
       required: [
         "id",
         "status",
-        "stellar_transaction_id",
+        "stellar_account_id",
         "stellar_memo",
         "stellar_memo_type",
       ],
