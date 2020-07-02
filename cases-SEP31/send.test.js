@@ -42,7 +42,7 @@ describe("POST /send", () => {
         }),
       },
     );
-    expect(status, logs).toBe(401);
+    expect(status, logs).toBe(403);
   });
 
   it("fails with no amount", async () => {

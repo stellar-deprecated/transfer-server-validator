@@ -59,11 +59,11 @@ describe("GET /transaction", () => {
     expect(status, logs).toBe(404);
   });
 
-  it("should 401 for an unauthenticated request", async () => {
+  it("should 403 for an unauthenticated request", async () => {
     const resp = await fetch(
       `${toml.DIRECT_PAYMENT_SERVER}/transaction?id=${transaction.id}`,
     );
-    expect(resp.status).toBe(401);
+    expect(resp.status).toBe(403);
   });
 
   it("should return a valid schema for a proper request", async () => {
