@@ -26,7 +26,6 @@ module.exports = async (project) => {
           "transaction",
           "transactions",
           "fee.optional",
-          "interactive-flows.optional",
         ],
         SEP31: ["toml", "info"],
         SEP6: [
