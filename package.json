@@ -5,7 +5,7 @@
   "license": "MIT",
   "description": "Validates anchors implementation of SEP24",
   "repository": {
-    "url": "https://github.com/stellar/transfer-server-validator-simplified"
+    "url": "https://github.com/stellar/transfer-server-validator"
   },
   "scripts": {
     "postinstall": "cd client && npm install && cd ..",
@@ -26,7 +26,6 @@
     "babel-jest": "^25.5.1",
     "bufferutil": "^4.0.1",
     "canvas": "^2.5.0",
-    "chromedriver": "83.0.0",
     "concurrently": "^5.2.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
@@ -37,7 +36,6 @@
     "jsonwebtoken": "^8.5.1",
     "node-fetch": "^2.6.0",
     "nodemon": "^2.0.4",
-    "selenium-webdriver": "^4.0.0-alpha.7",
     "stellar-sdk": "^5.0.3",
     "stmux": "^1.8.0",
     "toml": "^3.0.0",

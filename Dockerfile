@@ -11,14 +11,6 @@ RUN apt-get update && \
   curl \
   default-jre \
   gnupg2 \ 
-  # Set up node dependency apt repository
-  && curl -sL https://deb.nodesource.com/setup_13.x | bash - \
-  # Set up google-chrome dependency apt repository
-  && curl -sL https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-  && echo "deb http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google.list \
-  # Install chrome and node
-  && apt-get update && apt-get install -y --no-install-recommends \
-  google-chrome-stable \
   nodejs \
   && apt-get purge -y --auto-remove curl gnupg2 \
   && rm -rf /var/lib/apt/lists/* \
@@ -26,7 +18,7 @@ RUN apt-get update && \
 
 WORKDIR /usr/src/app
 COPY . .
-RUN npm upgrade chromedriver; npm install --no-optional ; cd client ; npm install --no-optional ; npm run build ; rm -rf node_modules ; cd ..
+RUN npm install --no-optional ; cd client ; npm install --no-optional ; npm run build ; rm -rf node_modules ; cd ..
 ENV PORT=3000
 EXPOSE $PORT
 CMD [ "npm", "start" ]
