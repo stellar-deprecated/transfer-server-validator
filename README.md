@@ -1,6 +1,6 @@
 # transfer-server-validator
 
-Test suite for validating services support for SEP24.
+Test suite for validating SEP-6, SEP-24, & SEP-31 transfer servers.
 
 ## Running
 
@@ -23,12 +23,6 @@ $ DOMAIN=https://testanchor.stellar.org  CURRENCY=SRT npx jest -I -i cases/depos
 $ DOMAIN=https://localhost:8000 npx jest -I -i cases-SEP24/deposit.test.js
 
 ```
-
-### Showing the browser for interactive tests
-
-Normally everything runs headless, but if you want to watch as the test walks
-through your interactive flow, set the `SHOW_BROWSER=1` environment variable
-before running the command.
 
 ### Using a self-signed certificate
 
@@ -128,49 +122,7 @@ Our automated testing assumes that deposits are automatically approved for
 testnet deployments. This also makes it easier for manual testing so people can
 complete the flow without any coordination with the anchors.
 
-### Interactive flow instrumentation
+### Interactive flow testing
 
-The interactive flow of SEP24 is custom for each anchor which makes it difficult
-to automate. In order to help the automated tests complete your interactive
-flow, any form fields need to be annotated with expected values.
-
-There are two things that need to be done: provide valid values for each field,
-and identify which button should be pressed to continue.
-
-#### Providing field values
-
-Any form field that is required should have a `test-value` attribute which is
-set to a valid value for that field. For example an email field would look like
-`<input type='text' id='email_address' test-value='dummyaddress2342@gmail.com' />`.
-The number can be randomized at render time to avoid reuse.
-
-Make sure the `test-value` for the deposit's 'Amount' field is greater than the
-`test-value` for the withdraw's 'Amount' field _plus_ the fee that will be
-charged for the deposit transaction. If this isn't the case, submitting the
-withdraw transaction to the stellar network will fail due to insufficient funds.
-
-An example of doing this using Polaris's form stack can be seen
-[here](https://github.com/stellar/django-polaris/blob/fd5900d68fec6b0e31ce720262e8d787fcbf8aac/example/server/forms.py#L10,L15)
-but any framework should be able to add these attributes to the HTML of the
-form.
-
-#### Identifying Submit Button
-
-The submit button should be annotated with `test-action="submit"`. This tells
-the test-bot which button should be pressed to continue on in the flow.
-
-Polaris does this automatically for anyone using the Forms stack
-[here](https://github.com/stellar/django-polaris/blob/fd5900d68fec6b0e31ce720262e8d787fcbf8aac/polaris/polaris/templates/withdraw/form.html#L38)
-
-#### Example of fully annotated form
-
-```
-<form action="/submit">
-  <input type="text" id="full-name" test-value="Albert Einstein">
-  <input type="text" id="email" test-value="325235@gmail.com" />
-  <input type="submit" test-action="submit" value="Continue">
-</form>
-```
-
-With these steps completed, the validation tooling should be able to exercise
-the entirety of your implementation.
+The transfer server validator does not test SEP-24 interactive flows, since they
+are custom for each anchor.

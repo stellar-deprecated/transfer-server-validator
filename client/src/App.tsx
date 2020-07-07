@@ -149,20 +149,6 @@ function App() {
     const onRunOnMainnetChange = () => {
       setDomainArgs();
       setWrongNetworkError(null);
-      setTestList((previousTestList) => {
-        // the only test file not able to run on mainnet
-        // is the SEP-24 interactive tests
-        let opStatus =
-          !runOnMainnet && runOptionalTests
-            ? TestStatus.PENDING
-            : TestStatus.SKIPPED;
-        return previousTestList.map((test) => {
-          if (test.name.includes("interactive")) {
-            test.status = opStatus;
-          }
-          return test;
-        });
-      });
     };
     onRunOnMainnetChange();
   }, [runOnMainnet, runOptionalTests, setDomainArgs]);
