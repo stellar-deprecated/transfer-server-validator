@@ -32,13 +32,13 @@ workflows:
   version: 2
   publish-build-deploy:
     jobs:
-      - publish-build:
-          filters:
-            branches:
-              only: master
+      #- publish-build:
+      #    filters:
+      #      branches:
+      #        only: master
       - deploy-sep24:
-          requires:
-            - publish-build
+          #requires:
+          #  - publish-build
           filters:
             branches:
               only: master
