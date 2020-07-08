@@ -1,4 +1,4 @@
-FROM debian:buster-slim
+FROM node:14
 # To avoid `apt-key output should not be parsed` warning
 ENV APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn
 # default-jre needs this directory to exist on slim
