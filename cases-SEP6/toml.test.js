@@ -101,5 +101,11 @@ describe("TOML File", () => {
         }),
       );
     });
+
+    it("has no URLs ending in a slash", () => {
+      expect(
+        toml.TRANSFER_SERVER[toml.TRANSFER_SERVER.length - 1] !== "/",
+      ).toBeTruthy();
+    });
   });
 });

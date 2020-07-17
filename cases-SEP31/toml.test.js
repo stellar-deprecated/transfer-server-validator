@@ -66,5 +66,12 @@ describe("TOML File", () => {
       expect(new URL(toml.DIRECT_PAYMENT_SERVER).protocol).toMatch("https:");
       expect(urlBuilder.protocol).toMatch("https:");
     });
+
+    it("has no URLs ending in a slash", () => {
+      expect(
+        toml.DIRECT_PAYMENT_SERVER[toml.DIRECT_PAYMENT_SERVER.length - 1] !==
+          "/",
+      ).toBeTruthy();
+    });
   });
 });
