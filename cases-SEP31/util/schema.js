@@ -112,7 +112,7 @@ export const infoSchema = {
               properties: {
                 transaction: fieldSchema,
               },
-              required: ["transactions"],
+              required: ["transaction"],
             },
           },
           required: ["enabled", "fields"],
