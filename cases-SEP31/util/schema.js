@@ -105,14 +105,14 @@ export const infoSchema = {
             fee_percent: { type: "number" },
             min_amount: { type: "number" },
             max_amount: { type: "number" },
+            sender_sep12_type: { type: "string" },
+            receiver_sep12_type: { type: "string" },
             fields: {
               type: "object",
               properties: {
-                sender: fieldSchema,
-                receiver: fieldSchema,
                 transaction: fieldSchema,
               },
-              required: ["sender", "receiver", "transaction"],
+              required: ["transactions"],
             },
           },
           required: ["enabled", "fields"],

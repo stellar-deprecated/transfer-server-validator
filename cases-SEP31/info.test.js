@@ -1,4 +1,4 @@
-import { fetch } from "../util/fetchShim";
+import { loggableFetch } from "../util/loggableFetcher";
 import getTomlFile from "./util/getTomlFile";
 import { infoSchema } from "./util/schema";
 import { ensureCORS } from "../util/ensureCORS";
@@ -35,25 +35,23 @@ describe("Info", () => {
   });
 
   describe("happy path", () => {
-    let json;
+    let json, logs;
 
     beforeAll(async () => {
-      const response = await fetch(DIRECT_PAYMENT_SERVER + "/info", {
+      const response = await loggableFetch(DIRECT_PAYMENT_SERVER + "/info", {
         headers: {
           Origin: "https://www.website.com",
           Authorization: `Bearer ${jwt}`,
         },
       });
+      json = response.json;
+      logs = response.logs;
       expect(response.status).toEqual(200);
-      expect(response.headers.get("content-type")).toEqual(
-        expect.stringContaining("application/json"),
-      );
-      json = await response.json();
       expect(json).toBeTruthy();
     });
 
     it("has a proper schema", () => {
-      expect(json, json).toMatchSchema(infoSchema);
+      expect(json, logs).toMatchSchema(infoSchema);
     });
   });
 });
