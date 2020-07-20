@@ -50,8 +50,6 @@ function convertSection(section) {
 
 export function convertSEP31Fields(fieldDef) {
   return {
-    sender: convertSection(fieldDef.sender),
-    receiver: convertSection(fieldDef.receiver),
     transaction: convertSection(fieldDef.transaction),
   };
 }
