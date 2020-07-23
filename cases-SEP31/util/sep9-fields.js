@@ -42,7 +42,7 @@ const values = {
   account_number: "9876543210",
 };
 
-function convertSection(section) {
+export function convertSEP31Section(section) {
   return Object.fromEntries(
     Object.keys(section).map((key) => [key, values[key]]),
   );
@@ -50,6 +50,6 @@ function convertSection(section) {
 
 export function convertSEP31Fields(fieldDef) {
   return {
-    transaction: convertSection(fieldDef.transaction),
+    transaction: convertSEP31Section(fieldDef.transaction),
   };
 }
