@@ -11,7 +11,7 @@ const urlBuilder = new URL(process.env.DOMAIN);
 const url = urlBuilder.toString();
 const testCurrency = process.env.CURRENCY;
 
-describe("GET /transaction", () => {
+describe("GET /transactions/:id", () => {
   let infoJSON;
   let enabledCurrency;
   let jwt;
@@ -34,7 +34,7 @@ describe("GET /transaction", () => {
       Authorization: `Bearer ${jwt}`,
       "Content-Type": "application/json",
     };
-    const resp = await fetch(toml.DIRECT_PAYMENT_SERVER + "/send", {
+    const resp = await fetch(toml.DIRECT_PAYMENT_SERVER + "/transactions", {
       method: "POST",
       headers: authorizedHeaders,
       body: JSON.stringify({
@@ -53,7 +53,7 @@ describe("GET /transaction", () => {
       status,
       logs,
     } = await loggableFetch(
-      toml.DIRECT_PAYMENT_SERVER + "/transaction?id=23456789",
+      toml.DIRECT_PAYMENT_SERVER + "/transactions/23456789",
       { headers: authorizedHeaders },
     );
     expect(status, logs).toBe(404);
@@ -61,7 +61,7 @@ describe("GET /transaction", () => {
 
   it("should 403 for an unauthenticated request", async () => {
     const resp = await fetch(
-      `${toml.DIRECT_PAYMENT_SERVER}/transaction?id=${transaction.id}`,
+      `${toml.DIRECT_PAYMENT_SERVER}/transactions/${transaction.id}`,
     );
     expect(resp.status).toBe(403);
   });
@@ -72,7 +72,7 @@ describe("GET /transaction", () => {
       logs,
       status,
     } = await loggableFetch(
-      `${toml.DIRECT_PAYMENT_SERVER}/transaction?id=${transaction.id}`,
+      `${toml.DIRECT_PAYMENT_SERVER}/transactions/${transaction.id}`,
       { headers: authorizedHeaders },
     );
     expect(status).toBe(200);

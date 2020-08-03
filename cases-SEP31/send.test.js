@@ -11,7 +11,7 @@ const urlBuilder = new URL(process.env.DOMAIN);
 const url = urlBuilder.toString();
 const testCurrency = process.env.CURRENCY;
 
-describe("POST /send", () => {
+describe("POST /transactions", () => {
   let infoJSON;
   let enabledCurrency;
   let jwt;
@@ -31,7 +31,7 @@ describe("POST /send", () => {
 
   it("fails with no authentication", async () => {
     const { json, status, logs } = await loggableFetch(
-      toml.DIRECT_PAYMENT_SERVER + "/send",
+      toml.DIRECT_PAYMENT_SERVER + "/transactions",
       {
         method: "POST",
         headers: {
@@ -52,7 +52,7 @@ describe("POST /send", () => {
       "Content-Type": "application/json",
     };
     const { json, status, logs } = await loggableFetch(
-      toml.DIRECT_PAYMENT_SERVER + "/send",
+      toml.DIRECT_PAYMENT_SERVER + "/transactions",
       {
         method: "POST",
         headers,
@@ -72,7 +72,7 @@ describe("POST /send", () => {
       "Content-Type": "application/json",
     };
     const { json, status, logs } = await loggableFetch(
-      toml.DIRECT_PAYMENT_SERVER + "/send",
+      toml.DIRECT_PAYMENT_SERVER + "/transactions",
       {
         method: "POST",
         headers,
