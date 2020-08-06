@@ -6,6 +6,7 @@ import { convertSEP31Fields } from "./util/sep9-fields";
 import { keyPair } from "./util/registeredKeypair";
 import { createCustomer } from "./util/sep12";
 import { sep12FieldsSchema } from "./util/schema";
+import { randomBytes } from "crypto";
 
 const urlBuilder = new URL(process.env.DOMAIN);
 const url = urlBuilder.toString();
@@ -20,6 +21,8 @@ describe("/customer", () => {
   let jwt;
   let headers;
   let customer_id;
+  let memo = Buffer.from(randomBytes(32)).toString("base64");
+  let memo_type = "hash";
 
   beforeAll(async () => {
     toml = await getTomlFile(url);
@@ -29,13 +32,23 @@ describe("/customer", () => {
     headers = {
       Authorization: `Bearer ${jwt}`,
     };
-    //customer_id = createCustomer(keyPair.publicKey(), "test", "text", toml.KYC_SERVER);
+    customer_id = await createCustomer(
+      keyPair.publicKey(),
+      memo,
+      memo_type,
+      toml.KYC_SERVER,
+      jwt,
+    );
   });
 
   describe("GET", () => {
     it("returns proper schema for unrecognized customer", async () => {
+      let memo = encodeURIComponent(
+        Buffer.from(randomBytes(32)).toString("base64"),
+      );
       let { json, logs, status } = await loggableFetch(
-        toml.KYC_SERVER + "/customer?id=123",
+        toml.KYC_SERVER +
+          `/customer?account=${keyPair.publicKey()}&memo=${memo}&memo_type=hash`,
         {
           headers: headers,
         },

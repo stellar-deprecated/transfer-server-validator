@@ -3,7 +3,6 @@ import { fetch } from "./fetchShim";
 export const loggableFetch = async (requestURL, requestDictionary) => {
   const response = await fetch(requestURL, requestDictionary);
   const json = await response.json();
-
   const rawHeaders = response.headers.raw();
   const formattedHeaders = Object.keys(rawHeaders)
     .map((key) => `${key}: ${rawHeaders[key]}`)
