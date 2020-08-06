@@ -1,4 +1,4 @@
-const values = {
+export const values = {
   family_name: "Einstein",
   last_name: "Einstein",
   given_name: "Albert",

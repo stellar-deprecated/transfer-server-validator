@@ -1,3 +1,5 @@
+import { values } from "./sep9-fields";
+
 export const transactionSchema = {
   type: "object",
   properties: {
@@ -121,4 +123,18 @@ export const infoSchema = {
     },
   },
   required: ["receive"],
+};
+
+export const sep12FieldsSchema = {
+  type: "object",
+  propertyNames: { enum: Object.keys(values) },
+  additionalProperties: {
+    type: "object",
+    properties: {
+      description: { type: "string" },
+      type: { type: "string" },
+      choices: { type: "array" },
+    },
+    required: ["description", "type"],
+  },
 };
