@@ -1,13 +1,15 @@
 import { loggableFetch } from "../util/loggableFetcher";
 import getTomlFile from "./util/getTomlFile";
 import { getSep10Token } from "../util/sep10";
+import { getActiveCurrency } from "./util/currency";
 import { keyPair } from "./util/registeredKeypair";
 import { createCustomer, getPutRequestBodyObj } from "./util/sep12";
 import { sep12FieldsSchema } from "./util/schema";
 import { randomBytes } from "crypto";
 import FormData from "form-data";
+import { info } from "console";
 
-jest.setTimeout(10000);
+jest.setTimeout(20000);
 
 const urlBuilder = new URL(process.env.DOMAIN);
 const url = urlBuilder.toString();
@@ -21,10 +23,32 @@ describe("/customer", () => {
   let memo = Buffer.from(randomBytes(32)).toString("base64");
   let memo_type = "hash";
   let fieldsRequired;
+  let infoJSON;
+  let customerType;
+  let enabledCurrency;
 
   beforeAll(async () => {
     toml = await getTomlFile(url);
     expect(toml.KYC_SERVER).toEqual(expect.any(String));
+    ({ enabledCurrency, infoJSON } = await getActiveCurrency(
+      testCurrency,
+      toml.DIRECT_PAYMENT_SERVER,
+      url,
+    ));
+    if (toml.DIRECT_PAYMENT_SERVER) {
+      let { json, logs, status } = await loggableFetch(
+        toml.DIRECT_PAYMENT_SERVER + "/info",
+      );
+      infoJSON = json;
+      if (infoJSON.receive[enabledCurrency].sender_sep12_type) {
+        customerType = infoJSON.sender_sep12_type;
+      }
+      if (infoJSON.receive[enabledCurrency].receiver_sep12_type) {
+        // use receiver_sep12_type if specified since the anchor likely
+        // requires more info for the receiver.
+        customerType = infoJSON.receiver_sep12_type;
+      }
+    }
     const tokenResponse = await getSep10Token(url, keyPair);
     jwt = tokenResponse.token;
     headers = {
@@ -34,6 +58,7 @@ describe("/customer", () => {
       keyPair.publicKey(),
       memo,
       memo_type,
+      customerType,
       toml.KYC_SERVER,
       jwt,
     ));
@@ -86,8 +111,10 @@ describe("/customer", () => {
         keyPair.publicKey(),
         memo,
         memo_type,
+        customerType,
         toml.KYC_SERVER,
         jwt,
+        false,
         fieldsRequired,
       );
       if (standardVals["first_name"]) {
