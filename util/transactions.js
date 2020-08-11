@@ -67,7 +67,7 @@ export async function resubmitOnRecoverableFailure(
     }
     // reset timebounds
     builder.timebounds = null;
-    tx = builder.setTimeout(30).build();
+    const tx = builder.setTimeout(30).build();
     tx.sign(...signers);
     try {
       response = await server.submitTransaction(tx);
