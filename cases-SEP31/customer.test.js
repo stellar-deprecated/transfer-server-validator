@@ -182,7 +182,7 @@ describe("/customer", () => {
         },
       );
       console.log(json);
-      expect(json.id).toBe(undefined);
+      expect(json.id).toBe(customer_id);
       expect(status).toBe(202);
     });
   });
