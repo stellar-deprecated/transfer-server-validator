@@ -107,7 +107,8 @@ describe("/customer", () => {
       // but it would allow clients to show users the info the anchor
       // has on file for the user.
       let encodedMemo = encodeURIComponent(memo);
-      let standardVals = await getPutRequestBodyObj(
+      let customerValues;
+      ({ customerValues, fieldsRequired } = await getPutRequestBodyObj(
         keyPair.publicKey(),
         memo,
         memo_type,
@@ -116,21 +117,21 @@ describe("/customer", () => {
         jwt,
         false,
         fieldsRequired,
-      );
-      if (standardVals["first_name"]) {
-        standardVals["first_name"] += "test";
+      ));
+      if (customerValues["first_name"]) {
+        customerValues["first_name"] += "test";
       } else {
         // This test is useless if the anchor doesn't require first names.
         // I assume every anchor would want this.
         return;
       }
       let formData = new FormData();
-      formData.append("account", standardVals["account"]);
-      formData.append("memo", standardVals["memo"]);
-      formData.append("memo_type", standardVals["memo_type"]);
-      for (let key in standardVals) {
+      formData.append("account", customerValues["account"]);
+      formData.append("memo", customerValues["memo"]);
+      formData.append("memo_type", customerValues["memo_type"]);
+      for (let key in customerValues) {
         if (["account", "memo", "memo_type"].includes(key)) continue;
-        formData.append(key, standardVals[key]);
+        formData.append(key, customerValues[key]);
       }
       let { json, logs, status } = await loggableFetch(
         toml.KYC_SERVER +
@@ -142,6 +143,46 @@ describe("/customer", () => {
         },
       );
       expect(json.id).toBe(customer_id);
+      expect(status).toBe(202);
+    });
+
+    it("Allows update by ID", async () => {
+      let customerValues;
+      ({ customerValues, fieldsRequired } = await getPutRequestBodyObj(
+        keyPair.publicKey(),
+        memo,
+        memo_type,
+        customerType,
+        toml.KYC_SERVER,
+        jwt,
+        false,
+        fieldsRequired,
+      ));
+      if (customerValues["first_name"]) {
+        customerValues["first_name"] += "test2";
+      } else {
+        // This test is useless if the anchor doesn't require first names.
+        // I assume every anchor would want this.
+        return;
+      }
+      let formData = new FormData();
+      formData.append("id", customer_id);
+      console.log(customer_id);
+      for (let key in customerValues) {
+        if (["account", "memo", "memo_type"].includes(key)) continue;
+        console.log(key, customerValues[key]);
+        formData.append(key, customerValues[key]);
+      }
+      let { json, logs, status } = await loggableFetch(
+        toml.KYC_SERVER + "/customer",
+        {
+          headers: headers,
+          method: "PUT",
+          body: formData,
+        },
+      );
+      console.log(json);
+      expect(json.id).toBe(undefined);
       expect(status).toBe(202);
     });
   });
