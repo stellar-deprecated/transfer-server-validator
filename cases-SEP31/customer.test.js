@@ -90,7 +90,7 @@ describe("/customer", () => {
       );
       expect(status).toBe(200);
       expect(["ACCEPTED", "PROCESSING"]).toContain(json.status);
-      expect(json.id).toBe(expect.any(String));
+      expect(json.id).toBe(customer_id);
     });
   });
 
@@ -106,7 +106,6 @@ describe("/customer", () => {
       // the client is authenticated)? This may be a security concern
       // but it would allow clients to show users the info the anchor
       // has on file for the user.
-      let encodedMemo = encodeURIComponent(memo);
       let customerValues;
       ({ customerValues, fieldsRequired } = await getPutRequestBodyObj(
         keyPair.publicKey(),
@@ -134,8 +133,7 @@ describe("/customer", () => {
         formData.append(key, customerValues[key]);
       }
       let { json, logs, status } = await loggableFetch(
-        toml.KYC_SERVER +
-          `/customer?account=${keyPair.publicKey()}&memo=${encodedMemo}&memo_type=${memo_type}`,
+        toml.KYC_SERVER + "/customer",
         {
           headers: headers,
           method: "PUT",
@@ -167,10 +165,8 @@ describe("/customer", () => {
       }
       let formData = new FormData();
       formData.append("id", customer_id);
-      console.log(customer_id);
       for (let key in customerValues) {
         if (["account", "memo", "memo_type"].includes(key)) continue;
-        console.log(key, customerValues[key]);
         formData.append(key, customerValues[key]);
       }
       let { json, logs, status } = await loggableFetch(
@@ -181,7 +177,6 @@ describe("/customer", () => {
           body: formData,
         },
       );
-      console.log(json);
       expect(json.id).toBe(customer_id);
       expect(status).toBe(202);
     });
