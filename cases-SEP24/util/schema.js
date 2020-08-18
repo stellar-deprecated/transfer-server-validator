@@ -181,6 +181,7 @@ const depositAndWithdrawSchema = {
         max_amount: { type: "number" },
       },
       required: ["enabled"],
+      additionalProperties: false,
     },
   },
 };
