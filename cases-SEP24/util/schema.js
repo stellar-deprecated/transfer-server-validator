@@ -176,6 +176,7 @@ const depositAndWithdrawSchema = {
       properties: {
         enabled: { type: "boolean" },
         fee_fixed: { type: "number" },
+        fee_minimum: { type: "number" },
         fee_percent: { type: "number" },
         min_amount: { type: "number" },
         max_amount: { type: "number" },
