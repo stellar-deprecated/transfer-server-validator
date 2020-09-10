@@ -175,7 +175,10 @@ describe("Transactions", () => {
     expect(status, logs).toEqual(200);
     expect(json.error, logs).not.toBeDefined();
     expect(json.transactions.length, logs).toBeGreaterThanOrEqual(2);
-    expect(json.transactions, logs).toStrictEqual(expected);
+    json.transactions.forEach((transaction, index) => {
+      const exp_trans_id = expected[index].id;
+      expect(transaction.id, logs).toStrictEqual(exp_trans_id);
+    });
   });
 
   it("return proper transactions with no_older_than param", async () => {
