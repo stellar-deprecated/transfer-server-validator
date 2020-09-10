@@ -145,6 +145,45 @@ describe("Transactions", () => {
     expect(json.transactions.length, logs).toBe(1);
   });
 
+  it("returns a transactions in decending order", async () => {
+    await createTransaction({
+      currency: enabledCurrency,
+      account: keyPair.publicKey(),
+      toml: toml,
+      jwt: jwt,
+      isDeposit: true,
+    });
+    await createTransaction({
+      currency: enabledCurrency,
+      account: keyPair.publicKey(),
+      toml: toml,
+      jwt: jwt,
+      isDeposit: true,
+    });
+
+    const { json, status, logs } = await loggableFetch(
+      transferServer + `/transactions?asset_code=${enabledCurrency}`,
+      {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      },
+    );
+    let expected = json.transactions.sort((a, b) =>
+      a.started_at < b.started_at ? 1 : -1,
+    );
+    expect(status, logs).toEqual(200);
+    expect(json.error, logs).not.toBeDefined();
+    expect(json.transactions.length, logs).toBeGreaterThanOrEqual(2);
+    json.transactions.forEach((transaction) => {
+      expect(typeof transaction.started_at, logs).toStrictEqual("string");
+    });
+    json.transactions.forEach((transaction, index) => {
+      const exp_trans_id = expected[index].id;
+      expect(transaction.id, logs).toStrictEqual(exp_trans_id);
+    });
+  });
+
   it("return proper transactions with no_older_than param", async () => {
     let { json: transactionJson } = await createTransaction({
       currency: enabledCurrency,
