@@ -170,7 +170,7 @@ describe("Transactions", () => {
       },
     );
     let expected = json.transactions.sort((a, b) =>
-      a.started_at > b.started_at ? 1 : -1,
+      a.started_at < b.started_at ? 1 : -1,
     );
     expect(status, logs).toEqual(200);
     expect(json.error, logs).not.toBeDefined();
