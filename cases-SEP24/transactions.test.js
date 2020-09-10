@@ -175,6 +175,9 @@ describe("Transactions", () => {
     expect(status, logs).toEqual(200);
     expect(json.error, logs).not.toBeDefined();
     expect(json.transactions.length, logs).toBeGreaterThanOrEqual(2);
+    json.transactions.forEach((transaction) => {
+      expect(typeof transaction.started_at, logs).toStrictEqual("string");
+    });
     json.transactions.forEach((transaction, index) => {
       const exp_trans_id = expected[index].id;
       expect(transaction.id, logs).toStrictEqual(exp_trans_id);
