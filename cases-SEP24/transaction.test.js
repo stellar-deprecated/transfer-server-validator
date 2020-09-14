@@ -117,6 +117,9 @@ describe("Transaction", () => {
     });
     const moreInfo = await fetch(json.transaction.more_info_url);
     expect(moreInfo.status).toEqual(200);
+    expect(moreInfo.headers.get("content-type")).toEqual(
+      "text/html; charset=utf-8",
+    );
   });
 
   it("returns a proper error with missing params", async () => {
