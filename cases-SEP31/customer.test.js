@@ -117,7 +117,7 @@ describe("/customer", () => {
         false,
         fieldsRequired,
       ));
-      if (customerValues["first_name"]) {
+      if (customerValues["first_name"] && fieldsRequired["first_name"]) {
         customerValues["first_name"] += "test";
       } else {
         // This test is useless if the anchor doesn't require first names.
