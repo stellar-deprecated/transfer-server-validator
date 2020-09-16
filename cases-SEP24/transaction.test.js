@@ -82,6 +82,13 @@ describe("Transaction", () => {
       jwt: jwt,
     });
     await checkTransactionResponse({ json: json, isDeposit: true });
+    Object.keys(json.transaction).forEach(function(key) {
+      expect([
+        "withdraw_anchor_account",
+        "withdraw_memo",
+        "withdraw_memo_type",
+      ]).not.toEqual(expect.arrayContaining(key));
+    });
   });
 
   it("has the correct object schema for an existing withdrawal transaction", async () => {
