@@ -106,6 +106,11 @@ describe("Transaction", () => {
       jwt: jwt,
     });
     await checkTransactionResponse({ json: json, isDeposit: false });
+    Object.keys(json.transaction).forEach(function(key) {
+      expect(["deposit_memo", "deposit_memo_type"]).not.toEqual(
+        expect.arrayContaining(key),
+      );
+    });
   });
 
   it("return a proper available more_info_url transaction link", async () => {
