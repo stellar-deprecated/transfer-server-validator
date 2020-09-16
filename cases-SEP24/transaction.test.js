@@ -87,7 +87,7 @@ describe("Transaction", () => {
         "withdraw_anchor_account",
         "withdraw_memo",
         "withdraw_memo_type",
-      ]).not.toEqual(expect.arrayContaining(key));
+      ]).not.toContain(key);
     });
   });
 
@@ -107,9 +107,7 @@ describe("Transaction", () => {
     });
     await checkTransactionResponse({ json: json, isDeposit: false });
     Object.keys(json.transaction).forEach(function(key) {
-      expect(["deposit_memo", "deposit_memo_type"]).not.toEqual(
-        expect.arrayContaining(key),
-      );
+      expect(["deposit_memo", "deposit_memo_type"]).not.toContain(key);
     });
   });
 
