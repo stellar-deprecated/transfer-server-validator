@@ -54,9 +54,7 @@ function App() {
       setCurrency(currency);
     }
     if (mainnet) {
-      setRunOnMainnet(
-        process.env.MAINNET === "true" || process.env.MAINNET === "1",
-      );
+      setRunOnMainnet(mainnet === "true" || mainnet === "1");
     }
   }, []);
 
