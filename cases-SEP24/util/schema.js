@@ -48,6 +48,7 @@ const transactionSchema = {
           type: "boolean",
         },
       },
+      additionalProperties: false,
       required: [
         "id",
         "kind",
