@@ -82,12 +82,6 @@ describe("Transaction", () => {
       jwt: jwt,
     });
     await checkTransactionResponse({ json: json, isDeposit: true });
-    const notExpectedJson = json;
-    notExpectedJson.transaction["withdraw_anchor_account"] = null;
-    notExpectedJson.transaction["withdraw_memo"] = null;
-    notExpectedJson.transaction["withdraw_memo_type"] = null;
-    const schema = getTransactionSchema({ isDeposit: true });
-    expect(json).not.toMatchSchema(schema);
   });
 
   it("has the correct object schema for an existing withdrawal transaction", async () => {
@@ -105,11 +99,6 @@ describe("Transaction", () => {
       jwt: jwt,
     });
     await checkTransactionResponse({ json: json, isDeposit: false });
-    const notExpectedJson = json;
-    notExpectedJson.transaction["deposit_memo"] = null;
-    notExpectedJson.transaction["deposit_memo_type"] = null;
-    const schema = getTransactionSchema({ isDeposit: false });
-    expect(json).not.toMatchSchema(schema);
   });
 
   it("return a proper available more_info_url transaction link", async () => {
