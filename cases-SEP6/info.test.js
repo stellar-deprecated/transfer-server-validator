@@ -2,11 +2,16 @@ import { fetch } from "../util/fetchShim";
 import getTomlFile from "../util/getTomlFile";
 import { infoSchema } from "./util/schema";
 import { ensureCORS } from "../util/ensureCORS";
+import { getSep10Token } from "../util/sep10";
+import StellarSDK from "stellar-sdk";
+import { loggableFetch } from "../util/loggableFetcher";
 
 jest.setTimeout(30000);
 
 const urlBuilder = new URL(process.env.DOMAIN);
 const url = urlBuilder.toString();
+const secret = "SAUOSXXF7ZDO5PKHRFR445DRKZ66Q5HIM2HIPQGWBTUKJZQAOP3VGH3L";
+const keyPair = StellarSDK.Keypair.fromSecret(secret);
 
 describe("Info", () => {
   let toml;
@@ -31,6 +36,13 @@ describe("Info", () => {
     );
     expect(optionsCORS, logs).toBe("*");
     expect(otherVerbCORS, logs).toBe("*");
+  });
+
+  it("has home_domain set in the issuer account", async () => {
+    const horizonUrl = "https://horizon-testnet.stellar.org";
+    const url = horizonUrl + `/accounts/${toml.CURRENCIES[0].issuer}`;
+    const { json, status, logs } = await loggableFetch(url);
+    console.log(json);
   });
 
   describe("happy path", () => {
