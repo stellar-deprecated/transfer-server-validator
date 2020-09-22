@@ -24,7 +24,6 @@ describe("Info", () => {
         process.env.MAINNET === "true" || process.env.MAINNET === "1"
           ? "https://horizon.stellar.org"
           : "https://horizon-testnet.stellar.org";
-      console.log(horizonURL);
     } catch (e) {
       throw "horizonURL cannot be set";
     }
@@ -45,10 +44,12 @@ describe("Info", () => {
   });
 
   it("has home_domain set in the issuer account", async () => {
-    const horizonUrl = "https://horizon-testnet.stellar.org";
-    const url = horizonUrl + `/accounts/${toml.CURRENCIES[0].issuer}`;
-    const { json, status, logs } = await loggableFetch(url);
-    console.log(json);
+    const query = horizonURL + `/accounts/${toml.CURRENCIES[0].issuer}`;
+    const { json, status, logs } = await loggableFetch(query);
+    expect(status, logs).toEqual(200);
+    expect(toml.TRANSFER_SERVER).toEqual(
+      expect.stringContaining(json.home_domain),
+    );
   });
 
   describe("happy path", () => {
