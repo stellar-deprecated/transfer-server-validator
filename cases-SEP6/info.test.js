@@ -2,25 +2,31 @@ import { fetch } from "../util/fetchShim";
 import getTomlFile from "../util/getTomlFile";
 import { infoSchema } from "./util/schema";
 import { ensureCORS } from "../util/ensureCORS";
-import { getSep10Token } from "../util/sep10";
-import StellarSDK from "stellar-sdk";
 import { loggableFetch } from "../util/loggableFetcher";
 
 jest.setTimeout(30000);
 
 const urlBuilder = new URL(process.env.DOMAIN);
 const url = urlBuilder.toString();
-const secret = "SAUOSXXF7ZDO5PKHRFR445DRKZ66Q5HIM2HIPQGWBTUKJZQAOP3VGH3L";
-const keyPair = StellarSDK.Keypair.fromSecret(secret);
 
 describe("Info", () => {
   let toml;
   let transferServer;
+  let horizonURL;
   beforeAll(async () => {
     try {
       toml = await getTomlFile(url);
     } catch (e) {
       throw "Invalid TOML formatting";
+    }
+    try {
+      horizonURL =
+        process.env.MAINNET === "true" || process.env.MAINNET === "1"
+          ? "https://horizon.stellar.org"
+          : "https://horizon-testnet.stellar.org";
+      console.log(horizonURL);
+    } catch (e) {
+      throw "horizonURL cannot be set";
     }
   });
 
