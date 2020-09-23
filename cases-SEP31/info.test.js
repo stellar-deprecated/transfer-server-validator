@@ -14,11 +14,19 @@ describe("Info", () => {
   let toml;
   let jwt;
   let DIRECT_PAYMENT_SERVER;
-
+  let horizonURL;
   beforeAll(async () => {
     toml = await getTomlFile(url);
     DIRECT_PAYMENT_SERVER = toml.DIRECT_PAYMENT_SERVER;
     ({ token: jwt } = await getSep10Token(url, keyPair));
+    try {
+      horizonURL =
+        process.env.MAINNET === "true" || process.env.MAINNET === "1"
+          ? "https://horizon.stellar.org"
+          : "https://horizon-testnet.stellar.org";
+    } catch (e) {
+      throw "horizonURL cannot be set";
+    }
   });
 
   it("has a DIRECT_PAYMENT_SERVER in the toml", () => {
@@ -48,6 +56,15 @@ describe("Info", () => {
       logs = response.logs;
       expect(response.status).toEqual(200);
       expect(json).toBeTruthy();
+    });
+
+    it("has home_domain set in the issuer account", async () => {
+      const query = horizonURL + `/accounts/${toml.CURRENCIES[0].issuer}`;
+      const { json, status, logs } = await loggableFetch(query);
+      expect(status, logs).toEqual(200);
+      expect(toml.TRANSFER_SERVER).toEqual(
+        expect.stringContaining(json.home_domain),
+      );
     });
 
     it("has a proper schema", () => {
