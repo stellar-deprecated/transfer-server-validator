@@ -11,11 +11,20 @@ const url = urlBuilder.toString();
 describe("Info", () => {
   let toml;
   let transferServer;
+  let horizonURL;
   beforeAll(async () => {
     try {
       toml = await getTomlFile(url);
     } catch (e) {
       throw "Invalid TOML formatting";
+    }
+    try {
+      horizonURL =
+        process.env.MAINNET === "true" || process.env.MAINNET === "1"
+          ? "https://horizon.stellar.org"
+          : "https://horizon-testnet.stellar.org";
+    } catch (e) {
+      throw "horizonURL cannot be set";
     }
   });
 
@@ -31,6 +40,15 @@ describe("Info", () => {
     );
     expect(optionsCORS, logs).toBe("*");
     expect(otherVerbCORS, logs).toBe("*");
+  });
+
+  it("has home_domain set in the issuer account", async () => {
+    const query = horizonURL + `/accounts/${toml.CURRENCIES[0].issuer}`;
+    const { json, status, logs } = await loggableFetch(query);
+    expect(status, logs).toEqual(200);
+    expect(toml.TRANSFER_SERVER).toEqual(
+      expect.stringContaining(json.home_domain),
+    );
   });
 
   describe("happy path", () => {
