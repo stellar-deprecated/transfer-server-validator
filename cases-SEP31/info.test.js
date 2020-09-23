@@ -1,5 +1,5 @@
-import { loggableFetch } from "../util/loggableFetcher";
 import getTomlFile from "./util/getTomlFile";
+import { loggableFetch } from "../util/loggableFetcher";
 import { infoSchema } from "./util/schema";
 import { ensureCORS } from "../util/ensureCORS";
 import { getSep10Token } from "../util/sep10";
