@@ -1,4 +1,5 @@
 import TOML from "toml";
+import StellarSDK from "stellar-sdk";
 import { fetch } from "../util/fetchShim";
 import { ensureCORS } from "../util/ensureCORS";
 import { loggableFetch } from "../util/loggableFetcher";
@@ -10,6 +11,8 @@ if (process.env.MAINNET === "true" || process.env.MAINNET === "1") {
 } else {
   horizonURL = "https://horizon-testnet.stellar.org";
 }
+const server = new StellarSDK.Server(horizonURL);
+jest.setTimeout(100000);
 
 describe("TOML File", () => {
   it("exists", async () => {
@@ -75,12 +78,13 @@ describe("TOML File", () => {
     });
 
     it("has home_domain set in the issuer account", async () => {
-      const query = horizonURL + `/accounts/${toml.CURRENCIES[0].issuer}`;
-      const { json, status, logs } = await loggableFetch(query);
-      expect(status, logs).toEqual(200);
-      expect(toml.TRANSFER_SERVER).toEqual(
-        expect.stringContaining(json.home_domain),
-      );
+      let json;
+      try {
+        json = await server.loadAccount(toml.CURRENCIES[0].issuer);
+      } catch (e) {
+        throw e;
+      }
+      expect(url).toEqual(expect.stringContaining(json.home_domain));
     });
   });
 });
