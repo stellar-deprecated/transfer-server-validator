@@ -1,9 +1,15 @@
-import { fetch } from "../util/fetchShim";
 import TOML from "toml";
+import { fetch } from "../util/fetchShim";
 import { ensureCORS } from "../util/ensureCORS";
-
+import { loggableFetch } from "../util/loggableFetcher";
 const urlBuilder = new URL(process.env.DOMAIN);
 const url = urlBuilder.toString();
+let horizonURL;
+if (process.env.MAINNET === "true" || process.env.MAINNET === "1") {
+  horizonURL = "https://horizon.stellar.org";
+} else {
+  horizonURL = "https://horizon-testnet.stellar.org";
+}
 
 describe("TOML File", () => {
   it("exists", async () => {
@@ -66,6 +72,15 @@ describe("TOML File", () => {
         toml.DIRECT_PAYMENT_SERVER[toml.DIRECT_PAYMENT_SERVER.length - 1] !==
           "/",
       ).toBeTruthy();
+    });
+
+    it("has home_domain set in the issuer account", async () => {
+      const query = horizonURL + `/accounts/${toml.CURRENCIES[0].issuer}`;
+      const { json, status, logs } = await loggableFetch(query);
+      expect(status, logs).toEqual(200);
+      expect(toml.TRANSFER_SERVER).toEqual(
+        expect.stringContaining(json.home_domain),
+      );
     });
   });
 });
