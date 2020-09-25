@@ -80,11 +80,13 @@ describe("TOML File", () => {
     it("has home_domain set in the issuer account", async () => {
       let json;
       try {
-        json = await server.loadAccount(toml.CURRENCIES[0].issuer);
+        for (const currency of toml.CURRENCIES) {
+          json = await server.loadAccount(currency.issuer);
+          expect(url).toEqual(expect.stringContaining(json.home_domain));
+        }
       } catch (e) {
         throw e;
       }
-      expect(url).toEqual(expect.stringContaining(json.home_domain));
     });
   });
 });
