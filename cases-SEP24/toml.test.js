@@ -3,6 +3,7 @@ import StellarSDK from "stellar-sdk";
 import { fetch } from "../util/fetchShim";
 import { currencySchema } from "./util/schema";
 import { ensureCORS } from "../util/ensureCORS";
+import { getActiveCurrency } from "../util/currency";
 
 const urlBuilder = new URL(process.env.DOMAIN);
 const testCurrency = process.env.CURRENCY;
@@ -107,14 +108,24 @@ describe("TOML File", () => {
     });
 
     it("has home_domain set in the issuer account", async () => {
-      let json;
-      try {
-        for (const currency of toml.CURRENCIES) {
-          json = await server.loadAccount(currency.issuer);
+      let enabledCurrency;
+      const transferServer =
+        toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER;
+      if (process.env.CURRENCY) {
+        enabledCurrency = process.env.CURRENCY;
+      } else {
+        ({ enabledCurrency } = await getActiveCurrency(
+          testCurrency,
+          transferServer,
+          url,
+        ));
+      }
+      for (const currency of toml.CURRENCIES) {
+        if (currency["code"] == enabledCurrency) {
+          const json = await server.loadAccount(currency.issuer);
           expect(url).toEqual(expect.stringContaining(json.home_domain));
+          break;
         }
-      } catch (e) {
-        throw e;
       }
     });
 

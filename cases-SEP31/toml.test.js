@@ -2,7 +2,9 @@ import TOML from "toml";
 import StellarSDK from "stellar-sdk";
 import { fetch } from "../util/fetchShim";
 import { ensureCORS } from "../util/ensureCORS";
-import { loggableFetch } from "../util/loggableFetcher";
+import { getActiveCurrency } from "./util/currency";
+
+const testCurrency = process.env.CURRENCY;
 const urlBuilder = new URL(process.env.DOMAIN);
 const url = urlBuilder.toString();
 let horizonURL;
@@ -78,14 +80,22 @@ describe("TOML File", () => {
     });
 
     it("has home_domain set in the issuer account", async () => {
-      let json;
-      try {
-        for (const currency of toml.CURRENCIES) {
-          json = await server.loadAccount(currency.issuer);
+      let enabledCurrency;
+      if (process.env.CURRENCY) {
+        enabledCurrency = process.env.CURRENCY;
+      } else {
+        ({ enabledCurrency } = await getActiveCurrency(
+          testCurrency,
+          toml.DIRECT_PAYMENT_SERVER,
+          url,
+        ));
+      }
+      for (const currency of toml.CURRENCIES) {
+        if (currency["code"] == enabledCurrency) {
+          const json = await server.loadAccount(currency.issuer);
           expect(url).toEqual(expect.stringContaining(json.home_domain));
+          break;
         }
-      } catch (e) {
-        throw e;
       }
     });
   });
