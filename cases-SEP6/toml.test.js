@@ -88,7 +88,7 @@ describe("TOML File", () => {
       it("selected currency is available", () => {
         expect(
           toml.CURRENCIES,
-          "The currency you selectd isn't available in the TOML file.",
+          "The currency you selected isn't available in the TOML file.",
         ).toEqual(
           expect.arrayContaining([
             expect.objectContaining({
