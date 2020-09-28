@@ -1,5 +1,5 @@
-import { loggableFetch } from "../util/loggableFetcher";
 import getTomlFile from "./util/getTomlFile";
+import { loggableFetch } from "../util/loggableFetcher";
 import { infoSchema } from "./util/schema";
 import { ensureCORS } from "../util/ensureCORS";
 import { getSep10Token } from "../util/sep10";
@@ -14,7 +14,6 @@ describe("Info", () => {
   let toml;
   let jwt;
   let DIRECT_PAYMENT_SERVER;
-
   beforeAll(async () => {
     toml = await getTomlFile(url);
     DIRECT_PAYMENT_SERVER = toml.DIRECT_PAYMENT_SERVER;

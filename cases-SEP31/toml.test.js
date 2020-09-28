@@ -1,9 +1,20 @@
-import { fetch } from "../util/fetchShim";
 import TOML from "toml";
+import StellarSDK from "stellar-sdk";
+import { fetch } from "../util/fetchShim";
 import { ensureCORS } from "../util/ensureCORS";
+import { getActiveCurrency } from "./util/currency";
 
+const testCurrency = process.env.CURRENCY;
 const urlBuilder = new URL(process.env.DOMAIN);
 const url = urlBuilder.toString();
+let horizonURL;
+if (process.env.MAINNET === "true" || process.env.MAINNET === "1") {
+  horizonURL = "https://horizon.stellar.org";
+} else {
+  horizonURL = "https://horizon-testnet.stellar.org";
+}
+const server = new StellarSDK.Server(horizonURL);
+jest.setTimeout(100000);
 
 describe("TOML File", () => {
   it("exists", async () => {
@@ -65,6 +76,39 @@ describe("TOML File", () => {
       expect(
         toml.DIRECT_PAYMENT_SERVER[toml.DIRECT_PAYMENT_SERVER.length - 1] !==
           "/",
+      ).toBeTruthy();
+    });
+
+    it("has home_domain set in the issuer account", async () => {
+      let enabledCurrency;
+      let json;
+      let issuer = false;
+      if (testCurrency) {
+        enabledCurrency = testCurrency;
+      } else {
+        ({ enabledCurrency } = await getActiveCurrency(
+          testCurrency,
+          toml.DIRECT_PAYMENT_SERVER,
+          url,
+        ));
+      }
+      for (const currency of toml.CURRENCIES) {
+        if (currency["code"] == enabledCurrency) {
+          issuer = currency.issuer;
+          break;
+        }
+      }
+      expect(
+        issuer,
+        "Cannot find an issuer of the enabled currency.",
+      ).toBeTruthy();
+      json = await server.loadAccount(issuer);
+      expect(url).toEqual(expect.stringContaining(json.home_domain));
+    });
+
+    it("has no URLs ending in a slash", () => {
+      expect(
+        toml.TRANSFER_SERVER[toml.TRANSFER_SERVER.length - 1] !== "/",
       ).toBeTruthy();
     });
   });

@@ -1,13 +1,20 @@
-import { fetch } from "../util/fetchShim";
 import TOML from "toml";
+import StellarSDK from "stellar-sdk";
+import { fetch } from "../util/fetchShim";
 import { currencySchema } from "./util/schema";
 import { ensureCORS } from "../util/ensureCORS";
-import { JsonWebTokenError } from "jsonwebtoken";
+import { getActiveCurrency } from "../util/currency";
 
 const urlBuilder = new URL(process.env.DOMAIN);
 const testCurrency = process.env.CURRENCY;
 const url = urlBuilder.toString();
-
+let horizonURL;
+if (process.env.MAINNET === "true" || process.env.MAINNET === "1") {
+  horizonURL = "https://horizon.stellar.org";
+} else {
+  horizonURL = "https://horizon-testnet.stellar.org";
+}
+const server = new StellarSDK.Server(horizonURL);
 jest.setTimeout(100000);
 
 describe("TOML File", () => {
@@ -82,7 +89,7 @@ describe("TOML File", () => {
       it("selected currency is available", () => {
         expect(
           toml.CURRENCIES,
-          "The currency you selectd isn't available in the TOML file.",
+          "The currency you selected isn't available in the TOML file.",
         ).toEqual(
           expect.arrayContaining([
             expect.objectContaining({
@@ -100,6 +107,33 @@ describe("TOML File", () => {
           ORG_URL: expect.any(String),
         }),
       );
+    });
+
+    it("has home_domain set in the issuer account", async () => {
+      let enabledCurrency;
+      let json;
+      let issuer = false;
+      if (testCurrency) {
+        enabledCurrency = testCurrency;
+      } else {
+        ({ enabledCurrency } = await getActiveCurrency(
+          testCurrency,
+          toml.TRANSFER_SERVER,
+          false,
+        ));
+      }
+      for (const currency of toml.CURRENCIES) {
+        if (currency["code"] == enabledCurrency) {
+          issuer = currency.issuer;
+          break;
+        }
+      }
+      expect(
+        issuer,
+        "Cannot find an issuer of the enabled currency.",
+      ).toBeTruthy();
+      json = await server.loadAccount(issuer);
+      expect(url).toEqual(expect.stringContaining(json.home_domain));
     });
 
     it("has no URLs ending in a slash", () => {
