@@ -109,10 +109,12 @@ describe("TOML File", () => {
 
     it("has home_domain set in the issuer account", async () => {
       let enabledCurrency;
+      let json;
+      let issuer = false;
       const transferServer =
         toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER;
-      if (process.env.CURRENCY) {
-        enabledCurrency = process.env.CURRENCY;
+      if (testCurrency) {
+        enabledCurrency = testCurrency;
       } else {
         ({ enabledCurrency } = await getActiveCurrency(
           testCurrency,
@@ -122,11 +124,16 @@ describe("TOML File", () => {
       }
       for (const currency of toml.CURRENCIES) {
         if (currency["code"] == enabledCurrency) {
-          const json = await server.loadAccount(currency.issuer);
-          expect(url).toEqual(expect.stringContaining(json.home_domain));
+          issuer = currency.issuer;
           break;
         }
       }
+      expect(
+        issuer,
+        "Cannot find an issuer of the enabled currency.",
+      ).toBeTruthy();
+      json = await server.loadAccount(issuer);
+      expect(url).toEqual(expect.stringContaining(json.home_domain));
     });
 
     it("has no URLs ending in a slash", () => {
