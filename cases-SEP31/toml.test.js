@@ -79,7 +79,7 @@ describe("TOML File", () => {
       ).toBeTruthy();
     });
 
-    it("has home_domain set in the issuer account", async () => {
+    it("has the correct home_domain set", async () => {
       let enabledCurrency;
       let json;
       let issuer = false;
@@ -103,7 +103,13 @@ describe("TOML File", () => {
         "Cannot find an issuer of the enabled currency.",
       ).toBeTruthy();
       json = await server.loadAccount(issuer);
-      expect(url).toEqual(expect.stringContaining(json.home_domain));
+      const expectedDomain = url
+        .replace(/(^\w+:|^\/$)\/\//, "")
+        .replace(/(\/.*?$)/, "");
+      const homeDomain = json.home_domain
+        .replace(/(^\w+:|^\/$)\/\//, "")
+        .replace(/(\/.*?$)/, "");
+      expect(homeDomain).toEqual(expectedDomain);
     });
 
     it("has no URLs ending in a slash", () => {
