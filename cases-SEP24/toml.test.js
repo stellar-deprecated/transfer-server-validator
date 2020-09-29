@@ -133,7 +133,13 @@ describe("TOML File", () => {
         "Cannot find an issuer of the enabled currency.",
       ).toBeTruthy();
       json = await server.loadAccount(issuer);
-      expect(url).toEqual(expect.stringContaining(json.home_domain));
+      const expectedDomain = url
+        .replace(/(^\w+:|^\/$)\/\//, "")
+        .replace(/(\/.*?$)/, "");
+      const homeDomain = json.home_domain
+        .replace(/(^\w+:|^\/$)\/\//, "")
+        .replace(/(\/.*?$)/, "");
+      expect(homeDomain).toEqual(expectedDomain);
     });
 
     it("has no URLs ending in a slash", () => {
