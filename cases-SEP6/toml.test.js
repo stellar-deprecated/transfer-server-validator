@@ -109,7 +109,7 @@ describe("TOML File", () => {
       );
     });
 
-    it("has home_domain set in the issuer account", async () => {
+    it("has the correct home_domain set", async () => {
       let enabledCurrency;
       let json;
       let issuer = false;
