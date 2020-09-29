@@ -177,6 +177,22 @@ describe("SEP10", () => {
       expect(tx.source, logs).toBe(toml.SIGNING_KEY);
     });
 
+    it("returns SEP-10 2.0 challenge", async () => {
+      expect(json.error, logs).toBeFalsy();
+      expect(json.transaction, logs).toBeTruthy();
+      const tx = new StellarSDK.Transaction(
+        json.transaction,
+        networkPassphrase,
+      );
+      expect(tx.operations, logs).toHaveLength(1);
+      const expectedDomain = url
+        .replace(/(^\w+:|^\/$)\/\//, "")
+        .replace(/(\/.*?$)/, "");
+      expect(tx.operations[0].name, logs).toEqual(
+        expect.stringContaining(expectedDomain),
+      );
+    });
+
     describe("POST Response", () => {
       it("Accepts application/x-www-form-urlencoded", async () => {
         const tx = new StellarSDK.Transaction(
