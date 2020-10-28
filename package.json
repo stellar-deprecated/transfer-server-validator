@@ -17,7 +17,7 @@
     "heroku-postbuild": "cd client && yarn && yarn run build"
   },
   "engines": {
-    "node": ">=10.16.3"
+    "node": "^14.15.0"
   },
   "dependencies": {
     "@babel/core": "^7.12.3",
