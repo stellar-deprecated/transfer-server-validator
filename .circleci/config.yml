@@ -6,7 +6,7 @@ executors:
     environment:
       IMAGE_NAME: stellar/transfer-server-validator
     docker:
-      - image: circleci/node:latest
+      - image: circleci/node:14
 jobs:
   publish-build:
     executor: docker-publisher
