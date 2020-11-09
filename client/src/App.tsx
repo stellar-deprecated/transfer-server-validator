@@ -111,15 +111,19 @@ function App() {
   const checkAnchorNetwork = useCallback(async () => {
     const url = getValidDomain();
     const tomlURL = url + "/.well-known/stellar.toml";
+    let response;
+    let text;
+    try {
+      response = await fetch(tomlURL);
+      text = await response.text();
+    } catch (e) {
+      throw Error("Unable to fetch TOML file. Make sure you have CORS enabled");
+    }
     let toml;
     try {
-      const response = await fetch(tomlURL);
-      const text = await response.text();
       toml = TOML.parse(text);
     } catch (e) {
-      throw Error(
-        `Something went wrong fetching the TOML file.  Ensure it is available at ${tomlURL} and that CORS is enabled`,
-      );
+      throw Error("Unable to parse TOML file");
     }
     // Doesn't have NETWORK_PASSPHRASE, don't stop them from running tests
     // even if they'll fail due to running on the wrong network
