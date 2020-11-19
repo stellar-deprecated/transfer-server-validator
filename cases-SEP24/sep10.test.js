@@ -185,11 +185,9 @@ describe("SEP10", () => {
         networkPassphrase,
       );
       expect(tx.operations, logs).toHaveLength(1);
-      const expectedDomain = url
-        .replace(/(^\w+:|^\/$)\/\//, "")
-        .replace(/(\/.*?$)/, "");
-      expect(tx.operations[0].name, logs).toEqual(
-        expect.stringContaining(expectedDomain),
+      let operation = tx.operations[0];
+      expect(operation.name, logs).toEqual(
+        expect.stringContaining(urlBuilder.hostname),
       );
     });
 
