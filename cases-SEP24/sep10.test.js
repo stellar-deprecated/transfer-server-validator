@@ -177,7 +177,7 @@ describe("SEP10", () => {
       expect(tx.source, logs).toBe(toml.SIGNING_KEY);
     });
 
-    it("returns SEP-10 2.0 challenge", async () => {
+    it("returns SEP-10 2.0+ challenge", async () => {
       expect(json.error, logs).toBeFalsy();
       expect(json.transaction, logs).toBeTruthy();
       const tx = new StellarSDK.Transaction(
