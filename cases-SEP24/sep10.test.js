@@ -251,8 +251,10 @@ describe("SEP10", () => {
           json.transaction,
           networkPassphrase,
         );
-        // Remove the server signature, only sign by client
-        tx.signatures = [];
+        // Remove the server signature, and later only sign by client
+        for (let i = 0; i < tx.signatures.length; i++) {
+          tx.signatures.pop();
+        }
         tx.sign(keyPair);
         let { json: tokenJson, status, logs } = await loggableFetch(
           toml.WEB_AUTH_ENDPOINT,
