@@ -20,7 +20,6 @@ const keyPair = StellarSDK.Keypair.fromSecret(secret);
 let horizonURL;
 let masterAccount = {};
 let networkPassphrase;
-let skip = (condition) => (condition ? xit : it);
 if (process.env.MAINNET === "true" || process.env.MAINNET === "1") {
   masterAccount.kp = StellarSDK.Keypair.fromSecret(
     process.env.MAINNET_MASTER_SECRET_KEY,
@@ -444,84 +443,81 @@ describe("SEP10", () => {
      * with the same key hoping the server doesn't de-duplicate signers, and
      * count its weight twice.
      */
-    skip(process.env.MAINNET === "true" || process.env.MAINNET === "1")(
-      "fails when trying to reuse the same signer to gain weight",
-      async () => {
-        const userAccount = getAccount();
-        const signerAccount = getAccount();
-        let builder = new StellarSDK.TransactionBuilder(userAccount.data, {
+    it("fails when trying to reuse the same signer to gain weight", async () => {
+      const userAccount = getAccount();
+      const signerAccount = getAccount();
+      let builder = new StellarSDK.TransactionBuilder(userAccount.data, {
+        fee: StellarSDK.BASE_FEE * 5,
+        networkPassphrase: networkPassphrase,
+      })
+        .addOperation(
+          StellarSDK.Operation.setOptions({
+            lowThreshold: 2,
+            medThreshold: 2,
+            highThreshold: 2,
+            signer: {
+              ed25519PublicKey: signerAccount.kp.publicKey(),
+              weight: 1,
+            },
+          }),
+        )
+        .setTimeout(30);
+      let transaction = builder.build();
+      transaction.sign(userAccount.kp);
+      try {
+        await server.submitTransaction(transaction);
+      } catch (e) {
+        await resubmitOnRecoverableFailure(
+          e.response.data,
+          userAccount.kp,
+          [userAccount.kp],
+          builder,
+          server,
+        );
+      }
+      let token, logs;
+      try {
+        ({ token, logs } = await getSep10Token(url, userAccount.kp, [
+          signerAccount.kp,
+          signerAccount.kp,
+        ]));
+      } catch (e) {
+        // we need to do cleanup, but token and logs must be truthy to make
+        // sure test fails when an exception is raised here.
+        token = logs =
+          "an error occurred when attempting to retrieve SEP10 token";
+      }
+      // Reduce thresholds back to 1 so master signer can sign alone again
+      if (process.env.MAINNET === "true" || process.env.MAINNET === "1") {
+        builder = new StellarSDK.TransactionBuilder(userAccount.data, {
           fee: StellarSDK.BASE_FEE * 5,
           networkPassphrase: networkPassphrase,
         })
           .addOperation(
             StellarSDK.Operation.setOptions({
-              lowThreshold: 2,
-              medThreshold: 2,
-              highThreshold: 2,
-              signer: {
-                ed25519PublicKey: signerAccount.kp.publicKey(),
-                weight: 1,
-              },
+              lowThreshold: 1,
+              medThreshold: 1,
+              highThreshold: 1,
             }),
           )
           .setTimeout(30);
-        let transaction = builder.build();
-        transaction.sign(userAccount.kp);
+        let lowerThresholdsTx = builder.build();
+        // Need both signatures to reach current threshold
+        lowerThresholdsTx.sign(signerAccount.kp, userAccount.kp);
         try {
-          await server.submitTransaction(transaction);
+          await server.submitTransaction(lowerThresholdsTx);
         } catch (e) {
           await resubmitOnRecoverableFailure(
             e.response.data,
             userAccount.kp,
-            [userAccount.kp],
+            [userAccount.kp, signerAccount.kp],
             builder,
             server,
           );
         }
-        let token, logs;
-        try {
-          ({ token, logs } = await getSep10Token(url, userAccount.kp, [
-            signerAccount.kp,
-            signerAccount.kp,
-          ]));
-        } catch (e) {
-          // we need to do cleanup, but token and logs must be truthy to make
-          // sure test fails when an exception is raised here.
-          token = logs =
-            "an error occurred when attempting to retrieve SEP10 token";
-        }
-        // Reduce thresholds back to 1 so master signer can sign alone again
-        if (process.env.MAINNET === "true" || process.env.MAINNET === "1") {
-          builder = new StellarSDK.TransactionBuilder(userAccount.data, {
-            fee: StellarSDK.BASE_FEE * 5,
-            networkPassphrase: networkPassphrase,
-          })
-            .addOperation(
-              StellarSDK.Operation.setOptions({
-                lowThreshold: 1,
-                medThreshold: 1,
-                highThreshold: 1,
-              }),
-            )
-            .setTimeout(30);
-          let lowerThresholdsTx = builder.build();
-          // Need both signatures to reach current threshold
-          lowerThresholdsTx.sign(signerAccount.kp, userAccount.kp);
-          try {
-            await server.submitTransaction(lowerThresholdsTx);
-          } catch (e) {
-            await resubmitOnRecoverableFailure(
-              e.response.data,
-              userAccount.kp,
-              [userAccount.kp, signerAccount.kp],
-              builder,
-              server,
-            );
-          }
-        }
-        expect(token, logs).toBeFalsy();
-      },
-    );
+      }
+      expect(token, logs).toBeFalsy();
+    });
 
     it("succeeds with multiple signers", async () => {
       const userAccount = getAccount();

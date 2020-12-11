@@ -20,7 +20,6 @@ const keyPair = StellarSDK.Keypair.fromSecret(secret);
 let horizonURL;
 let masterAccount = {};
 let networkPassphrase;
-let skip = (condition) => (condition ? xit : it);
 if (process.env.MAINNET === "true" || process.env.MAINNET === "1") {
   masterAccount.kp = StellarSDK.Keypair.fromSecret(
     process.env.MAINNET_MASTER_SECRET_KEY,
@@ -329,83 +328,78 @@ describe("SEP10", () => {
      * no longer sign for itself.  This should mean that it can't
      * get a token with its own signature.
      */
-    skip(process.env.MAINNET === "true" || process.env.MAINNET === "1")(
-      "fails for an account that can't sign for itself",
-      async () => {
-        const account = getAccount();
-        const tmpSigner = StellarSDK.Keypair.random();
-        let builder = new StellarSDK.TransactionBuilder(account.data, {
+    it("fails for an account that can't sign for itself", async () => {
+      const account = getAccount();
+      const tmpSigner = StellarSDK.Keypair.random();
+      let builder = new StellarSDK.TransactionBuilder(account.data, {
+        fee: StellarSDK.BASE_FEE * 5,
+        networkPassphrase: networkPassphrase,
+      })
+        .addOperation(
+          StellarSDK.Operation.setOptions({
+            // Add a new signer so we can create a transaction to add the
+            // original signer back after test.
+            signer: {
+              ed25519PublicKey: tmpSigner.publicKey(),
+              weight: 1,
+            },
+            masterWeight: 0,
+            lowThreshold: 1,
+            medThreshold: 1,
+            highThreshold: 1,
+          }),
+        )
+        .setTimeout(30);
+      let transaction = builder.build();
+      transaction.sign(account.kp);
+      try {
+        await server.submitTransaction(transaction);
+      } catch (e) {
+        await resubmitOnRecoverableFailure(
+          e.response.data,
+          account.kp,
+          [account.kp],
+          builder,
+          server,
+        );
+      }
+      let token, logs;
+      try {
+        ({ token, logs } = await getSep10Token(url, account.kp, [account.kp]));
+      } catch (e) {
+        // We need to do cleanup so we can't let the test fail here.
+        // The test expects 'token' to be falsy, so make it non-falsy
+        token = logs =
+          "an error occurred when attempting to retrieve SEP10 token";
+      }
+      // Add original signer back so the account can be merged, if using mainnet
+      if (process.env.MAINNET === "true" || process.env.MAINNET === "1") {
+        builder = new StellarSDK.TransactionBuilder(account.data, {
           fee: StellarSDK.BASE_FEE * 5,
           networkPassphrase: networkPassphrase,
         })
           .addOperation(
             StellarSDK.Operation.setOptions({
-              // Add a new signer so we can create a transaction to add the
-              // original signer back after test.
-              signer: {
-                ed25519PublicKey: tmpSigner.publicKey(),
-                weight: 1,
-              },
-              masterWeight: 0,
-              lowThreshold: 1,
-              medThreshold: 1,
-              highThreshold: 1,
+              masterWeight: 1,
             }),
           )
           .setTimeout(30);
-        let transaction = builder.build();
-        transaction.sign(account.kp);
+        let addBackSignerTx = builder.build();
+        addBackSignerTx.sign(tmpSigner);
         try {
-          await server.submitTransaction(transaction);
+          await server.submitTransaction(addBackSignerTx);
         } catch (e) {
           await resubmitOnRecoverableFailure(
             e.response.data,
             account.kp,
-            [account.kp],
+            [tmpSigner],
             builder,
             server,
           );
         }
-        let token, logs;
-        try {
-          ({ token, logs } = await getSep10Token(url, account.kp, [
-            account.kp,
-          ]));
-        } catch (e) {
-          // We need to do cleanup so we can't let the test fail here.
-          // The test expects 'token' to be falsy, so make it non-falsy
-          token = logs =
-            "an error occurred when attempting to retrieve SEP10 token";
-        }
-        // Add original signer back so the account can be merged, if using mainnet
-        if (process.env.MAINNET === "true" || process.env.MAINNET === "1") {
-          builder = new StellarSDK.TransactionBuilder(account.data, {
-            fee: StellarSDK.BASE_FEE * 5,
-            networkPassphrase: networkPassphrase,
-          })
-            .addOperation(
-              StellarSDK.Operation.setOptions({
-                masterWeight: 1,
-              }),
-            )
-            .setTimeout(30);
-          let addBackSignerTx = builder.build();
-          addBackSignerTx.sign(tmpSigner);
-          try {
-            await server.submitTransaction(addBackSignerTx);
-          } catch (e) {
-            await resubmitOnRecoverableFailure(
-              e.response.data,
-              account.kp,
-              [tmpSigner],
-              builder,
-              server,
-            );
-          }
-        }
-        expect(token, logs).toBeFalsy();
-      },
-    );
+      }
+      expect(token, logs).toBeFalsy();
+    });
 
     it("succeeds for a signer of an account", async () => {
       const userAccount = getAccount();
