@@ -20,6 +20,8 @@ const keyPair = StellarSDK.Keypair.fromSecret(secret);
 let horizonURL;
 let masterAccount = {};
 let networkPassphrase;
+let skip =
+  process.env.MAINNET === "true" || process.env.MAINNET === "1" ? xit : it;
 if (process.env.MAINNET === "true" || process.env.MAINNET === "1") {
   masterAccount.kp = StellarSDK.Keypair.fromSecret(
     process.env.MAINNET_MASTER_SECRET_KEY,
@@ -326,7 +328,7 @@ describe("SEP10", () => {
      * no longer sign for itself.  This should mean that it can't
      * get a token with its own signature.
      */
-    it("fails for an account that can't sign for itself", async () => {
+    skip("fails for an account that can't sign for itself", async () => {
       const account = getAccount();
       const tmpSigner = StellarSDK.Keypair.random();
       let builder = new StellarSDK.TransactionBuilder(account.data, {
