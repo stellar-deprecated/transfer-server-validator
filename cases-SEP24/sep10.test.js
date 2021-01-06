@@ -46,17 +46,17 @@ const getAccount = (function() {
   };
 })();
 
+async function loadAccountPool (secrests) {
+  for (const sk of secrests) {
+    let kp = StellarSDK.Keypair.fromSecret(sk)
+    let data = await server.loadAccount(kp.publicKey())
+    accountPool.push({ kp: kp, data: data });
+  }
+}
 beforeAll(async () => {
   if (process.env.MAINNET === "true" || process.env.MAINNET === "1") {
-    let kps = [];
-    for (let i = 0; i < 10; i++) kps.push(StellarSDK.Keypair.random());
-    masterAccount.data = await server.loadAccount(masterAccount.kp.publicKey());
-    accountPool = await createAccountsFrom(
-      masterAccount,
-      kps,
-      server,
-      networkPassphrase,
-    );
+    let secrests = process.env.ACCOUNTPOOLSECRETS.split(",");
+    await loadAccountPool(secrests)
   } else {
     for (let i = 0; i < 10; i++) {
       accountPool.push({ kp: StellarSDK.Keypair.random(), data: null });
