@@ -2,11 +2,9 @@ import { fetch } from "../../util/fetchShim";
 import { getSep10Token } from "../../util/sep10";
 import { keyPair } from "./registeredKeypair";
 export const getActiveCurrency = async (testCurrency, server, domain) => {
-  const { token: jwt } = await getSep10Token(domain, keyPair);
   const infoResponse = await fetch(server + "/info", {
     headers: {
       Origin: "https://www.website.com",
-      Authorization: `Bearer ${jwt}`,
     },
   });
   const infoJSON = await infoResponse.json();
