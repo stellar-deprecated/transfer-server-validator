@@ -247,14 +247,16 @@ describe("SEP10", () => {
         expect(status, logs).not.toBe(200);
         expect(tokenJson.error, logs).toBeTruthy();
       });
-
-      xit("fails if the signed challenge isn't signed by the servers SIGNING_KEY", async () => {
+      //Done: revert https://github.com/stellar/transfer-server-validator/commit/2c3ddfeb4041449a4ca3f60411c3806a7b004965
+      it("fails if the signed challenge isn't signed by the servers SIGNING_KEY", async () => {
         const tx = new StellarSDK.Transaction(
           json.transaction,
           networkPassphrase,
         );
-        // Remove the server signature, only sign by client
-        tx.signatures = [];
+        // Remove the server signature, and later only sign by client
+        for (let i = 0; i < tx.signatures.length; i++) {
+          tx.signatures.pop();
+        }
         tx.sign(keyPair);
         let { json: tokenJson, status, logs } = await loggableFetch(
           toml.WEB_AUTH_ENDPOINT,
