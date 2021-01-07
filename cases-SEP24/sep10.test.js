@@ -332,7 +332,7 @@ describe("SEP10", () => {
       const account = getAccount();
       const kp = StellarSDK.Keypair.random();
       const { token, logs } = await getSep10Token(url, kp, [kp, account.kp]);
-      expect(token).not.signersAssertion(logs, [account, kp], accountPool);
+      expect(token).not.signersAssertion(logs, [account.kp, kp], accountPool);
     });
 
     /**
@@ -412,7 +412,7 @@ describe("SEP10", () => {
       }
       expect(token).not.signersAssertion(
         logs,
-        [account, tmpSigner],
+        [account.kp, tmpSigner],
         accountPool,
       );
     });
@@ -454,7 +454,7 @@ describe("SEP10", () => {
       ]);
       expect(token).signersAssertion(
         logs,
-        [userAccount, signerAccount],
+        [userAccount.kp, signerAccount.kp],
         accountPool,
       );
     });
@@ -540,7 +540,7 @@ describe("SEP10", () => {
       }
       expect(token).not.signersAssertion(
         logs,
-        [userAccount, signerAccount],
+        [userAccount.kp, signerAccount.kp],
         accountPool,
       );
     });
@@ -627,7 +627,7 @@ describe("SEP10", () => {
       }
       expect(token).signersAssertion(
         logs,
-        [userAccount, signerAccount1, signerAccount2],
+        [userAccount.kp, signerAccount1.kp, signerAccount2.kp],
         accountPool,
       );
     });
