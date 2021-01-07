@@ -8,17 +8,17 @@ expect.extend({
   signersAssertion(token, logs, accountsUsed, accountPool) {
     const pass = token && logs;
     let usedAccs = "⬇️ Accounts used ⬇️\n -----------------------------";
-    accountsUsed.forEach((acc) => {
+    accountsUsed.forEach((kp) => {
       usedAccs += `
-          \nPublicKey: ${acc.kp.publicKey()}
-          \nSecretKey: ${acc.kp.secret()}
+          \nPublicKey: ${kp.publicKey()}
+          \nSecretKey: ${kp.secret()}
           \n -----------------------------`;
     });
     let genAccs = "⬇️ Generated Accounts ⬇️\n -----------------------------";
-    accountPool.forEach((acc) => {
+    accountPool.forEach((kp) => {
       genAccs += `
-          \nPublicKey: ${acc.kp.publicKey()}
-          \nSecretKey: ${acc.kp.secret()}
+          \nPublicKey: ${kp.publicKey()}
+          \nSecretKey: ${kp.secret()}
           \n -----------------------------`;
     });
     if (pass) {
