@@ -325,14 +325,14 @@ describe("SEP10", () => {
     it("succeeds for a signer without an account", async () => {
       const kp = StellarSDK.Keypair.random();
       const { token, logs } = await getSep10Token(url, kp, [kp]);
-      expect(token).toBeTruthy();
+      expect(token).signersAssertion(logs, [kp], accountPool);
     });
 
     it("fails if a challenge for a nonexistent account has extra client signatures", async () => {
       const account = getAccount();
       const kp = StellarSDK.Keypair.random();
       const { token, logs } = await getSep10Token(url, kp, [kp, account.kp]);
-      expect(token).not.signersAssertion(logs, [account], accountPool);
+      expect(token).not.signersAssertion(logs, [account, kp], accountPool);
     });
 
     /**
@@ -410,7 +410,11 @@ describe("SEP10", () => {
           );
         }
       }
-      expect(token).not.signersAssertion(logs, [account], accountPool);
+      expect(token).not.signersAssertion(
+        logs,
+        [account, tmpSigner],
+        accountPool,
+      );
     });
 
     it("succeeds for a signer of an account", async () => {
