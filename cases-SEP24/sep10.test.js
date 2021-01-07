@@ -49,9 +49,11 @@ const getAccount = (function() {
 beforeAll(async () => {
   if (process.env.MAINNET === "true" || process.env.MAINNET === "1") {
     let kps = [];
-    for (let i = 0; i < 10; i++){
+    for (let i = 0; i < 10; i++) {
       let kp = StellarSDK.Keypair.random();
-      process.stdout.write("Generated keypair "+kp.publicKey()+":"+kp.secret()+"\n");
+      process.stdout.write(
+        "Generated keypair " + kp.publicKey() + ":" + kp.secret() + "\n",
+      );
       kps.push(kp);
     }
     masterAccount.data = await server.loadAccount(masterAccount.kp.publicKey());
@@ -64,7 +66,9 @@ beforeAll(async () => {
   } else {
     for (let i = 0; i < 10; i++) {
       let kp = StellarSDK.Keypair.random();
-      process.stdout.write("Generated keypair "+kp.publicKey()+":"+kp.secret()+"\n");
+      process.stdout.write(
+        "Generated keypair " + kp.publicKey() + ":" + kp.secret() + "\n",
+      );
       accountPool.push({ kp: kp, data: null });
     }
     await Promise.all(
@@ -328,7 +332,7 @@ describe("SEP10", () => {
       const account = getAccount();
       const kp = StellarSDK.Keypair.random();
       const { token, logs } = await getSep10Token(url, kp, [kp, account.kp]);
-      expect(token, logs).toBeFalsy();
+      expect(token).not.signersAssertion(logs, [account], accountPool);
     });
 
     /**
@@ -406,7 +410,7 @@ describe("SEP10", () => {
           );
         }
       }
-      expect(token, logs).toBeFalsy();
+      expect(token).not.signersAssertion(logs, [account], accountPool);
     });
 
     it("succeeds for a signer of an account", async () => {
@@ -444,7 +448,11 @@ describe("SEP10", () => {
       const { token, logs } = await getSep10Token(url, userAccount.kp, [
         signerAccount.kp,
       ]);
-      expect(token, logs).toBeTruthy();
+      expect(token).signersAssertion(
+        logs,
+        [userAccount, signerAccount],
+        accountPool,
+      );
     });
 
     /**
@@ -526,7 +534,11 @@ describe("SEP10", () => {
           );
         }
       }
-      expect(token, logs).toBeFalsy();
+      expect(token).not.signersAssertion(
+        logs,
+        [userAccount, signerAccount],
+        accountPool,
+      );
     });
 
     it("succeeds with multiple signers", async () => {
@@ -609,7 +621,11 @@ describe("SEP10", () => {
           );
         }
       }
-      expect(token, logs).toBeTruthy();
+      expect(token).signersAssertion(
+        logs,
+        [userAccount, signerAccount1, signerAccount2],
+        accountPool,
+      );
     });
   });
 });
