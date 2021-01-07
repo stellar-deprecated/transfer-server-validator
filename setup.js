@@ -15,10 +15,10 @@ expect.extend({
           \n -----------------------------`;
     });
     let genAccs = "⬇️ Generated Accounts ⬇️\n -----------------------------";
-    accountPool.forEach((kp) => {
+    accountPool.forEach((acc) => {
       genAccs += `
-          \nPublicKey: ${kp.publicKey()}
-          \nSecretKey: ${kp.secret()}
+          \nPublicKey: ${acc.kp.publicKey()}
+          \nSecretKey: ${acc.kp.secret()}
           \n -----------------------------`;
     });
     if (pass) {
