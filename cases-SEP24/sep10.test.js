@@ -49,7 +49,11 @@ const getAccount = (function() {
 beforeAll(async () => {
   if (process.env.MAINNET === "true" || process.env.MAINNET === "1") {
     let kps = [];
-    for (let i = 0; i < 10; i++) kps.push(StellarSDK.Keypair.random());
+    for (let i = 0; i < 10; i++){
+      let kp = StellarSDK.Keypair.random();
+      process.stdout.write("Generated keypair "+kp.publicKey()+":"+kp.secret()+"\n");
+      kps.push(kp);
+    }
     masterAccount.data = await server.loadAccount(masterAccount.kp.publicKey());
     accountPool = await createAccountsFrom(
       masterAccount,
@@ -59,7 +63,9 @@ beforeAll(async () => {
     );
   } else {
     for (let i = 0; i < 10; i++) {
-      accountPool.push({ kp: StellarSDK.Keypair.random(), data: null });
+      let kp = StellarSDK.Keypair.random();
+      process.stdout.write("Generated keypair "+kp.publicKey()+":"+kp.secret()+"\n");
+      accountPool.push({ kp: kp, data: null });
     }
     await Promise.all(
       accountPool.map(async (acc) => {
