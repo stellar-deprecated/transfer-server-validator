@@ -2,7 +2,6 @@ import getTomlFile from "./util/getTomlFile";
 import { loggableFetch } from "../util/loggableFetcher";
 import { infoSchema } from "./util/schema";
 import { ensureCORS } from "../util/ensureCORS";
-import { getSep10Token } from "../util/sep10";
 import { keyPair } from "./util/registeredKeypair";
 
 jest.setTimeout(30000);
@@ -17,7 +16,6 @@ describe("Info", () => {
   beforeAll(async () => {
     toml = await getTomlFile(url);
     DIRECT_PAYMENT_SERVER = toml.DIRECT_PAYMENT_SERVER;
-    ({ token: jwt } = await getSep10Token(url, keyPair));
   });
 
   it("has a DIRECT_PAYMENT_SERVER in the toml", () => {
