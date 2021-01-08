@@ -5,7 +5,7 @@ expect.extend({
   // We write the account used in the message along side all the other accounts that were
   // generated during the current run
   // This extends the signers support test previous truthy and falsy expectation matchers
-  signersAssertion(token, logs, accountsUsed, accountPool) {
+  orElseLogKeypairs(token, logs, accountsUsed, accountPool) {
     const pass = token && logs;
     let usedAccs = "⬇️ Accounts used ⬇️\n -----------------------------";
     accountsUsed.forEach((kp) => {
