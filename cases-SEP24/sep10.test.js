@@ -47,15 +47,14 @@ const getAccount = (function() {
 })();
 
 beforeAll(async () => {
+  let kplog = "";
   if (process.env.MAINNET === "true" || process.env.MAINNET === "1") {
     let kps = [];
-    for (let i = 0; i < 10; i++) {
-      let kp = StellarSDK.Keypair.random();
-      process.stdout.write(
-        "Generated keypair " + kp.publicKey() + ":" + kp.secret() + "\n",
-      );
-      kps.push(kp);
-    }
+    for (let i = 0; i < 10; i++) kps.push(StellarSDK.Keypair.random());
+    kps.forEach((kp) => {
+      kplog += "Generated keypair " + kp.publicKey() + ":" + kp.secret() + "\n";
+    });
+    console.log(kplog);
     masterAccount.data = await server.loadAccount(masterAccount.kp.publicKey());
     accountPool = await createAccountsFrom(
       masterAccount,
@@ -64,13 +63,17 @@ beforeAll(async () => {
       networkPassphrase,
     );
   } else {
-    for (let i = 0; i < 10; i++) {
-      let kp = StellarSDK.Keypair.random();
-      process.stdout.write(
-        "Generated keypair " + kp.publicKey() + ":" + kp.secret() + "\n",
-      );
-      accountPool.push({ kp: kp, data: null });
-    }
+    for (let i = 0; i < 10; i++)
+      accountPool.push({ kp: StellarSDK.Keypair.random(), data: null });
+    accountPool.forEach((acc) => {
+      kplog +=
+        "Generated keypair " +
+        acc.kp.publicKey() +
+        ":" +
+        acc.kp.secret() +
+        "\n";
+    });
+    console.log(kplog);
     await Promise.all(
       accountPool.map(async (acc) => {
         await friendbot(acc.kp);
