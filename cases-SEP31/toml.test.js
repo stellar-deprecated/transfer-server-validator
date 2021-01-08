@@ -63,7 +63,7 @@ describe("TOML File", () => {
       expect(toml.NETWORK_PASSPHRASE).toBeTruthy();
     });
 
-    it("has a valid SEND_SERVER_API URL", () => {
+    it("has a valid DIRECT_PAYMENT_SERVER URL", () => {
       expect(() => new URL(toml.DIRECT_PAYMENT_SERVER)).not.toThrow();
     });
 
