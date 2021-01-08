@@ -28,7 +28,10 @@ expect.extend({
       };
     } else {
       return {
-        message: () => `Error handeling ${usedAccs}\n${genAccs}`,
+        message: () => `
+        ${logs}\n
+        ${usedAccs}\n
+        ${genAccs}`,
         pass: false,
       };
     }
