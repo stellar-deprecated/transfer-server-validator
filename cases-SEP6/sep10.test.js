@@ -3,6 +3,7 @@ import StellarSDK from "stellar-sdk";
 import friendbot from "../util/friendbot";
 import getTomlFile from "../util/getTomlFile";
 import {
+  throwAndLogKeypairs,
   getSep10Token,
   createAccountsFrom,
   mergeAccountsTo,
@@ -330,14 +331,18 @@ describe("SEP10", () => {
     it("succeeds for a signer without an account", async () => {
       const kp = StellarSDK.Keypair.random();
       const { token, logs } = await getSep10Token(url, kp, [kp]);
-      expect(token).orElseLogKeypairs(logs, [kp], accountPool);
+      if (!token) {
+        throwAndLogKeypairs(logs, [kp], "token not returned");
+      }
     });
 
     it("fails if a challenge for a nonexistent account has extra client signatures", async () => {
       const account = getAccount();
       const kp = StellarSDK.Keypair.random();
       const { token, logs } = await getSep10Token(url, kp, [kp, account.kp]);
-      expect(token).not.orElseLogKeypairs(logs, [account.kp, kp], accountPool);
+      if (token) {
+        throwAndLogKeypairs(logs, [account.kp, kp], "token returned");
+      }
     });
 
     /**
@@ -415,11 +420,9 @@ describe("SEP10", () => {
           );
         }
       }
-      expect(token).not.orElseLogKeypairs(
-        logs,
-        [account.kp, tmpSigner],
-        accountPool,
-      );
+      if (token) {
+        throwAndLogKeypairs(logs, [account.kp, tmpSigner], "token returned");
+      }
     });
 
     it("succeeds for a signer of an account", async () => {
@@ -457,11 +460,13 @@ describe("SEP10", () => {
       const { token, logs } = await getSep10Token(url, userAccount.kp, [
         signerAccount.kp,
       ]);
-      expect(token).orElseLogKeypairs(
-        logs,
-        [userAccount.kp, signerAccount.kp],
-        accountPool,
-      );
+      if (!token) {
+        throwAndLogKeypairs(
+          logs,
+          [userAccount.kp, signerAccount.kp],
+          "no token returned",
+        );
+      }
     });
 
     /**
@@ -543,11 +548,13 @@ describe("SEP10", () => {
           );
         }
       }
-      expect(token).not.orElseLogKeypairs(
-        logs,
-        [userAccount.kp, signerAccount.kp],
-        accountPool,
-      );
+      if (token) {
+        throwAndLogKeypairs(
+          logs,
+          [userAccount.kp, signerAccount.kp],
+          "token returned",
+        );
+      }
     });
 
     it("succeeds with multiple signers", async () => {
@@ -630,11 +637,13 @@ describe("SEP10", () => {
           );
         }
       }
-      expect(token).orElseLogKeypairs(
-        logs,
-        [userAccount.kp, signerAccount1.kp, signerAccount2.kp],
-        accountPool,
-      );
+      if (!token) {
+        throwAndLogKeypairs(
+          logs,
+          [userAccount.kp, signerAccount1.kp, signerAccount2.kp],
+          "no token returned",
+        );
+      }
     });
   });
 });
