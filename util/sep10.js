@@ -3,6 +3,17 @@ import { loggableFetch } from "./loggableFetcher";
 import getTomlFile from "./getTomlFile";
 import { resubmitOnRecoverableFailure } from "./transactions";
 
+export function throwAndLogKeypairs(logs, usedKeypairs, customMsg) {
+  let kpErrorMsg = "⬇️ Accounts used ⬇️\n -----------------------------";
+  usedKeypairs.forEach((kp) => {
+    kpErrorMsg += `
+        \nPublicKey: ${kp.publicKey()}
+        \nSecretKey: ${kp.secret()}
+        \n ----------------------------- \n`;
+  });
+  throw customMsg + logs + kpErrorMsg;
+}
+
 export async function getSep10Token(domain, keyPair, signers) {
   if (!signers) signers = [keyPair];
   const toml = await getTomlFile(domain);
