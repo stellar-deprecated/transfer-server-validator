@@ -375,13 +375,20 @@ describe("SEP10", () => {
       try {
         await server.submitTransaction(transaction);
       } catch (e) {
-        await resubmitOnRecoverableFailure(
+        let response = await resubmitOnRecoverableFailure(
           e.response.data,
           account.kp,
           [account.kp],
           builder,
           server,
         );
+        if (response.status !== 200) {
+          throwAndLogKeypairs(
+            logs,
+            [userAccount.kp, signerAccount1.kp, signerAccount2.kp],
+            "failed to remove master signer, aborting",
+          );
+        }
       }
       let token, logs;
       try {
@@ -409,13 +416,20 @@ describe("SEP10", () => {
         try {
           await server.submitTransaction(addBackSignerTx);
         } catch (e) {
-          await resubmitOnRecoverableFailure(
+          let response = await resubmitOnRecoverableFailure(
             e.response.data,
             account.kp,
             [tmpSigner],
             builder,
             server,
           );
+          if (response.status !== 200) {
+            throwAndLogKeypairs(
+              logs,
+              [userAccount.kp, signerAccount1.kp, signerAccount2.kp],
+              "failed to add back master signer, account merge will fail",
+            );
+          }
         }
       }
       if (token) {
@@ -447,13 +461,20 @@ describe("SEP10", () => {
       try {
         await server.submitTransaction(transaction);
       } catch (e) {
-        await resubmitOnRecoverableFailure(
+        let response = await resubmitOnRecoverableFailure(
           e.response.data,
           userAccount.kp,
           [userAccount.kp],
           builder,
           server,
         );
+        if (response.status !== 200) {
+          throwAndLogKeypairs(
+            logs,
+            [userAccount.kp, signerAccount1.kp, signerAccount2.kp],
+            "failed to add signer to account, aborting",
+          );
+        }
       }
       const { token, logs } = await getSep10Token(url, userAccount.kp, [
         signerAccount.kp,
@@ -497,13 +518,20 @@ describe("SEP10", () => {
       try {
         await server.submitTransaction(transaction);
       } catch (e) {
-        await resubmitOnRecoverableFailure(
+        let response = await resubmitOnRecoverableFailure(
           e.response.data,
           userAccount.kp,
           [userAccount.kp],
           builder,
           server,
         );
+        if (response.status !== 200) {
+          throwAndLogKeypairs(
+            logs,
+            [userAccount.kp, signerAccount.kp],
+            "unable to set up test: failed to increase thresholds, aborting",
+          );
+        }
       }
       let token, logs;
       try {
@@ -537,13 +565,20 @@ describe("SEP10", () => {
         try {
           await server.submitTransaction(lowerThresholdsTx);
         } catch (e) {
-          await resubmitOnRecoverableFailure(
+          let response = await resubmitOnRecoverableFailure(
             e.response.data,
             userAccount.kp,
             [userAccount.kp, signerAccount.kp],
             builder,
             server,
           );
+          if (response.status !== 200) {
+            throwAndLogKeypairs(
+              logs,
+              [userAccount.kp, signerAccount],
+              "failed to lower thresholds, account merge will fail",
+            );
+          }
         }
       }
       if (token) {
@@ -588,13 +623,20 @@ describe("SEP10", () => {
       try {
         await server.submitTransaction(transaction);
       } catch (e) {
-        await resubmitOnRecoverableFailure(
+        let response = await resubmitOnRecoverableFailure(
           e.response.data,
           userAccount.kp,
           [userAccount.kp],
           builder,
           server,
         );
+        if (response.status !== 200) {
+          throwAndLogKeypairs(
+            logs,
+            [userAccount.kp, signerAccount1.kp, signerAccount2.kp],
+            "unable to set up test: failed to increase thresholds, aborting",
+          );
+        }
       }
       let token, logs;
       try {
@@ -626,13 +668,20 @@ describe("SEP10", () => {
         try {
           await server.submitTransaction(lowerThresholdsTx);
         } catch (e) {
-          await resubmitOnRecoverableFailure(
+          let response = await resubmitOnRecoverableFailure(
             e.response.data,
             userAccount.kp,
             [userAccount.kp, signerAccount1.kp],
             builder,
             server,
           );
+          if (response.status !== 200) {
+            throwAndLogKeypairs(
+              logs,
+              [userAccount.kp, signerAccount1.kp, signerAccount2.kp],
+              "failed to lower thresholds, account merge will fail",
+            );
+          }
         }
       }
       if (!token) {
