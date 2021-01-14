@@ -384,7 +384,7 @@ describe("SEP10", () => {
         );
         if (response.status !== 200) {
           throwAndLogKeypairs(
-            logs,
+            "no logs",
             [userAccount.kp, signerAccount1.kp, signerAccount2.kp],
             "failed to remove master signer, aborting",
           );
@@ -470,7 +470,7 @@ describe("SEP10", () => {
         );
         if (response.status !== 200) {
           throwAndLogKeypairs(
-            logs,
+            "no logs",
             [userAccount.kp, signerAccount1.kp, signerAccount2.kp],
             "failed to add signer to account, aborting",
           );
@@ -527,7 +527,7 @@ describe("SEP10", () => {
         );
         if (response.status !== 200) {
           throwAndLogKeypairs(
-            logs,
+            "no logs",
             [userAccount.kp, signerAccount.kp],
             "unable to set up test: failed to increase thresholds, aborting",
           );
@@ -632,7 +632,7 @@ describe("SEP10", () => {
         );
         if (response.status !== 200) {
           throwAndLogKeypairs(
-            logs,
+            "no logs",
             [userAccount.kp, signerAccount1.kp, signerAccount2.kp],
             "unable to set up test: failed to increase thresholds, aborting",
           );
