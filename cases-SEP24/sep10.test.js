@@ -382,7 +382,7 @@ describe("SEP10", () => {
           builder,
           server,
         );
-        if (response.status !== 200) {
+        if (!response.successful) {
           throwAndLogKeypairs(
             "no logs",
             [userAccount.kp, signerAccount1.kp, signerAccount2.kp],
@@ -423,7 +423,7 @@ describe("SEP10", () => {
             builder,
             server,
           );
-          if (response.status !== 200) {
+          if (!response.successful) {
             throwAndLogKeypairs(
               logs,
               [userAccount.kp, signerAccount1.kp, signerAccount2.kp],
@@ -468,7 +468,7 @@ describe("SEP10", () => {
           builder,
           server,
         );
-        if (response.status !== 200) {
+        if (!response.successful) {
           throwAndLogKeypairs(
             "no logs",
             [userAccount.kp, signerAccount1.kp, signerAccount2.kp],
@@ -525,7 +525,7 @@ describe("SEP10", () => {
           builder,
           server,
         );
-        if (response.status !== 200) {
+        if (!response.successful) {
           throwAndLogKeypairs(
             "no logs",
             [userAccount.kp, signerAccount.kp],
@@ -572,7 +572,7 @@ describe("SEP10", () => {
             builder,
             server,
           );
-          if (response.status !== 200) {
+          if (!response.successful) {
             throwAndLogKeypairs(
               logs,
               [userAccount.kp, signerAccount],
@@ -630,7 +630,7 @@ describe("SEP10", () => {
           builder,
           server,
         );
-        if (response.status !== 200) {
+        if (!response.successful) {
           throwAndLogKeypairs(
             "no logs",
             [userAccount.kp, signerAccount1.kp, signerAccount2.kp],
@@ -675,7 +675,7 @@ describe("SEP10", () => {
             builder,
             server,
           );
-          if (response.status !== 200) {
+          if (!response.successful) {
             throwAndLogKeypairs(
               logs,
               [userAccount.kp, signerAccount1.kp, signerAccount2.kp],

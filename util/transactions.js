@@ -76,6 +76,6 @@ export async function resubmitOnRecoverableFailure(
     }
     errCode = ((response.extras || {}).result_codes || {}).transaction;
   }
-  if (response.status !== 200) console.log(response);
+  if (!response.successful) console.log(response);
   return response;
 }
