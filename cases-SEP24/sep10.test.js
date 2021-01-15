@@ -575,7 +575,7 @@ describe("SEP10", () => {
           if (!response.successful) {
             throwAndLogKeypairs(
               logs,
-              [userAccount.kp, signerAccount],
+              [userAccount.kp, signerAccount.kp],
               "failed to lower thresholds, account merge will fail",
             );
           }
