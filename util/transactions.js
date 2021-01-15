@@ -57,7 +57,7 @@ export async function resubmitOnRecoverableFailure(
   let errCode = ((response.extras || {}).result_codes || {}).transaction;
   while (
     response.status === 504 ||
-    (response.status === 400 && errCode === "tx_bad_seq")
+    (response.status === 400 && ["tx_bad_seq", "tx_too_late"].includes(errCode))
   ) {
     if (errCode === "tx_bad_seq") {
       // Update sequence number.
