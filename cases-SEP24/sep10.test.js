@@ -12,7 +12,8 @@ import { resubmitOnRecoverableFailure } from "../util/transactions";
 import { ensureCORS } from "../util/ensureCORS";
 import { loggableFetch } from "../util/loggableFetcher";
 
-jest.setTimeout(100000);
+jest.setTimeout(1000000);
+
 const urlBuilder = new URL(process.env.DOMAIN);
 const url = urlBuilder.toString();
 const account = "GCQJX6WGG7SSFU2RBO5QANTFXY7C5GTTFJDCBAAO42JCCFIMZ7PEBURP";
