@@ -47,6 +47,9 @@ const transactionSchema = {
         refunded: {
           type: "boolean",
         },
+        claimable_balance_id: {
+          type: ["string", "null"],
+        },
       },
       additionalProperties: false,
       required: [

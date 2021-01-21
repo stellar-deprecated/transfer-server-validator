@@ -55,15 +55,16 @@ describe("Transaction", () => {
   });
 
   it("returns error schema for a request without jwt", async () => {
-    let { json } = await createTransaction({
+    let { json, status } = await createTransaction({
       currency: enabledCurrency,
       account: keyPair.publicKey(),
       toml: toml,
       jwt: jwt,
       isDeposit: true,
     });
+    if (status !== 200) throw "Unable to create transaction, aborting test";
     json = await getTransactionBy({
-      value: null,
+      value: json.id,
       transferServer: toml.TRANSFER_SERVER,
       jwt: null,
       expectStatusBetween: [400, 500],
