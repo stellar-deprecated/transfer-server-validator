@@ -1,6 +1,7 @@
-import { fetch } from "./util/fetchShim";
-import getTomlFile from "./util/getTomlFile";
+import { fetch } from "../util/fetchShim";
+import getTomlFile from "../util/getTomlFile";
 import { infoSchema } from "./util/schema";
+import { ensureCORS } from "../util/ensureCORS";
 
 jest.setTimeout(30000);
 
@@ -9,6 +10,7 @@ const url = urlBuilder.toString();
 
 describe("Info", () => {
   let toml;
+  let transferServer;
   beforeAll(async () => {
     try {
       toml = await getTomlFile(url);
@@ -18,24 +20,24 @@ describe("Info", () => {
   });
 
   it("has a TRANSFER_SERVER url in the toml", () => {
-    expect(toml.TRANSFER_SERVER).toEqual(expect.stringContaining("http"));
-    expect(() => new URL(toml.TRANSFER_SERVER)).not.toThrow();
+    transferServer = toml.TRANSFER_SERVER;
+    expect(transferServer).toEqual(expect.stringContaining("http"));
+    expect(() => new URL(transferServer)).not.toThrow();
   });
 
   it("has CORS on the info endpoint", async () => {
-    const response = await fetch(toml.TRANSFER_SERVER + "/info", {
-      headers: {
-        Origin: "https://www.website.com",
-      },
-    });
-    expect(response.headers.get("access-control-allow-origin")).toBe("*");
+    const { optionsCORS, otherVerbCORS, logs } = await ensureCORS(
+      transferServer + "/info",
+    );
+    expect(optionsCORS, logs).toBe("*");
+    expect(otherVerbCORS, logs).toBe("*");
   });
 
   describe("happy path", () => {
     let json;
 
     beforeAll(async () => {
-      const response = await fetch(toml.TRANSFER_SERVER + "/info", {
+      const response = await fetch(transferServer + "/info", {
         headers: {
           Origin: "https://www.website.com",
         },

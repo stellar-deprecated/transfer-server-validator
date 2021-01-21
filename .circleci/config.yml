@@ -6,7 +6,7 @@ executors:
     environment:
       IMAGE_NAME: stellar/transfer-server-validator
     docker:
-      - image: circleci/node:latest
+      - image: circleci/node:14
 jobs:
   publish-build:
     executor: docker-publisher
@@ -18,17 +18,27 @@ jobs:
           command: |
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
             docker push $IMAGE_NAME:latest
+  deploy-sep24:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - run:
+          command:
+            git push
+            https://heroku:$HEROKU_API_KEY@git.heroku.com/$HEROKU_APP_NAME.git
+            $CIRCLE_BRANCH:master
 workflows:
   version: 2
   publish-build-deploy:
     jobs:
-      - publish-build:
-          filters:
-            branches:
-              only: master
-      - heroku/deploy-via-git:
-          requires:
-            - publish-build
+      #- publish-build:
+      #    filters:
+      #      branches:
+      #        only: master
+      - deploy-sep24:
+          #requires:
+          #  - publish-build
           filters:
             branches:
               only: master

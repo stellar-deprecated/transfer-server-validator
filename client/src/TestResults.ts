@@ -6,10 +6,18 @@ export enum TestStatus {
   RUNNING = "Running",
 }
 
+export interface SourceLine {
+  content: string;
+  isErrorLine: boolean;
+  lineNumber: number;
+  directLink: string;
+}
+
 export interface TestResult {
   name: string;
   status: TestStatus;
   failureMessages?: string[];
+  releventSource?: SourceLine[];
 }
 export interface TestResultSet {
   name: string;
@@ -19,9 +27,12 @@ export interface TestResultSet {
   numPassedTests: number;
 }
 
-export function makeTestResultSet(name: string): TestResultSet {
+export function makeTestResultSet(
+  name: string,
+  runOptional: boolean,
+): TestResultSet {
   let status = TestStatus.PENDING;
-  if (name.includes(".optional")) {
+  if (name.includes(".optional") && !runOptional) {
     status = TestStatus.SKIPPED;
   }
   return {

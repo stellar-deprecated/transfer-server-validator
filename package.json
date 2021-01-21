@@ -5,52 +5,55 @@
   "license": "MIT",
   "description": "Validates anchors implementation of SEP24",
   "repository": {
-    "url": "https://github.com/stellar/transfer-server-validator-simplified"
+    "url": "https://github.com/stellar/transfer-server-validator"
   },
   "scripts": {
     "postinstall": "cd client && npm install && cd ..",
-    "test": "jest -i --verbose --runInBand --json --outputFile=results.json",
+    "test": "jest --roots=cases-$PROJECT -i --verbose --json --outputFile=results.json --forceExit --testPathIgnorePatterns='\\b(\\w*optional\\w*)\\b'",
+    "test:run-optional": "jest --roots=cases-$PROJECT -i --verbose --json --outputFile=results.json --detectOpenHandles",
     "server:dev": "PORT=3001 nodemon server/api.js",
     "start:dev": "concurrently \"cd client && REACT_APP_API_HOST=http://localhost:3001 npm start\" \"PORT=3001 npm run server:dev\"",
     "start": "node run.js",
     "heroku-postbuild": "cd client && yarn && yarn run build"
   },
   "engines": {
-    "node": ">=10.16.3"
+    "node": "^14"
   },
   "dependencies": {
-    "@babel/core": "^7.8.6",
-    "@babel/preset-env": "^7.8.6",
-    "bufferutil": "^4.0.1",
-    "canvas": "^2.5.0",
+    "@babel/core": "^7.12.3",
+    "@babel/preset-env": "^7.12.1",
     "@stellar/prettier-config": "^1.0.1",
-    "babel-jest": "^25.1.0",
-    "chromedriver": "^80.0.1",
-    "concurrently": "^5.0.2",
+    "babel-jest": "^25.5.1",
+    "bufferutil": "^4.0.2",
+    "canvas": "^2.5.0",
+    "concurrently": "^5.3.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "jest": "^24.9.0",
+    "jest-expect-message": "^1.0.2",
     "jest-json-schema": "^2.1.0",
     "jest-junit": "^10.0.0",
     "jsonwebtoken": "^8.5.1",
-    "node-fetch": "^2.6.0",
-    "nodemon": "^2.0.2",
-    "selenium-webdriver": "^4.0.0-alpha.5",
-    "stellar-sdk": "^3.3.0",
+    "node-fetch": "^2.6.1",
+    "nodemon": "^2.0.6",
+    "stellar-sdk": "^5.0.4",
     "stmux": "^1.8.0",
     "toml": "^3.0.0",
-    "utf-8-validate": "^5.0.2"
+    "utf-8-validate": "^5.0.3"
   },
   "jest": {
     "roots": [
-      "cases"
+      "cases-SEP31",
+      "cases-SEP24",
+      "cases-SEP6"
     ],
     "reporters": [
       "default",
       "jest-junit"
     ],
     "setupFilesAfterEnv": [
-      "./cases/util/setup.js"
+      "./setup.js",
+      "jest-expect-message"
     ]
   },
   "husky": {
@@ -60,8 +63,8 @@
   },
   "prettier": "@stellar/prettier-config",
   "devDependencies": {
-    "husky": "^4.2.3",
+    "husky": "^4.3.0",
     "prettier": "^1.19.1",
-    "pretty-quick": "^2.0.1"
+    "pretty-quick": "^2.0.2"
   }
 }

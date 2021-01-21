@@ -1,9 +1,10 @@
 import StellarSDK from "stellar-sdk";
 
-import { fetch } from "./util/fetchShim";
-import getTomlFile from "./util/getTomlFile";
-import getSep10Token from "./util/sep10";
+import { fetch } from "../util/fetchShim";
+import getTomlFile from "../util/getTomlFile";
+import { getSep10Token } from "../util/sep10";
 import { errorSchema, feeSchema } from "./util/schema";
+import { ensureCORS } from "../util/ensureCORS";
 
 const keyPair = StellarSDK.Keypair.random();
 const urlBuilder = new URL(process.env.DOMAIN);
@@ -15,6 +16,7 @@ describe("Fee", () => {
   let jwt;
   let toml;
   let needFeeAuth;
+  let transferServer;
   let depositAsset = {};
 
   beforeAll(async () => {
@@ -24,7 +26,8 @@ describe("Fee", () => {
       throw "Invalid TOML formatting";
     }
 
-    const response = await fetch(toml.TRANSFER_SERVER + "/info", {
+    transferServer = toml.TRANSFER_SERVER;
+    const response = await fetch(transferServer + "/info", {
       headers: {
         Origin: "https://www.website.com",
       },
@@ -41,25 +44,27 @@ describe("Fee", () => {
     needFeeAuth = Boolean(json.fee.authentication_required);
 
     if (needFeeAuth) {
-      jwt = await getSep10Token(url, keyPair);
+      ({ token: jwt } = await getSep10Token(url, keyPair));
     }
   });
 
   it("has CORS on the fee endpoint", async () => {
-    const response = await fetch(toml.TRANSFER_SERVER + "/fee", {
-      headers: {
-        Origin: "https://www.website.com",
-      },
-    });
-    expect(response.headers.get("access-control-allow-origin")).toBe("*");
+    const { optionsCORS, otherVerbCORS, logs } = await ensureCORS(
+      transferServer + "/fee",
+    );
+
+    expect(optionsCORS, logs).toBe("*");
+    expect(otherVerbCORS, logs).toBe("*");
   });
 
   it("returns error for request with no authorization header if fee_required", async () => {
     if (needFeeAuth) {
-      let response = await fetch(toml.TRANSFER_SERVER + "/fee");
+      let response = await fetch(transferServer + "/fee");
       expect(response.status).toBeGreaterThanOrEqual(400);
       expect(response.status).toBeLessThan(500);
-      expect(await response.json()).toMatchSchema(errorSchema);
+      expect(await response.json()).toEqual({
+        type: "authentication_required",
+      });
     }
   });
 
@@ -67,7 +72,7 @@ describe("Fee", () => {
     const headers = needFeeAuth
       ? { Authorization: `Bearer ${jwt}` }
       : { Origin: "https://www.website.com" };
-    const response = await fetch(toml.TRANSFER_SERVER + "/fee", {
+    const response = await fetch(transferServer + "/fee", {
       headers: headers,
     });
     const json = await response.json();
@@ -82,7 +87,7 @@ describe("Fee", () => {
     const headers = needFeeAuth
       ? { Authorization: `Bearer ${jwt}` }
       : { Origin: "https://www.website.com" };
-    const response = await fetch(toml.TRANSFER_SERVER + `/fee?${paramString}`, {
+    const response = await fetch(transferServer + `/fee?${paramString}`, {
       headers,
     });
 

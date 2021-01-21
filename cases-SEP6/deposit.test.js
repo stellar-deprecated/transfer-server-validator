@@ -1,43 +1,45 @@
-import { fetch } from "./util/fetchShim";
-import getSep10Token from "./util/sep10";
+import { fetch } from "../util/fetchShim";
+import { getSep10Token } from "../util/sep10";
+import getTomlFile from "../util/getTomlFile";
+import { putKYCInfo, createTransaction } from "./util/transactions";
+import { getActiveCurrency } from "../util/currency";
 import StellarSDK from "stellar-sdk";
-import getTomlFile from "./util/getTomlFile";
-import { createTransaction } from "./util/interactive";
 const urlBuilder = new URL(process.env.DOMAIN);
+const testCurrency = process.env.CURRENCY;
 const url = urlBuilder.toString();
 const keyPair = StellarSDK.Keypair.random();
 
-jest.setTimeout(200000); // 20 sec timeout since we're actually stepping through web forms
+jest.setTimeout(200000);
 
 describe("Deposit", () => {
   let infoJSON;
   let enabledCurrency;
+  let currencies;
   let jwt;
   let toml;
 
   beforeAll(async () => {
-    await fetch(`https://friendbot.stellar.org?addr=${keyPair.publicKey()}`);
     try {
       toml = await getTomlFile(url);
     } catch (e) {
       throw "Invalid TOML formatting";
     }
+    const transferServer = toml.TRANSFER_SERVER;
 
-    const infoResponse = await fetch(toml.TRANSFER_SERVER + "/info", {
-      headers: {
-        Origin: "https://www.website.com",
-      },
-    });
-    infoJSON = await infoResponse.json();
-    const currencies = Object.keys(infoJSON.deposit);
-    enabledCurrency = currencies.find(
-      (currency) => infoJSON.deposit[currency].enabled,
-    );
-    jwt = await getSep10Token(url, keyPair);
+    ({ enabledCurrency, infoJSON, currencies } = await getActiveCurrency(
+      testCurrency,
+      transferServer,
+    ));
+
+    ({ token: jwt } = await getSep10Token(url, keyPair));
   });
 
   it("has a currency enabled for deposit", () => {
-    expect(enabledCurrency).toEqual(expect.any(String));
+    expect(currencies).toEqual(expect.arrayContaining([enabledCurrency]));
+    expect(
+      infoJSON.deposit[enabledCurrency].enabled,
+      "The selected currency is not enabled for deposit",
+    ).toBeTruthy();
   });
 
   it("returns a proper error with no JWT", async () => {
@@ -50,7 +52,7 @@ describe("Deposit", () => {
     });
     expect(status).toBeGreaterThanOrEqual(400);
     expect(status).toBeLessThan(500);
-    expect(json.error).toBeTruthy();
+    expect(json.type).toEqual("authentication_required");
   });
 
   it("returns a proper error with missing params", async () => {
@@ -79,8 +81,7 @@ describe("Deposit", () => {
     expect(json.error).toBeTruthy();
   });
 
-  it("returns successfully with an interactive url and a transaction id", async () => {
-    expect.assertions(5);
+  it("returns 403 or 200 Success", async () => {
     const { status, json } = await createTransaction({
       currency: enabledCurrency,
       account: keyPair.publicKey(),
@@ -88,11 +89,31 @@ describe("Deposit", () => {
       toml: toml,
       isDeposit: true,
     });
-    let interactiveURL = json.url;
     expect(json.error).toBeFalsy();
-    expect(json.type).toEqual("interactive_customer_info_needed");
-    expect(json.id).toEqual(expect.any(String));
-    expect(() => new global.URL(interactiveURL)).not.toThrow();
-    expect(status).toEqual(200);
+    expect([200, 403]).toContain(status);
+    if (json.type) {
+      expect(json.type).toEqual("non_interactive_customer_info_needed");
+      expect(json.fields).toBeTruthy();
+    }
+  });
+
+  it("returns 200 Success or 403 customer_info_status after PUT request to KYC server", async () => {
+    if (toml.KYC_SERVER) {
+      await putKYCInfo({ toml: toml, account: keyPair.publicKey(), jwt: jwt });
+    }
+    const { status, json } = await createTransaction({
+      currency: enabledCurrency,
+      account: keyPair.publicKey(),
+      jwt: jwt,
+      toml: toml,
+      isDeposit: true,
+    });
+    expect([200, 403]).toContain(status);
+    expect(json.error).toBeFalsy();
+    if (status === 200) expect(json.how).toBeTruthy();
+    if (status === 403) {
+      expect(json.type).toEqual("customer_info_status");
+      expect(["pending", "denied"]).toContain(json.status);
+    }
   });
 });

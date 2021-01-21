@@ -8,6 +8,11 @@
   font-size: 24px;
 }
 
+.CurrencyField {
+  flex-grow: 0;
+  font-size: 20px;
+}
+
 .ValidateButton {
   font-size: 24px;
   flex-grow: 0;
@@ -18,6 +23,14 @@
   font-size: 20px;
 }
 
+.ErrorMessage {
+  color: red;
+}
+
 .CheckboxField {
   zoom: 2;
+}
+
+.DropdownField {
+  zoom: 1.5;
 }

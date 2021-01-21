@@ -16,7 +16,7 @@ const transactionSchema = {
           format: "uri",
         },
         status_eta: {
-          type: "number",
+          type: ["number", "null"],
         },
         amount_in: {
           type: ["string", "null"],
@@ -48,6 +48,7 @@ const transactionSchema = {
           type: "boolean",
         },
       },
+      additionalProperties: false,
       required: [
         "id",
         "kind",
@@ -141,6 +142,26 @@ export const errorSchema = {
   required: ["error"],
 };
 
+export const currencySchema = {
+  type: "object",
+  properties: {
+    is_asset_anchored: { type: "boolean" },
+    anchor_asset_type: { type: "string" },
+    code: { type: "string" },
+    issuer: { type: "string" },
+    desc: { type: "string" },
+    status: { type: "string" },
+  },
+  required: [
+    "is_asset_anchored",
+    "anchor_asset_type",
+    "code",
+    "issuer",
+    "desc",
+    "status",
+  ],
+};
+
 export const feeSchema = {
   type: "object",
   properties: {
@@ -156,11 +177,13 @@ const depositAndWithdrawSchema = {
       properties: {
         enabled: { type: "boolean" },
         fee_fixed: { type: "number" },
+        fee_minimum: { type: "number" },
         fee_percent: { type: "number" },
         min_amount: { type: "number" },
         max_amount: { type: "number" },
       },
       required: ["enabled"],
+      additionalProperties: false,
     },
   },
 };

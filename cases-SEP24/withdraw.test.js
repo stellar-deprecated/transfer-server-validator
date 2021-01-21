@@ -1,9 +1,11 @@
-import { fetch } from "./util/fetchShim";
-import getSep10Token from "./util/sep10";
+import { fetch } from "../util/fetchShim";
+import { getSep10Token } from "../util/sep10";
 import StellarSDK from "stellar-sdk";
-import getTomlFile from "./util/getTomlFile";
+import getTomlFile from "../util/getTomlFile";
 import { createTransaction } from "./util/interactive";
+import { getActiveCurrency } from "../util/currency";
 const urlBuilder = new URL(process.env.DOMAIN);
+const testCurrency = process.env.CURRENCY;
 const url = urlBuilder.toString();
 const keyPair = StellarSDK.Keypair.random();
 
@@ -12,32 +14,34 @@ jest.setTimeout(20000); // 20 sec timeout since we're actually stepping through 
 describe("Withdraw", () => {
   let infoJSON;
   let enabledCurrency;
+  let currencies;
   let jwt;
   let toml;
 
   beforeAll(async () => {
-    await fetch(`https://friendbot.stellar.org?addr=${keyPair.publicKey()}`);
     try {
       toml = await getTomlFile(url);
     } catch (e) {
       throw "Invalid TOML formatting";
     }
 
-    const infoResponse = await fetch(toml.TRANSFER_SERVER + "/info", {
-      headers: {
-        Origin: "https://www.website.com",
-      },
-    });
-    infoJSON = await infoResponse.json();
-    const currencies = Object.keys(infoJSON.withdraw);
-    enabledCurrency = currencies.find(
-      (currency) => infoJSON.withdraw[currency].enabled,
-    );
-    jwt = await getSep10Token(url, keyPair);
+    const transferServer = toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER;
+
+    ({ enabledCurrency, infoJSON, currencies } = await getActiveCurrency(
+      testCurrency,
+      transferServer,
+      false,
+    ));
+
+    ({ token: jwt } = await getSep10Token(url, keyPair));
   });
 
   it("has a currency enabled for withdraw", () => {
-    expect(enabledCurrency).toEqual(expect.any(String));
+    expect(currencies).toEqual(expect.arrayContaining([enabledCurrency]));
+    expect(
+      infoJSON.withdraw[enabledCurrency].enabled,
+      "The selected currency is not enabled for withdraw",
+    ).toBeTruthy();
   });
 
   it("returns a proper error with no JWT", async () => {

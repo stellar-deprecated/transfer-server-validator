@@ -1,14 +1,17 @@
-import { fetch } from "./util/fetchShim";
-import getSep10Token from "./util/sep10";
-import getTomlFile from "./util/getTomlFile";
+import { fetch } from "../util/fetchShim";
+import { getSep10Token } from "../util/sep10";
+import getTomlFile from "../util/getTomlFile";
 import StellarSDK from "stellar-sdk";
-import { getTransactionBy } from "./util/transactions";
+import { getTransactionBy } from "../util/transactions";
 import { createTransaction } from "./util/interactive";
 import { errorSchema, getTransactionSchema } from "./util/schema";
+import { ensureCORS } from "../util/ensureCORS";
+import { getActiveCurrency } from "../util/currency";
 
 jest.setTimeout(60000);
 
 const urlBuilder = new URL(process.env.DOMAIN);
+const testCurrency = process.env.CURRENCY;
 const domain = urlBuilder.toString();
 const secret = "SAUOSXXF7ZDO5PKHRFR445DRKZ66Q5HIM2HIPQGWBTUKJZQAOP3VGH3L";
 const keyPair = StellarSDK.Keypair.fromSecret(secret);
@@ -17,25 +20,21 @@ describe("Transaction", () => {
   let toml;
   let enabledCurrency;
   let jwt;
+  let transferServer;
 
   beforeAll(async () => {
     toml = await getTomlFile(domain);
-    jwt = await getSep10Token(domain, keyPair);
+    ({ token: jwt } = await getSep10Token(domain, keyPair));
 
-    const infoResponse = await fetch(toml.TRANSFER_SERVER + "/info", {
-      headers: {
-        Origin: "https://www.website.com",
-      },
-    });
-    const infoJSON = await infoResponse.json();
-    const currencies = Object.keys(infoJSON.deposit);
+    transferServer = toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER;
 
-    enabledCurrency = currencies.find(
-      (currency) => infoJSON.deposit[currency].enabled,
-    );
+    ({ enabledCurrency } = await getActiveCurrency(
+      testCurrency,
+      transferServer,
+    ));
 
     expect(enabledCurrency).toBeDefined();
-    expect(toml.TRANSFER_SERVER).toBeDefined();
+    expect(transferServer).toBeDefined();
   });
 
   async function checkTransactionResponse({ json, isDeposit }) {
@@ -45,12 +44,11 @@ describe("Transaction", () => {
   }
 
   it("has CORS on the transaction endpoint", async () => {
-    const response = await fetch(toml.TRANSFER_SERVER + "/transaction", {
-      headers: {
-        Origin: "https://www.website.com",
-      },
-    });
-    expect(response.headers.get("access-control-allow-origin")).toBe("*");
+    const { optionsCORS, otherVerbCORS, logs } = await ensureCORS(
+      transferServer + "/transaction",
+    );
+    expect(optionsCORS, logs).toBe("*");
+    expect(otherVerbCORS, logs).toBe("*");
   });
 
   it("returns error schema for a request without jwt", async () => {
@@ -63,7 +61,7 @@ describe("Transaction", () => {
     });
     json = await getTransactionBy({
       value: json.id,
-      toml: toml,
+      transferServer: toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER,
       jwt: null,
       expectStatusBetween: [400, 500],
     });
@@ -78,7 +76,11 @@ describe("Transaction", () => {
       jwt: jwt,
       isDeposit: true,
     });
-    json = await getTransactionBy({ value: json.id, toml: toml, jwt: jwt });
+    json = await getTransactionBy({
+      value: json.id,
+      transferServer: toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER,
+      jwt: jwt,
+    });
     await checkTransactionResponse({ json: json, isDeposit: true });
   });
 
@@ -93,7 +95,7 @@ describe("Transaction", () => {
 
     json = await getTransactionBy({
       value: json.id,
-      toml: toml,
+      transferServer: toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER,
       jwt: jwt,
     });
     await checkTransactionResponse({ json: json, isDeposit: false });
@@ -110,15 +112,18 @@ describe("Transaction", () => {
 
     json = await getTransactionBy({
       value: json.id,
-      toml: toml,
+      transferServer: toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER,
       jwt: jwt,
     });
     const moreInfo = await fetch(json.transaction.more_info_url);
     expect(moreInfo.status).toEqual(200);
+    expect(moreInfo.headers.get("content-type")).toEqual(
+      expect.stringContaining("text/html"),
+    );
   });
 
   it("returns a proper error with missing params", async () => {
-    const response = await fetch(toml.TRANSFER_SERVER + "/transaction", {
+    const response = await fetch(transferServer + "/transaction", {
       headers: {
         Authorization: `Bearer ${jwt}`,
       },
@@ -132,8 +137,8 @@ describe("Transaction", () => {
   it("returns a proper error for a non-existing transaction by id", async () => {
     const json = await getTransactionBy({
       value: "1277bd18-a2bd-4acd-9a87-2f541c7b8933",
-      expectStatusIn: [404],
-      toml: toml,
+      expectStatus: 404,
+      transferServer: toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER,
       jwt: jwt,
     });
     expect(json).toMatchSchema(errorSchema);
@@ -143,8 +148,8 @@ describe("Transaction", () => {
     const json = await getTransactionBy({
       iden: "stellar_transaction_id",
       value: "17a670bc424ff5ce3b386dbfaae9990b66a2a37b4fbe51547e8794962a3f9e6a",
-      expectStatusIn: [404],
-      toml: toml,
+      expectStatus: 404,
+      transferServer: toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER,
       jwt: jwt,
     });
     expect(json).toMatchSchema(errorSchema);
@@ -154,9 +159,9 @@ describe("Transaction", () => {
     const json = await getTransactionBy({
       iden: "external_transaction_id",
       value: "2dd16cb409513026fbe7defc0c6f826c2d2c65c3da993f747d09bf7dafd31093",
-      expectStatusIn: [404],
+      expectStatus: 404,
       jwt: jwt,
-      toml: toml,
+      transferServer: toml.TRANSFER_SERVER_SEP0024 || toml.TRANSFER_SERVER,
     });
     expect(json).toMatchSchema(errorSchema);
   });
