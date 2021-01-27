@@ -96,16 +96,6 @@ describe("/customer", () => {
 
   describe("PUT", () => {
     it("updates to existing customers are permitted", async () => {
-      // This is actually something not clearly defined in the SEP:
-      // Should anchors allow updates to customers that aren't in
-      // NEEDS_INFO or REJECTED status? I assume so since users
-      // may want to update info from their client.
-      //
-      // This brings up a larger question: should SEP-12 GET /customer
-      // return `fields` for an existing account/memo record (assuming
-      // the client is authenticated)? This may be a security concern
-      // but it would allow clients to show users the info the anchor
-      // has on file for the user.
       let customerValues;
       ({ customerValues, fieldsRequired } = await getPutRequestBodyObj(
         keyPair.publicKey(),
@@ -179,6 +169,33 @@ describe("/customer", () => {
       );
       expect(json.id).toBe(customer_id);
       expect(status).toBe(202);
+    });
+  });
+
+  describe("DELETE", () => {
+    it("allows customers to be deleted", async () => {
+      const formData = new FormData();
+      formData.append("memo", memo);
+      formData.append("memo_type", memo_type);
+      let { status, logs } = await loggableFetch(
+        toml.KYC_SERVER + `/customer/${keyPair.publicKey()}`,
+        {
+          method: "DELETE",
+          headers: headers,
+          body: formData,
+        },
+      );
+      expect(status, logs).toBe(200);
+
+      ({ status, logs } = await loggableFetch(
+        toml.KYC_SERVER + `/customer/${keyPair.publicKey()}`,
+        {
+          method: "DELETE",
+          headers: headers,
+          body: formData,
+        },
+      ));
+      expect(status, logs).toBe(404);
     });
   });
 });

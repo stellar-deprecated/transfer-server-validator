@@ -111,12 +111,5 @@ describe("TOML File", () => {
         .replace(/(\/.*?$)/, "");
       expect(homeDomain).toEqual(expectedDomain);
     });
-
-    it("has no URLs ending in a slash", () => {
-      expect(
-        toml.DIRECT_PAYMENT_SERVER[toml.DIRECT_PAYMENT_SERVER.length - 1] !==
-          "/",
-      ).toBeTruthy();
-    });
   });
 });

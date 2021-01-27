@@ -112,8 +112,10 @@ describe("SEP10", () => {
 
       expect(tx.sequence, logs).toBe("0");
       // TODO validate timeBounds
-      expect(tx.operations, logs).toHaveLength(1);
-      expect(tx.operations[0].type, logs).toBe("manageData");
+      expect(tx.operations.length).not.toBe(0);
+      for (const op of tx.operations) {
+        expect(op.type).toBe("manageData");
+      }
       expect(tx.operations[0].source, logs).toBe(account);
       expect(tx.source, logs).toBe(toml.SIGNING_KEY);
     });
@@ -125,7 +127,7 @@ describe("SEP10", () => {
         json.transaction,
         networkPassphrase,
       );
-      expect(tx.operations, logs).toHaveLength(1);
+      expect(tx.operations.length, logs).toBeGreaterThanOrEqual(1);
       const expectedDomain = url
         .replace(/(^\w+:|^\/$)\/\//, "")
         .replace(/(\/.*?$)/, "");
