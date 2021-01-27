@@ -174,7 +174,7 @@ describe("/customer", () => {
 
   describe("DELETE", () => {
     it("allows customers to be deleted", async () => {
-      const formData = new FormData();
+      let formData = new FormData();
       formData.append("memo", memo);
       formData.append("memo_type", memo_type);
       let { status, logs } = await loggableFetch(
@@ -187,6 +187,11 @@ describe("/customer", () => {
       );
       expect(status, logs).toBe(200);
 
+      // we can't use the same form data object in a second request
+      // https://github.com/node-fetch/node-fetch/issues/126
+      formData = new FormData();
+      formData.append("memo", memo);
+      formData.append("memo_type", memo_type);
       ({ status, logs } = await loggableFetch(
         toml.KYC_SERVER + `/customer/${keyPair.publicKey()}`,
         {
