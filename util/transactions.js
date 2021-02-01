@@ -59,6 +59,7 @@ export async function resubmitOnRecoverableFailure(
     response.status === 504 ||
     (response.status === 400 && ["tx_bad_seq", "tx_too_late"].includes(errCode))
   ) {
+    console.log(`A recoverable error occurred: ${response}`);
     if (errCode === "tx_bad_seq") {
       // Update sequence number.
       // This could happen when submitting transactions using the same account
@@ -76,6 +77,7 @@ export async function resubmitOnRecoverableFailure(
     }
     errCode = ((response.extras || {}).result_codes || {}).transaction;
   }
-  if (!response.successful) console.log(response);
+  if (!response.successful)
+    console.log(`Unable to recover from error: ${response}`);
   return response;
 }
