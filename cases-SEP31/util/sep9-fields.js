@@ -40,6 +40,8 @@ export const values = {
 
   routing_number: "1234567890",
   account_number: "9876543210",
+
+  bank_branch_number: "12345678",
 };
 
 export const altValues = {
