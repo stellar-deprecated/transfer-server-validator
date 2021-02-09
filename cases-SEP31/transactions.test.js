@@ -86,7 +86,7 @@ describe("/transactions", () => {
       headers: authorizedHeaders,
       body: JSON.stringify(postBody),
     });
-    expect(resp.status).toBe(200);
+    expect([200, 201]).toContain(resp.status);
     transaction = await resp.json();
   });
 
