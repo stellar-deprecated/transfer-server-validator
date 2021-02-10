@@ -87,15 +87,3 @@ export const altValues = {
   routing_number: "1234567891",
   account_number: "9876543211",
 };
-
-function convertSection(section) {
-  return Object.fromEntries(
-    Object.keys(section).map((key) => [key, values[key]]),
-  );
-}
-
-export function convertSEP31Fields(fieldDef) {
-  return {
-    transaction: convertSection(fieldDef.transaction),
-  };
-}

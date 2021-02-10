@@ -3,17 +3,42 @@ import { loggableFetch } from "../util/loggableFetcher";
 import getTomlFile from "./util/getTomlFile";
 import { getActiveCurrency } from "./util/currency";
 import { getSep10Token } from "../util/sep10";
-import { convertSEP31Fields } from "./util/sep9-fields";
 import { keyPair } from "./util/registeredKeypair";
 import { transactionSchema } from "./util/schema";
 import { randomBytes } from "crypto";
 import { createCustomer } from "./util/sep12";
+import { values } from "./util/sep9-fields";
 
 jest.setTimeout(30000);
 
 const urlBuilder = new URL(process.env.DOMAIN);
 const url = urlBuilder.toString();
 const testCurrency = process.env.CURRENCY;
+
+const customHardCodedFields = {
+  "remittanceapi.perahub.com.ph": {
+    purpose: "Living Expenses",
+    relationship: "Brother",
+  },
+  "testanchor.stellar.org": {
+    routing_number: "1234567",
+    account_number: "1234568",
+  },
+};
+
+function getSEP31TransactionFields(infoJSON, enabledCurrency) {
+  let transactionFields = {};
+  for (let key in infoJSON.receive[enabledCurrency].fields.transaction) {
+    if (key in values) transactionFields[key] = values[key];
+  }
+  if (urlBuilder.host in customHardCodedFields) {
+    transactionFields = {
+      ...transactionFields,
+      ...customHardCodedFields[urlBuilder.host],
+    };
+  }
+  return transactionFields;
+}
 
 describe("/transactions", () => {
   let infoJSON;
@@ -22,12 +47,9 @@ describe("/transactions", () => {
   let toml;
   let transaction;
   let authorizedHeaders;
-  let sender_id;
+  let transactionFields;
   let senderMemo = Buffer.from(randomBytes(32)).toString("base64");
-  let senderFieldsRequired;
-  let receiver_id;
   let receiverMemo = Buffer.from(randomBytes(32)).toString("base64");
-  let receiverFieldsRequired;
 
   beforeAll(async () => {
     toml = await getTomlFile(url);
@@ -39,17 +61,17 @@ describe("/transactions", () => {
     ));
     const tokenResponse = await getSep10Token(url, keyPair);
     jwt = tokenResponse.token;
-    const transactionValues = convertSEP31Fields(
-      infoJSON.receive[enabledCurrency].fields,
-    );
     authorizedHeaders = {
       Authorization: `Bearer ${jwt}`,
       "Content-Type": "application/json",
     };
+    transactionFields = getSEP31TransactionFields(infoJSON, enabledCurrency);
     let postBody = {
       amount: 100,
       asset_code: enabledCurrency,
-      fields: transactionValues,
+      fields: {
+        transaction: transactionFields,
+      },
     };
     let customer_id, fieldsRequired;
     if (infoJSON.receive[enabledCurrency].sender_sep12_type) {
@@ -62,9 +84,7 @@ describe("/transactions", () => {
         toml.KYC_SERVER,
         jwt,
       ));
-      sender_id = customer_id;
-      senderFieldsRequired = fieldsRequired;
-      postBody["sender_id"] = sender_id;
+      postBody["sender_id"] = customer_id;
     }
     if (infoJSON.receive[enabledCurrency].receiver_sep12_type) {
       let type = infoJSON.receive[enabledCurrency].receiver_sep12_type;
@@ -77,9 +97,7 @@ describe("/transactions", () => {
         jwt,
         true,
       ));
-      receiver_id = customer_id;
-      receiverFieldsRequired = fieldsRequired;
-      postBody["receiver_id"] = receiver_id;
+      postBody["receiver_id"] = customer_id;
     }
     const resp = await fetch(toml.DIRECT_PAYMENT_SERVER + "/transactions", {
       method: "POST",
@@ -142,9 +160,6 @@ describe("/transactions", () => {
     });
 
     it("fails with no amount", async () => {
-      const values = convertSEP31Fields(
-        infoJSON.receive[enabledCurrency].fields,
-      );
       const headers = {
         Authorization: `Bearer ${jwt}`,
         "Content-Type": "application/json",
@@ -156,7 +171,7 @@ describe("/transactions", () => {
           headers,
           body: JSON.stringify({
             asset_code: enabledCurrency,
-            fields: values,
+            fields: { transaction: transactionFields },
           }),
         },
       );
