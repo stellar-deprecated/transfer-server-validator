@@ -78,6 +78,8 @@ export async function resubmitOnRecoverableFailure(
     errCode = ((response.extras || {}).result_codes || {}).transaction;
   }
   if (!response.successful)
-    console.log(`Unable to recover from error: ${response}`);
+    console.log(
+      `Unable to recover from error: ${errCode}, ${JSON.stringify(response)}`,
+    );
   return response;
 }
