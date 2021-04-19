@@ -186,25 +186,28 @@ describe("SEP10", () => {
         networkPassphrase,
       );
 
+      expect(tx.source, logs).toBe(toml.SIGNING_KEY);
       expect(tx.sequence, logs).toBe("0");
-      // TODO validate timeBounds
-      expect(tx.operations, logs).toHaveLength(1);
+      expect(tx.operations.length, logs).toBeGreaterThanOrEqual(2);
       expect(tx.operations[0].type, logs).toBe("manageData");
       expect(tx.operations[0].source, logs).toBe(account);
-      expect(tx.source, logs).toBe(toml.SIGNING_KEY);
-    });
-
-    it("returns SEP-10 2.0+ challenge", async () => {
-      expect(json.error, logs).toBeFalsy();
-      expect(json.transaction, logs).toBeTruthy();
-      const tx = new StellarSDK.Transaction(
-        json.transaction,
-        networkPassphrase,
+      expect(tx.operations[0].name, logs).toEqual(
+        expect.stringContaining(urlBuilder.host),
       );
-      expect(tx.operations, logs).toHaveLength(1);
-      let operation = tx.operations[0];
-      expect(operation.name, logs).toEqual(
-        expect.stringContaining(urlBuilder.hostname),
+
+      let webAuthDomainOp;
+      for (let i = 1; i < tx.operations.length; i++) {
+        if (
+          tx.operations[i].type === "manageData" &&
+          tx.operations[i].name === "web_auth_domain"
+        ) {
+          webAuthDomainOp = tx.operations[i];
+        }
+      }
+      expect(webAuthDomainOp).toBeTruthy();
+      expect(webAuthDomainOp.source).toBe(toml.SIGNING_KEY);
+      expect(webAuthDomainOp.value.toString()).toBe(
+        new URL(toml.WEB_AUTH_ENDPOINT).host,
       );
     });
 
