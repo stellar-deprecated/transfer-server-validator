@@ -74,25 +74,29 @@ describe("/transactions", () => {
       },
     };
     let customer_id, fieldsRequired;
-    if (infoJSON.receive[enabledCurrency].sender_sep12_type) {
-      let type = infoJSON.receive[enabledCurrency].sender_sep12_type;
+    if (infoJSON.receive[enabledCurrency].sep12.sender.types) {
+      let selectedType = Object.keys(
+        infoJSON.receive[enabledCurrency].sep12.sender.types,
+      )[0];
       ({ customer_id, fieldsRequired } = await createCustomer(
         keyPair.publicKey(),
         senderMemo,
         "hash",
-        type,
+        selectedType,
         toml.KYC_SERVER,
         jwt,
       ));
       postBody["sender_id"] = customer_id;
     }
-    if (infoJSON.receive[enabledCurrency].receiver_sep12_type) {
-      let type = infoJSON.receive[enabledCurrency].receiver_sep12_type;
+    if (infoJSON.receive[enabledCurrency].sep12.receiver.types) {
+      let selectedType = Object.keys(
+        infoJSON.receive[enabledCurrency].sep12.receiver.types,
+      )[0];
       ({ customer_id, fieldsRequired } = await createCustomer(
         keyPair.publicKey(),
         receiverMemo,
         "hash",
-        type,
+        selectedType,
         toml.KYC_SERVER,
         jwt,
         true,
