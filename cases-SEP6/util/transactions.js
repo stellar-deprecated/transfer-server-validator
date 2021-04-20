@@ -4,7 +4,7 @@ import FormData from "form-data";
 
 // Data required in GET /deposit or /withdraw request for each anchor
 const anchorRequestData = {
-  testanchor: {
+  stellar: {
     deposit: {
       type: "bank_account",
     },
@@ -26,7 +26,7 @@ const anchorRequestData = {
 export async function putKYCInfo({ toml, account, jwt }) {
   const params = new FormData();
   params.append("account", account);
-  let anchorReqData = getRequestData(toml.KYC_SERVER, "kyc");
+  let anchorReqData = getRequestData("kyc");
   for (let key in anchorReqData) {
     params.append(key, anchorReqData[key]);
   }
@@ -60,10 +60,7 @@ export async function createTransaction({
   if (currency) params.append("asset_code", currency);
   if (account) params.append("account", account);
 
-  let anchorReqData = getRequestData(
-    toml.TRANSFER_SERVER,
-    isDeposit ? "deposit" : "withdraw",
-  );
+  let anchorReqData = getRequestData(isDeposit ? "deposit" : "withdraw");
   for (let [key, value] of Object.entries(anchorReqData)) {
     params.append(key, value);
   }
@@ -83,11 +80,11 @@ export async function createTransaction({
   };
 }
 
-function getRequestData(transferServer, key) {
-  for (let anchor in anchorRequestData) {
-    if (transferServer.includes(anchor)) {
-      let anchorData = anchorRequestData[anchor];
-      return anchorData[key];
+function getRequestData(transactionType) {
+  let anchor = process.env.ANCHOR.toLowerCase();
+  for (let key in anchorRequestData) {
+    if (key === anchor) {
+      return anchorRequestData[anchor][transactionType];
     }
   }
 }
