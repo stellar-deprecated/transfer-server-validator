@@ -5,6 +5,17 @@
   padding: 16px;
 }
 
+.DeprecationWarning {
+  padding: 0.75rem;
+  background-color: #c20a00;
+  color: white;
+  text-align: center;
+}
+
+.DeprecationWarning a {
+  color: white;
+}
+
 .App-logo {
   height: 40vmin;
   pointer-events: none;

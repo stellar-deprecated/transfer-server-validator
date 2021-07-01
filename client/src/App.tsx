@@ -213,64 +213,75 @@ function App() {
   );
 
   return (
-    <div className="App">
-      <div className={s.DomainFieldRow}>
-        <input
-          className={s.DomainField}
-          type="text"
-          value={domain}
-          placeholder="home_domain"
-          onChange={(e) => setDomain(e.target.value)}
-        ></input>
-        <input
-          className={s.CurrencyField}
-          type="text"
-          value={currency}
-          placeholder="currency (optional)"
-          onChange={(e) => setCurrency(e.target.value)}
-        ></input>
-        <button className={s.ValidateButton} onClick={runTests} disabled={busy}>
-          {busy ? "Running..." : "Run tests"}
-        </button>
+    <>
+      <div className="DeprecationWarning">
+        This tool is deprecated and is no longer maintained. Use the new version
+        of this tool at{" "}
+        <a href="https://anchor-tests.stellar.org">anchor-tests.stellar.org</a>.
       </div>
-      <div className={s.FieldRow}>
-        <span className={s.FieldLabel}>Select SEP: </span>
-        <select
-          className={s.DropdownField}
-          value={sepSelect}
-          onChange={(e) => setSepSelect(e.target.value)}
-        >
-          <option selected value="SEP24">
-            SEP-24
-          </option>
-          <option value="SEP6">SEP-6</option>
-          <option value="SEP31">SEP-31</option>
-        </select>
+      <div className="App">
+        <div className={s.DomainFieldRow}>
+          <input
+            className={s.DomainField}
+            type="text"
+            value={domain}
+            placeholder="home_domain"
+            onChange={(e) => setDomain(e.target.value)}
+          ></input>
+          <input
+            className={s.CurrencyField}
+            type="text"
+            value={currency}
+            placeholder="currency (optional)"
+            onChange={(e) => setCurrency(e.target.value)}
+          ></input>
+          <button
+            className={s.ValidateButton}
+            onClick={runTests}
+            disabled={busy}
+          >
+            {busy ? "Running..." : "Run tests"}
+          </button>
+        </div>
+        <div className={s.FieldRow}>
+          <span className={s.FieldLabel}>Select SEP: </span>
+          <select
+            className={s.DropdownField}
+            value={sepSelect}
+            onChange={(e) => setSepSelect(e.target.value)}
+          >
+            <option selected value="SEP24">
+              SEP-24
+            </option>
+            <option value="SEP6">SEP-6</option>
+            <option value="SEP31">SEP-31</option>
+          </select>
+        </div>
+        <div className={s.FieldRow}>
+          <span className={s.FieldLabel}>Run optional tests: </span>
+          <input
+            className={s.CheckboxField}
+            type="checkbox"
+            checked={runOptionalTests}
+            onChange={(e) => setRunOptionalTests(e.target.checked)}
+          ></input>
+        </div>
+        <div className={s.FieldRow}>
+          <span className={s.FieldLabel}>Run on mainnet: </span>
+          <input
+            className={s.CheckboxField}
+            type="checkbox"
+            checked={runOnMainnet}
+            onChange={(e) => setRunOnMainnet(e.target.checked)}
+          ></input>
+        </div>
+        <p hidden={!wrongNetworkError} className={s.ErrorMessage}>
+          {wrongNetworkError}
+        </p>
+        <ErrorMessage message={errorMessage} />
+        <TestList testList={testList} />
       </div>
-      <div className={s.FieldRow}>
-        <span className={s.FieldLabel}>Run optional tests: </span>
-        <input
-          className={s.CheckboxField}
-          type="checkbox"
-          checked={runOptionalTests}
-          onChange={(e) => setRunOptionalTests(e.target.checked)}
-        ></input>
-      </div>
-      <div className={s.FieldRow}>
-        <span className={s.FieldLabel}>Run on mainnet: </span>
-        <input
-          className={s.CheckboxField}
-          type="checkbox"
-          checked={runOnMainnet}
-          onChange={(e) => setRunOnMainnet(e.target.checked)}
-        ></input>
-      </div>
-      <p hidden={!wrongNetworkError} className={s.ErrorMessage}>
-        {wrongNetworkError}
-      </p>
-      <ErrorMessage message={errorMessage} />
-      <TestList testList={testList} />
-    </div>
+    </>
   );
 }
 
